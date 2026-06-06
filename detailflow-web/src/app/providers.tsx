@@ -1,0 +1,43 @@
+'use client';
+
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { I18nProvider, useI18n } from '@/i18n/I18nProvider';
+import type { AppLocale } from '@/i18n/config';
+import { queryClient } from '@/lib/queryClient';
+import { PlanLimitDialog } from '@/components/plans/PlanLimitDialog';
+
+function AppToaster() {
+  const { isRtl } = useI18n();
+  return (
+    <Toaster
+      position={isRtl ? 'top-left' : 'top-right'}
+      containerStyle={{ top: 64, zIndex: 40 }}
+      toastOptions={{
+        style: {
+          background: 'var(--color-surface)',
+          color: 'var(--color-text)',
+          border: '1px solid var(--color-border)',
+        },
+      }}
+    />
+  );
+}
+
+export function Providers({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode;
+  initialLocale: AppLocale;
+}) {
+  return (
+    <I18nProvider initialLocale={initialLocale}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <PlanLimitDialog />
+        <AppToaster />
+      </QueryClientProvider>
+    </I18nProvider>
+  );
+}

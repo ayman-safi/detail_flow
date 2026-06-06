@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="DetailFlow نظام حجز وإدارة عمليات متكامل لمحلات تفصيل السيارات في السعودية."
+    />
+    <title>DetailFlow | نظام إدارة محترف لمحلات تفصيل السيارات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@500;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <nav class="nav shell" aria-label="التنقل الرئيسي">
+        <a class="brand" href="#top" aria-label="DetailFlow">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" role="img">
+              <path
+                d="M10 29h3.1l3.2-8.1c.8-2.1 2.8-3.4 5-3.4h8.8c2.2 0 4.2 1.3 5 3.4l3.2 8.1H42c1.1 0 2 .9 2 2v4.4c0 1.1-.9 2-2 2h-2.6a4.2 4.2 0 0 1-8.2 0H17a4.2 4.2 0 0 1-8.2 0H6c-1.1 0-2-.9-2-2V35c0-3.3 2.7-6 6-6Zm8.7 0h15.6l-2.1-5.3a2.4 2.4 0 0 0-2.2-1.5h-8.6c-1 0-1.9.6-2.2 1.5L18.7 29Zm-5.8 8.8a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Zm22.5 0a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"
+                fill="currentColor"
+              />
+              <path
+                d="M11.5 13.8c5.3-5.1 17.7-6.5 25 0"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-width="3"
+                opacity=".55"
+              />
+            </svg>
+          </span>
+          <span>
+            <strong>DetailFlow</strong>
+            <small>نظام إدارة محترف لمحلات تفصيل السيارات</small>
+          </span>
+        </a>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="فتح القائمة"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="nav-links" data-nav-links>
+          <a href="#features">المميزات</a>
+          <a href="#pricing">الأسعار</a>
+          <a class="btn btn-primary btn-small" href="#pricing">ابدأ مجاناً</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-noise" aria-hidden="true"></div>
+        <div class="hero-mesh" aria-hidden="true"></div>
+        <div class="hero-shell shell">
+          <div class="hero-copy">
+            <p class="eyebrow hero-reveal">DetailFlow</p>
+            <h1 id="hero-title" class="hero-title hero-reveal">
+              حوّل مغسلتك من واتساب إلى نظام احترافي
+            </h1>
+            <p class="hero-subtitle hero-reveal">
+              نظام حجز وإدارة عمليات متكامل لمحلات تفصيل السيارات في السعودية — جرّبه مجاناً لشهرين
+            </p>
+            <div class="hero-actions hero-reveal">
+              <a class="btn btn-primary shimmer" href="#pricing">ابدأ مجاناً الآن</a>
+              <a class="btn btn-ghost" href="#how-it-works">شاهد كيف يعمل ←</a>
+            </div>
+          </div>
+
+          <div class="hero-visual hero-reveal" aria-label="لوحة عمليات Kanban مباشرة">
+            <div class="ambient-glow" aria-hidden="true"></div>
+            <div class="kanban-window">
+              <div class="window-topbar">
+                <span></span>
+                <span></span>
+                <span></span>
+                <p>لوحة عمليات اليوم</p>
+              </div>
+              <div class="kanban-summary">
+                <div>
+                  <strong>18</strong>
+                  <span>سيارة نشطة</span>
+                </div>
+                <div>
+                  <strong>92%</strong>
+                  <span>التزام بالمواعيد</span>
+                </div>
+                <div>
+                  <strong>4.9</strong>
+                  <span>رضا العملاء</span>
+                </div>
+              </div>
+              <div class="kanban-board">
+                <article class="kanban-column">
+                  <h3>حجز</h3>
+                  <div class="task-card">
+                    <span>مرسيدس S</span>
+                    <small>غسيل فاخر</small>
+                  </div>
+                  <div class="task-card muted-card">
+                    <span>BMW X7</span>
+                    <small>سيراميك</small>
+                  </div>
+                </article>
+                <article class="kanban-column">
+                  <h3>وصل</h3>
+                  <div class="task-card">
+                    <span>لكزس ES</span>
+                    <small>تلميع داخلي</small>
+                  </div>
+                </article>
+                <article class="kanban-column active">
+                  <h3>غسيل</h3>
+                  <div class="task-card gold-card">
+                    <span>رنج روفر</span>
+                    <small>باقة كاملة</small>
+                  </div>
+                  <div class="task-card">
+                    <span>تويوتا لاندكروزر</span>
+                    <small>غسيل خارجي</small>
+                  </div>
+                </article>
+                <article class="kanban-column">
+                  <h3>تلميع</h3>
+                  <div class="task-card">
+                    <span>بورش كايين</span>
+                    <small>تلميع حماية</small>
+                  </div>
+                </article>
+                <article class="kanban-column">
+                  <h3>جاهز</h3>
+                  <div class="task-card done-card">
+                    <span>أودي Q8</span>
+                    <small>تم الإشعار</small>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof section-compact" aria-label="دليل اجتماعي">
+        <div class="shell proof-inner reveal">
+          <p>ينضم إليه محلات من الرياض وجدة والدمام</p>
+          <div class="shop-badges">
+            <span>تفصيل النخبة <b>★★★★★</b></span>
+            <span>لمعة الرياض <b>★★★★★</b></span>
+            <span>كلاسيك كار كير <b>★★★★★</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="eyebrow">المميزات</p>
+            <h2 id="features-title">كل ما يحتاجه محل التفصيل في لوحة واحدة</h2>
+            <p>من الحجز إلى التسليم، DetailFlow يختصر الفوضى اليومية في مسار واضح.</p>
+          </div>
+
+          <div class="features-grid">
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 3v3M17 3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v11.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+                  <path d="M8 13h3M13 13h3M8 17h3" />
+                </svg>
+              </span>
+              <h3>صفحة حجز إلكترونية</h3>
+              <p>عميلك يحجز مباشرة من رابط خاص بمحلك — بدون واتساب</p>
+            </article>
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 0 1 2-2Z" />
+                  <path d="M9 8h6M9 12h6M9 16h4" />
+                </svg>
+              </span>
+              <h3>لوحة عمليات Kanban</h3>
+              <p>تتبع كل سيارة من لحظة الوصول حتى التسليم</p>
+            </article>
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 21s7-5.3 7-12a7 7 0 0 0-14 0c0 6.7 7 12 7 12Z" />
+                  <path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                </svg>
+              </span>
+              <h3>تتبع السيارة للعميل</h3>
+              <p>رابط عام يُظهر للعميل مرحلة سيارته لحظة بلحظة</p>
+            </article>
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 11.5a7.5 7.5 0 0 1 13.1-5 7.5 7.5 0 0 1-8.8 11.8L4 19.5l1.2-4.1A7.5 7.5 0 0 1 4 11.5Z" />
+                  <path d="M9 9.5c.8 2 2.1 3.3 4.1 4.1l1.4-1.1 2 .5c.2 1.2-.4 2.4-1.6 2.6-3.9.5-8-3.6-7.5-7.5.2-1.2 1.4-1.9 2.6-1.6l.5 2-1.5 1Z" />
+                </svg>
+              </span>
+              <h3>إشعارات WhatsApp تلقائية</h3>
+              <p>عميلك يستلم رسالة فور جاهزية سيارته</p>
+            </article>
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 19V5M4 19h16" />
+                  <path d="M8 16v-5M12 16V8M16 16v-7" />
+                  <path d="m8 11 4-3 4 1 4-4" />
+                </svg>
+              </span>
+              <h3>تقارير وتحليلات</h3>
+              <p>احصائيات يومية وشهرية لأداء محلك</p>
+            </article>
+            <article class="feature-card reveal">
+              <span class="icon-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
+                  <path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.2 2.4 3.2 5.3 3.2 9s-1 6.6-3.2 9c-2.2-2.4-3.2-5.3-3.2-9S9.8 5.4 12 3Z" />
+                </svg>
+              </span>
+              <h3>دعم العربية والإنجليزية</h3>
+              <p>النظام يعمل بالكاملين مع دعم الاتجاه RTL</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section steps-section" id="how-it-works" aria-labelledby="steps-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="eyebrow">كيف يعمل</p>
+            <h2 id="steps-title">من التسجيل إلى إدارة اليوم بالكامل</h2>
+          </div>
+          <div class="steps">
+            <article class="step reveal">
+              <span>1</span>
+              <h3>سجّل محلك في دقيقتين</h3>
+            </article>
+            <article class="step reveal">
+              <span>2</span>
+              <h3>شارك رابط الحجز مع عملائك</h3>
+            </article>
+            <article class="step reveal">
+              <span>3</span>
+              <h3>أدر كل عملياتك من لوحة واحدة</h3>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase section" aria-labelledby="showcase-title">
+        <div class="shell showcase-grid">
+          <div class="showcase-copy reveal">
+            <p class="eyebrow">صفحة الحجز العامة</p>
+            <h2 id="showcase-title">رابط جاهز لعملائك على واتساب وانستقرام</h2>
+            <p>
+              صفحة حجز إلكترونية خاصة بالمحل تعرض الخدمات، الأوقات المتاحة، وتحوّل الطلب مباشرة إلى لوحة العمليات.
+            </p>
+          </div>
+          <div class="booking-mockup reveal" aria-label="نموذج صفحة الحجز العامة">
+            <div class="booking-top">
+              <span class="shop-icon" aria-hidden="true"></span>
+              <div>
+                <h3>لمعة الرياض للتفصيل</h3>
+                <p>اختر الخدمة والوقت المناسب</p>
+              </div>
+            </div>
+            <div class="service-list">
+              <article class="service-card selected">
+                <h4>غسيل خارجي</h4>
+                <p>45 دقيقة</p>
+                <strong>35 ريال</strong>
+              </article>
+              <article class="service-card">
+                <h4>تلميع</h4>
+                <p>3 ساعات</p>
+                <strong>220 ريال</strong>
+              </article>
+              <article class="service-card">
+                <h4>سيراميك</h4>
+                <p>يوم كامل</p>
+                <strong>899 ريال</strong>
+              </article>
+            </div>
+            <div class="slot-heading">
+              <span>المواعيد المتاحة</span>
+              <small>اليوم</small>
+            </div>
+            <div class="time-slots">
+              <button type="button">10:00</button>
+              <button type="button">11:30</button>
+              <button type="button" class="active">01:00</button>
+              <button type="button">02:30</button>
+              <button type="button">04:00</button>
+              <button type="button">05:30</button>
+            </div>
+            <button class="booking-submit" type="button">تأكيد الحجز</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <p class="eyebrow">الأسعار</p>
+            <h2 id="pricing-title">ابدأ مجاناً، ثم اختر ما يناسب نمو محلك</h2>
+          </div>
+          <div class="pricing-grid">
+            <article class="pricing-card reveal scale-reveal">
+              <div class="plan-top">
+                <h3>المجاني</h3>
+                <p>30 حجز/شهر — مجاني للأبد</p>
+              </div>
+              <div class="price">مجاني</div>
+              <ul class="feature-list">
+                <li class="included">30 حجز شهرياً</li>
+                <li class="included">صفحة حجز إلكترونية</li>
+                <li class="included">لوحة العمليات</li>
+                <li class="included">تتبع السيارة</li>
+                <li class="excluded">إشعارات WhatsApp</li>
+                <li class="excluded">التقارير</li>
+              </ul>
+              <a class="btn btn-ghost" href="#top">ابدأ مجاناً</a>
+            </article>
+            <article class="pricing-card popular reveal scale-reveal">
+              <span class="popular-badge">الأكثر شيوعاً</span>
+              <div class="plan-top">
+                <h3>Pro</h3>
+                <p>حجوزات غير محدودة</p>
+              </div>
+              <div class="price"><strong>149</strong> ريال/شهر</div>
+              <ul class="feature-list">
+                <li class="included">حجوزات غير محدودة</li>
+                <li class="included">كل مميزات المجاني</li>
+                <li class="included">إشعارات WhatsApp</li>
+                <li class="included">التقارير والتحليلات</li>
+                <li class="included">10 حسابات موظفين</li>
+                <li class="excluded">دعم الفروع قادم لاحقاً</li>
+              </ul>
+              <a class="btn btn-primary shimmer" href="#top">ابدأ Pro</a>
+            </article>
+            <article class="pricing-card coming-later reveal scale-reveal">
+              <span class="popular-badge coming-badge">قادم لاحقاً</span>
+              <div class="plan-top">
+                <h3>Business</h3>
+                <p>دعم المواقع والفروع قادم لاحقاً</p>
+              </div>
+              <div class="price">قريباً</div>
+              <ul class="feature-list">
+                <li class="included">كل مميزات Pro</li>
+                <li class="included">إدارة الفروع قادمة لاحقاً</li>
+                <li class="included">تشغيل موحد للمواقع قادم لاحقاً</li>
+                <li class="included">أولوية الدعم عند الإطلاق</li>
+              </ul>
+              <span class="btn btn-ghost btn-disabled" aria-disabled="true">قادم لاحقاً</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section faq-section" aria-labelledby="faq-title">
+        <div class="shell faq-shell">
+          <div class="section-heading reveal">
+            <p class="eyebrow">الأسئلة الشائعة</p>
+            <h2 id="faq-title">إجابات واضحة قبل أن تبدأ</h2>
+          </div>
+          <div class="faq-list reveal" data-faq-list>
+            <article class="faq-item open">
+              <button type="button" aria-expanded="true">
+                <span>هل أحتاج بطاقة ائتمانية للتسجيل؟</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="faq-panel">
+                <p>لا — التسجيل مجاني تماماً بدون أي بيانات دفع</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" aria-expanded="false">
+                <span>كيف يحجز عملائي؟</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="faq-panel">
+                <p>تحصل على رابط خاص بمحلك تشاركه على واتساب أو انستقرام</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" aria-expanded="false">
+                <span>هل النظام يعمل على الجوال؟</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="faq-panel">
+                <p>نعم — مصمم أولاً للجوال لك وللعميل</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" aria-expanded="false">
+                <span>ماذا يحدث بعد انتهاء الشهرين المجانيين؟</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="faq-panel">
+                <p>تختار خطتك أو تستمر على الخطة المجانية بـ 30 حجز شهرياً</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button type="button" aria-expanded="false">
+                <span>هل بياناتي آمنة؟</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div class="faq-panel">
+                <p>كل بيانات محلك معزولة تماماً ومشفرة</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta section" aria-labelledby="final-cta-title">
+        <div class="shell final-cta-inner reveal">
+          <h2 id="final-cta-title">جاهز تبدأ؟</h2>
+          <p>سجّل الآن واحصل على شهرين مجاناً — لا حاجة لبطاقة ائتمانية</p>
+          <a class="btn btn-primary btn-large shimmer" href="#pricing">ابدأ مجاناً ←</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="#top" aria-label="DetailFlow">
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48" role="img">
+                <path
+                  d="M10 29h3.1l3.2-8.1c.8-2.1 2.8-3.4 5-3.4h8.8c2.2 0 4.2 1.3 5 3.4l3.2 8.1H42c1.1 0 2 .9 2 2v4.4c0 1.1-.9 2-2 2h-2.6a4.2 4.2 0 0 1-8.2 0H17a4.2 4.2 0 0 1-8.2 0H6c-1.1 0-2-.9-2-2V35c0-3.3 2.7-6 6-6Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+            <span>
+              <strong>DetailFlow</strong>
+              <small>نظام إدارة محترف لمحلات تفصيل السيارات</small>
+            </span>
+          </a>
+        </div>
+        <div class="footer-column">
+          <h3>المنتج</h3>
+          <a href="#features">المميزات</a>
+          <a href="#how-it-works">كيف يعمل</a>
+          <a href="#pricing">الأسعار</a>
+        </div>
+        <div class="footer-column">
+          <h3>الشركة</h3>
+          <a href="#top">عن DetailFlow</a>
+          <a href="#faq-title">الأسئلة الشائعة</a>
+          <a href="#pricing">ابدأ مجاناً</a>
+        </div>
+        <div class="footer-column">
+          <h3>التواصل</h3>
+          <a href="mailto:hello@detailflow.sa">hello@detailflow.sa</a>
+          <a href="tel:+966500000000">+966 50 000 0000</a>
+          <div class="social-links" aria-label="روابط التواصل">
+            <a href="https://x.com" aria-label="X">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h4.7l3.8 5.3L17.1 4H20l-6 6.9L20.6 20h-4.7l-4.2-5.8L6.7 20H3.8l6.5-7.5L4 4Zm3 2 9.8 12h.8L7.8 6H7Z" />
+              </svg>
+            </a>
+            <a href="https://instagram.com" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="4" width="16" height="16" rx="5" />
+                <circle cx="12" cy="12" r="3.5" />
+                <path d="M17.5 6.8h.1" />
+              </svg>
+            </a>
+            <a href="https://wa.me/966500000000" aria-label="WhatsApp">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 11.5a7.5 7.5 0 0 1 13.1-5 7.5 7.5 0 0 1-8.8 11.8L4 19.5l1.2-4.1A7.5 7.5 0 0 1 4 11.5Z" />
+                <path d="M9 9.5c.8 2 2.1 3.3 4.1 4.1l1.4-1.1 2 .5c.2 1.2-.4 2.4-1.6 2.6-3.9.5-8-3.6-7.5-7.5.2-1.2 1.4-1.9 2.6-1.6l.5 2-1.5 1Z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="shell footer-bottom">
+        <p>© 2026 DetailFlow — جميع الحقوق محفوظة</p>
+      </div>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
+</html>

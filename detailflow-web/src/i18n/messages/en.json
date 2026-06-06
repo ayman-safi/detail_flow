@@ -1,0 +1,537 @@
+{
+  "meta": {
+    "title": "DetailFlow",
+    "description": "Operations software for premium detailing and denting shops."
+  },
+  "common": {
+    "brandLead": "Detail",
+    "brandAccent": "Flow",
+    "language": "Language",
+    "close": "Close",
+    "copySuccess": "Link copied",
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "retry": "Retry",
+      "next": "Next",
+      "previous": "Previous",
+      "copyLink": "Copy link",
+      "newBooking": "New booking",
+      "confirmBooking": "Confirm booking",
+    "create": "Create",
+    "logout": "Log out",
+    "showDelivered": "Show delivered",
+      "hideDelivered": "Hide delivered",
+      "saveChanges": "Save changes",
+      "downloadReceipt": "Receipt PDF",
+      "markDelivered": "Mark as delivered",
+      "addNotes": "Add notes +",
+      "whatsApp": "WhatsApp"
+    },
+    "labels": {
+      "date": "Date",
+      "time": "Time",
+      "phone": "Phone",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "service": "Service",
+      "plate": "Plate",
+      "color": "Color",
+      "make": "Make",
+      "model": "Model",
+      "type": "Type",
+      "notes": "Notes",
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "stage": "Stage",
+      "status": "Status",
+      "role": "Role",
+      "duration": "Duration",
+      "price": "Price",
+      "actions": "Actions",
+      "logo": "Logo",
+      "shopName": "Shop name",
+      "actualPrice": "Actual price",
+      "assignedStaff": "Assigned staff",
+      "search": "Search"
+    },
+    "states": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "unassigned": "Unassigned",
+      "loading": "Loading"
+    },
+    "units": {
+      "minutesShort": "{value} min",
+      "currency": "{value}",
+      "vehicles": "Vehicles: {count}",
+      "shown": "Shown: {count}"
+    },
+    "locales": {
+      "en": "English",
+      "ar": "Arabic",
+      "enShort": "EN",
+      "arShort": "AR",
+      "switcherLabel": "Switch language"
+    }
+  },
+  "navigation": {
+    "board": "Operations board",
+    "bookings": "Bookings",
+    "customers": "Customers",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "openNavigation": "Open navigation"
+  },
+  "weekdays": {
+    "Sunday": "Sunday",
+    "Monday": "Monday",
+    "Tuesday": "Tuesday",
+    "Wednesday": "Wednesday",
+    "Thursday": "Thursday",
+    "Friday": "Friday",
+    "Saturday": "Saturday"
+  },
+  "plans": {
+    "Free": "Free",
+    "Pro": "Pro",
+    "Business": "Business"
+  },
+  "planStatus": {
+    "plan": "Plan",
+    "bookingWarning": "{remaining} bookings left this month ({used}/{limit} used).",
+    "staffUsage": "{used}/{limit} staff seats used",
+    "staffUnlimited": "{used} staff seats used"
+  },
+  "planLimit": {
+    "title": "Plan limit reached",
+    "freeTitle": "You reached the Free plan limit",
+    "description": "Upgrade to Pro to continue using this feature.",
+    "bookingUsage": "You used {used}/{limit} bookings this month.",
+    "upgradeCta": "Upgrade to Pro - SAR 149/month",
+    "later": "Remind me later",
+    "upgradeRequested": "Upgrade request noted"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Sign in to your workspace",
+      "shopId": "Shop ID",
+      "submit": "Sign in",
+      "switch": "New shop? Create an account",
+      "errorFallback": "Unable to sign in."
+    },
+    "password": {
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "validationMin": "Password must be at least 8 characters.",
+      "validationMatch": "Passwords must match."
+    },
+    "acceptInvite": {
+      "title": "Accept invite",
+      "subtitle": "Choose a password to join this workspace.",
+      "submit": "Set password",
+      "success": "Invite accepted",
+      "errorFallback": "Unable to accept invite.",
+      "missingToken": "Invite link is missing or incomplete."
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "subtitle": "Choose a new password for this account.",
+      "submit": "Reset password",
+      "success": "Password updated",
+      "errorFallback": "Unable to reset password.",
+      "missingToken": "Reset link is missing or incomplete."
+    },
+    "register": {
+      "subtitle": "Create your DetailFlow workspace",
+      "shopName": "Shop name",
+      "shopSlug": "Shop ID / Slug",
+      "shopSlugHint": "Your URL: detailflow.app/{slug}",
+      "shopSlugFallback": "shop-id",
+      "shopSlugError": "Use 3-30 lowercase letters, numbers, or hyphens.",
+      "ownerName": "Your full name",
+      "submit": "Create workspace",
+      "switch": "Already have an account?",
+      "errorFallback": "Unable to create account.",
+      "heroTitle": "Join 500+ detailing shops",
+      "heroPoints": [
+        "Live operations board",
+        "Customer-ready tracking links",
+        "Receipt PDFs and photo history"
+      ]
+    }
+  },
+  "board": {
+    "summary": {
+      "active": "Active",
+      "ready": "Ready",
+      "completed": "Completed",
+      "liveBoard": "Live board"
+    },
+    "toasts": {
+      "liveActive": "Live updates active",
+      "liveLost": "Live connection lost. Retrying...",
+      "walkInAdded": "Walk-in added",
+      "walkInError": "Unable to add walk-in",
+      "movedTo": "Moved to {stage}",
+      "moveFailed": "Move failed",
+      "staffAssigned": "Staff assigned",
+      "staffUnassigned": "Staff unassigned",
+      "invalidPrice": "Enter a valid price.",
+      "workOrderUpdated": "Work order updated",
+      "photoDeleted": "Photo deleted",
+      "whatsAppOpened": "WhatsApp message prepared",
+      "whatsAppFailed": "Unable to prepare WhatsApp message",
+      "whatsAppInvalidPhone": "Customer phone must include at least 7 digits."
+    },
+    "help": {
+      "compact": "Swipe across stages or use the quick move buttons on each card.",
+      "desktop": "Click a card to open details. Drag by the grip handle to move stages.",
+      "stageProgress": "Stage {current} / {total}",
+      "previousStage": "Previous stage",
+      "nextStage": "Next stage",
+      "quickMove": "Quick move",
+      "open": "Open",
+      "dragVehicle": "Drag {plate}",
+      "dragToMove": "Drag to move stage"
+    },
+    "stageEmpty": "No vehicles in this stage",
+    "walkIn": {
+      "title": "Add walk-in",
+      "submit": "Create walk-in",
+      "servicePlaceholder": "Select service",
+      "vehicleTypeDefault": "Sedan"
+    },
+    "workOrder": {
+      "title": "Work order",
+      "tabs": {
+        "details": "Details",
+        "photos": "Photos",
+        "history": "History"
+      },
+      "customerCommunication": "Customer communication",
+      "whatsAppDescription": "Re-send the Ready WhatsApp message with the public tracking and receipt links.",
+      "whatsAppTrackingDescription": "Re-send the customer tracking link by WhatsApp from this work order window.",
+      "reSendReadyWhatsApp": "Re-send Ready WhatsApp",
+      "reSendTrackingWhatsApp": "Re-send tracking link",
+      "unsavedTitle": "Unsaved changes",
+      "unsavedDescription": "Price or notes were changed. Save before leaving this work order?",
+      "discardChanges": "Discard changes",
+      "saveAndLeave": "Save and leave",
+      "notesPlaceholder": "Internal notes",
+      "before": "Before",
+      "after": "After",
+      "uploadLabel": "Upload {type}",
+      "uploadingLabel": "Uploading {progress}%",
+      "uploadSuccess": "{type} photo uploaded",
+      "uploadFailed": "Upload failed",
+      "historyTo": "to",
+      "historyBy": "by {name} {time}",
+      "historyEmpty": "No stage changes yet."
+    },
+    "card": {
+      "unassigned": "Unassigned",
+      "previous": "Back",
+      "next": "Next"
+    }
+  },
+  "bookings": {
+    "title": "New booking",
+    "countOnDate": "{count} bookings on {date}",
+    "emptyTitle": "No bookings for this day.",
+    "statusUpdated": "Status updated",
+    "customerSearchEmpty": "New customer, this record will be created",
+    "actionsLabel": "Booking actions",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "viewWorkOrder": "View work order",
+    "success": {
+      "title": "Booking confirmed!",
+      "copy": "Copy link",
+      "new": "New booking",
+      "whatsAppTemplate": "Track your car: {url}"
+    },
+    "form": {
+      "customerName": "Customer name",
+      "timePlaceholder": "Select below",
+      "servicePlaceholder": "Select service",
+      "notesPlaceholder": "Notes",
+      "confirmed": "Booking confirmed",
+      "failed": "Booking failed",
+      "validation": {
+        "phone": "Valid phone required",
+        "name": "Name required",
+        "service": "Select a service",
+        "date": "Date required",
+        "time": "Select a time slot",
+        "make": "Make required",
+        "model": "Model required",
+        "color": "Color required"
+      }
+    }
+  },
+  "publicBooking": {
+    "eyebrow": "Book a service",
+    "notFound": {
+      "title": "Booking page not found",
+      "description": "Check the shop link and try again."
+    },
+    "service": {
+      "choose": "Choose a service",
+      "empty": "No services are available right now."
+    },
+    "schedule": {
+      "title": "Date and time",
+      "availableSlots": "Available 30 min slots",
+      "noSlots": "No slots available for this date.",
+      "chooseServiceFirst": "Choose a service to see times.",
+      "loadFailed": "Could not load available times.",
+      "selectTime": "Select a time to continue",
+      "summary": "{date} at {time}"
+    },
+    "customer": {
+      "phone": "Phone number"
+    },
+    "notes": {
+      "placeholder": "Please focus on interior"
+    },
+    "confirmation": {
+      "title": "Booking confirmed",
+      "description": "Your tracking link is ready now. Use it to follow the vehicle status.",
+      "copyLink": "Copy tracking link",
+      "copyToast": "Tracking link copied",
+      "bookAnother": "Book another service",
+      "toast": "Booking confirmed"
+    },
+    "validation": {
+      "service": "Choose a service.",
+      "date": "Choose a date.",
+      "time": "Choose an available time.",
+      "name": "Enter your name.",
+      "phone": "Enter a valid phone number.",
+      "make": "Enter the vehicle make.",
+      "model": "Enter the vehicle model.",
+      "color": "Enter the vehicle color.",
+      "plate": "Enter the plate number.",
+      "failed": "Booking failed."
+    }
+  },
+  "customers": {
+    "metrics": {
+      "customers": "Customers",
+      "visitsOnPage": "Visits on page",
+      "repeatCustomers": "Repeat customers"
+    },
+    "title": "Customers",
+    "subtitle": "Search, inspect visit history, and open recent work-order context.",
+    "searchPlaceholder": "Search name or phone",
+    "emptyTitle": "No customers found",
+    "emptyDescription": "Try a different name or phone number.",
+    "visits": "Visits",
+    "lastVisit": "Last visit",
+    "recentWork": "Recent work",
+    "noWorkOrders": "No work orders",
+    "pagination": "Page {page} of {total}",
+    "drawer": {
+      "totalVisits": "Total visits",
+      "noVisitsYet": "No visits yet",
+      "recentWorkOrders": "Recent work orders",
+      "noHistoryTitle": "No work history",
+      "noHistoryDescription": "Work orders will appear here after this customer visits."
+    }
+  },
+  "analytics": {
+    "stats": {
+      "bookingsToday": "Bookings today",
+      "activeVehicles": "Active vehicles",
+      "completedToday": "Completed today",
+      "repeatCustomers": "Repeat customers"
+    },
+    "jobsThisWeek": "Jobs this week",
+    "topServices": "Top services",
+    "recentActivity": "Recent activity",
+    "noActivity": "No recent activity",
+    "lockedTitle": "Analytics require Pro",
+    "lockedDescription": "Upgrade to Pro to unlock service trends, repeat-customer metrics, and recent activity reporting.",
+    "activityItem": "by {name} on {plate} {time}",
+    "charts": {
+      "count": "Count",
+      "jobsDate": "{date}"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profile",
+      "services": "Services",
+      "availability": "Availability",
+      "receipts": "Receipts",
+      "staff": "Staff",
+      "notifications": "Notifications"
+    },
+    "profile": {
+      "title": "Shop profile",
+      "saved": "Profile saved",
+      "uploaded": "Logo uploaded"
+    },
+    "services": {
+      "title": "Services",
+      "add": "Add service",
+      "saved": "Service saved",
+      "reordered": "Service order updated",
+      "toggleAria": "Toggle {name}"
+    },
+    "availability": {
+      "title": "Booking availability",
+      "subtitle": "Set the shop hours and booking capacity used by staff and public booking flows.",
+      "bayCapacity": "Bay capacity",
+      "bayCapacityHint": "Maximum confirmed bookings that can overlap in the same time slot.",
+      "weeklyHours": "Weekly hours",
+      "open": "Open",
+      "closed": "Closed",
+      "opens": "Opens",
+      "closes": "Closes",
+      "closures": "Closure periods",
+      "closuresHint": "Dates here return no available booking times.",
+      "noClosures": "No closure periods configured.",
+      "addClosure": "Add closure",
+      "removeClosure": "Remove closure",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "reasonPlaceholder": "Holiday, maintenance, private event",
+      "saved": "Availability settings saved",
+      "saveFailed": "Unable to save availability settings",
+      "restricted": "Availability settings are available to managers and owners."
+    },
+    "receipts": {
+      "title": "Receipt pricing",
+      "subtitle": "Choose the currency printed on receipt PDFs and used in service price previews.",
+      "currency": "Receipt currency",
+      "currencyHint": "New and existing receipts use the currently selected shop currency.",
+      "previewLabel": "Preview",
+      "saved": "Receipt settings saved",
+      "saveFailed": "Unable to save receipt settings",
+      "restricted": "Receipt settings are available to managers and owners.",
+      "currencyOptions": {
+        "SAR": "Saudi riyal",
+        "USD": "US dollar",
+        "TRY": "Turkish lira",
+        "EUR": "Euro",
+        "SYP": "Syrian pound"
+      }
+    },
+    "staff": {
+      "title": "Staff",
+      "invite": "Invite staff",
+      "inviteTitle": "Invite staff",
+      "fullNamePlaceholder": "Full name",
+      "emailPlaceholder": "Email",
+      "temporaryPasswordPlaceholder": "Temporary password",
+      "createUser": "Create user",
+      "added": "Staff member added",
+      "addFailed": "Unable to add staff member",
+      "updated": "Staff updated",
+      "restricted": "Staff management is available to managers and owners.",
+      "pendingInvite": "Pending",
+      "inviteLinkLabel": "Invite link",
+      "copyInviteLink": "Copy invite link",
+      "copyResetLink": "Copy reset link",
+      "inviteCopied": "Invite link copied",
+      "resetCopied": "Reset link copied",
+      "copyFailed": "Unable to copy link",
+      "inviteLinkFailed": "Unable to create invite link",
+      "resetLinkFailed": "Unable to create reset link",
+      "linkExpires": "Expires {date}",
+      "makeStaff": "Make staff",
+      "makeManager": "Make manager",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "notifications": {
+      "title": "WhatsApp notifications",
+      "subtitle": "Configure Meta WhatsApp Business delivery for Ready-stage customer messages.",
+      "saved": "Notification settings saved",
+      "saveFailed": "Unable to save notification settings",
+      "restricted": "WhatsApp notification settings are available to owners.",
+      "lockedTitle": "WhatsApp requires Pro",
+      "lockedDescription": "Upgrade to Pro to enable WhatsApp tracking links and automatic Ready notifications.",
+      "enabled": "Provider enabled",
+      "enabledHint": "Allow this tenant to send automated Ready notifications through Meta.",
+      "phoneNumberId": "Business phone number ID",
+      "accessToken": "Access token",
+      "accessTokenStored": "Stored securely. Enter a new token only to replace it.",
+      "clearToken": "Clear stored token",
+      "clearTokenHint": "Use this only when replacing or disabling the integration.",
+      "templateName": "Ready template name",
+      "templateLanguage": "Template language code",
+      "autoReady": "Automatic Ready message",
+      "autoReadyHint": "Send the approved WhatsApp template when a work order enters Ready.",
+      "activityTitle": "Delivery activity",
+      "activitySubtitle": "Recent Ready-notification attempts and provider status updates.",
+      "activityEmpty": "No notification activity yet.",
+      "lastEvent": "Last update {time}",
+      "statuses": {
+        "Requested": "Requested",
+        "Accepted": "Accepted",
+        "Sent": "Sent",
+        "Delivered": "Delivered",
+        "Read": "Read",
+        "Failed": "Failed"
+      }
+    }
+  },
+  "tracking": {
+    "notFoundTitle": "Booking not found.",
+    "notFoundDescription": "The tracking link may have expired or is invalid.",
+    "readyDeliveredTitle": "Your vehicle has been delivered.",
+    "readyDeliveredDescription": "Thank you for choosing this shop.",
+    "readyPickupTitle": "Your vehicle is ready for pickup!",
+    "readyPickupDescription": "Please proceed to the shop at your earliest convenience.",
+    "currentStage": "Current stage",
+    "estimatedReadyBy": "Estimated ready by:",
+    "readySoon": "Your vehicle should be ready soon.",
+    "live": "Live updates active",
+    "polling": "Checking for updates every minute",
+    "lastUpdated": "Last updated: {time}",
+    "poweredBy": "Powered by {brand}"
+  },
+  "errors": {
+    "genericTitle": "Something went wrong",
+    "genericDescription": "Refresh the workspace and try again."
+  },
+  "stages": {
+    "Booked": "Booked",
+    "Arrived": "Arrived",
+    "Washing": "Washing",
+    "Detailing": "Detailing",
+    "Polishing": "Polishing",
+    "Ready": "Ready",
+    "Delivered": "Delivered"
+  },
+  "bookingStatuses": {
+    "Pending": "Pending",
+    "Confirmed": "Confirmed",
+    "Cancelled": "Cancelled"
+  },
+  "roles": {
+    "Owner": "Owner",
+    "Manager": "Manager",
+    "Staff": "Staff"
+  },
+  "vehicleTypes": {
+    "Sedan": "Sedan",
+    "SUV": "SUV",
+    "Truck": "Truck",
+    "Van": "Van",
+    "Motorcycle": "Motorcycle",
+    "Other": "Other"
+  },
+  "sse": {
+    "connected": "Live updates active",
+    "connecting": "Reconnecting...",
+    "error": "Disconnected",
+    "closed": "Connection closed"
+  }
+}

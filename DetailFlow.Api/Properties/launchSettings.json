@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_CONNECTION_STRING": "Host=localhost;Port=5432;Database=detailflow;Username=detailflow;Password=detailflow",
+        "JWT_SECRET": "development-secret-development-secret",
+        "JWT_ISSUER": "DetailFlow",
+        "JWT_AUDIENCE": "DetailFlow",
+        "R2_ACCOUNT_ID": "local-dev",
+        "R2_ACCESS_KEY_ID": "local-dev",
+        "R2_SECRET_ACCESS_KEY": "local-dev",
+        "R2_BUCKET_NAME": "detailflow-dev",
+        "R2_PUBLIC_BASE_URL": "http://localhost/r2",
+        "FRONTEND_URL": "http://localhost:3000"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5000;https://localhost:7257",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DB_CONNECTION_STRING": "Host=localhost;Port=5432;Database=detailflow;Username=detailflow;Password=detailflow",
+        "JWT_SECRET": "development-secret-development-secret",
+        "JWT_ISSUER": "DetailFlow",
+        "JWT_AUDIENCE": "DetailFlow",
+        "R2_ACCOUNT_ID": "local-dev",
+        "R2_ACCESS_KEY_ID": "local-dev",
+        "R2_SECRET_ACCESS_KEY": "local-dev",
+        "R2_BUCKET_NAME": "detailflow-dev",
+        "R2_PUBLIC_BASE_URL": "http://localhost/r2",
+        "FRONTEND_URL": "http://localhost:3000"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    env_file: .env
+    volumes:
+      - detailflow_pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./DetailFlow.Api
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - DATA_PROTECTION_KEYS_PATH=/var/lib/detailflow/data-protection-keys
+    volumes:
+      - detailflow_dataprotection:/var/lib/detailflow/data-protection-keys
+    depends_on:
+      - postgres
+
+  web:
+    build: ./detailflow-web
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+    depends_on:
+      - api
+
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src
+    volumes:
+      - ./DetailFlow.Api:/src
+    env_file: .env
+    depends_on:
+      - postgres
+    entrypoint: >
+      sh -c "dotnet tool install --global dotnet-ef &&
+      export PATH=\"$$PATH:/root/.dotnet/tools\" &&
+      dotnet restore &&
+      dotnet ef database update"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - web
+
+volumes:
+  detailflow_pgdata:
+  detailflow_dataprotection:

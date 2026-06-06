@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailFlow.Api", "DetailFlow.Api\DetailFlow.Api.csproj", "{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{F85BE664-8878-4F21-9874-97B6B1130A1E}"
+	ProjectSection(SolutionItems) = preProject
+		detailflow-web\package.json = detailflow-web\package.json
+		detailflow-web\next.config.ts = detailflow-web\next.config.ts
+		detailflow-web\src\app\layout.tsx = detailflow-web\src\app\layout.tsx
+		detailflow-web\src\app\globals.css = detailflow-web\src\app\globals.css
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{C39E0B23-1593-4FE4-B7E6-9E34B8C52199}"
+	ProjectSection(SolutionItems) = preProject
+		.env.example = .env.example
+		docker-compose.yml = docker-compose.yml
+		nginx\nginx.conf = nginx\nginx.conf
+		deploy.sh = deploy.sh
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailFlow.Api.Tests", "DetailFlow.Api.Tests\DetailFlow.Api.Tests.csproj", "{DE26EECD-11AA-4A64-8550-BAF43C756C5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|x64.Build.0 = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Debug|x86.Build.0 = Debug|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|x64.ActiveCfg = Release|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|x64.Build.0 = Release|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|x86.ActiveCfg = Release|Any CPU
+		{C86D25CE-5AEB-4A69-80F7-9DD10CF2907B}.Release|x86.Build.0 = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Debug|x86.Build.0 = Debug|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|x64.Build.0 = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|x86.ActiveCfg = Release|Any CPU
+		{DE26EECD-11AA-4A64-8550-BAF43C756C5D}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

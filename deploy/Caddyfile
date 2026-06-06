@@ -1,0 +1,16 @@
+{$SITE_HOST} {
+    encode zstd gzip
+
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "base-uri 'self'; object-src 'none'; frame-ancestors 'none'"
+    }
+
+    @api path /api/* */stream
+    reverse_proxy @api api:5000
+
+    reverse_proxy web:3000
+}

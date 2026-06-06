@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+TestResults/
+coverage/
+*.user
+*.suo
+*.rsuser
+*.log
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
