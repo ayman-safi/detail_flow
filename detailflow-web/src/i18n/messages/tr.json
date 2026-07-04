@@ -1,0 +1,843 @@
+{
+  "meta": {
+    "title": "DetailFlow",
+    "description": "Premium detaylı temizlik ve kaporta dükkanları için operasyon yazılımı."
+  },
+  "common": {
+    "brandLead": "Detail",
+    "brandAccent": "Flow",
+    "language": "Dil",
+    "close": "Kapat",
+    "copySuccess": "Bağlantı kopyalandı",
+    "actions": {
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "delete": "Sil",
+      "retry": "Tekrar dene",
+      "next": "İleri",
+      "previous": "Geri",
+      "copyLink": "Bağlantıyı kopyala",
+      "newBooking": "Yeni randevu",
+      "confirmBooking": "Randevuyu onayla",
+      "create": "Oluştur",
+      "logout": "Çıkış yap",
+      "showDelivered": "Teslim edilenleri göster",
+      "hideDelivered": "Teslim edilenleri gizle",
+      "saveChanges": "Değişiklikleri kaydet",
+      "downloadReceipt": "Fiş PDF",
+      "markDelivered": "Teslim edildi olarak işaretle",
+      "addNotes": "Not ekle +",
+      "whatsApp": "WhatsApp",
+      "refresh": "Yenile",
+      "signOut": "Oturumu kapat"
+    },
+    "labels": {
+      "date": "Tarih",
+      "time": "Saat",
+      "phone": "Telefon",
+      "name": "Ad",
+      "email": "E-posta",
+      "password": "Şifre",
+      "service": "Hizmet",
+      "plate": "Plaka",
+      "color": "Renk",
+      "make": "Marka",
+      "model": "Model",
+      "type": "Tür",
+      "notes": "Notlar",
+      "customer": "Müşteri",
+      "vehicle": "Araç",
+      "stage": "Aşama",
+      "status": "Durum",
+      "role": "Rol",
+      "duration": "Süre",
+      "price": "Fiyat",
+      "actions": "İşlemler",
+      "logo": "Logo",
+      "shopName": "Dükkan adı",
+      "actualPrice": "Gerçek fiyat",
+      "assignedStaff": "Atanan personel",
+      "search": "Ara"
+    },
+    "states": {
+      "active": "Aktif",
+      "inactive": "Pasif",
+      "unassigned": "Atanmamış",
+      "loading": "Yükleniyor",
+      "disabled": "Devre dışı"
+    },
+    "units": {
+      "minutesShort": "{value} dk",
+      "currency": "{value}",
+      "vehicles": "Araçlar: {count}",
+      "shown": "Gösterilen: {count}"
+    },
+    "locales": {
+      "en": "İngilizce",
+      "ar": "Arapça",
+      "enShort": "EN",
+      "arShort": "AR",
+      "switcherLabel": "Dili değiştir"
+    },
+    "filters": {
+      "all": "Tümü"
+    }
+  },
+  "navigation": {
+    "board": "Operasyon panosu",
+    "bookings": "Randevular",
+    "customers": "Müşteriler",
+    "analytics": "Analiz",
+    "settings": "Ayarlar",
+    "openNavigation": "Gezinmeyi aç"
+  },
+  "weekdays": {
+    "Sunday": "Pazar",
+    "Monday": "Pazartesi",
+    "Tuesday": "Salı",
+    "Wednesday": "Çarşamba",
+    "Thursday": "Perşembe",
+    "Friday": "Cuma",
+    "Saturday": "Cumartesi"
+  },
+  "plans": {
+    "Free": "Ücretsiz",
+    "Pro": "Pro",
+    "Business": "Business"
+  },
+  "planStatus": {
+    "plan": "Plan",
+    "bookingWarning": "Bu ay {remaining} randevu hakkınız kaldı ({used}/{limit} kullanıldı).",
+    "staffUsage": "{used}/{limit} personel koltuğu kullanıldı",
+    "staffUnlimited": "{used} personel koltuğu kullanıldı"
+  },
+  "planLimit": {
+    "title": "Plan limitine ulaşıldı",
+    "freeTitle": "Ücretsiz plan limitine ulaştınız",
+    "description": "Bu özelliği kullanmaya devam etmek için Pro'ya yükseltin.",
+    "bookingUsage": "Bu ay {used}/{limit} randevu kullandınız.",
+    "upgradeCta": "Pro'ya yükselt - Aylık 149 SAR",
+    "later": "Daha sonra hatırlat",
+    "upgradeRequested": "Yükseltme talebi kaydedildi"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Çalışma alanınıza giriş yapın",
+      "shopId": "Dükkan Kimliği",
+      "submit": "Giriş yap",
+      "switch": "Yeni dükkan mı? Hesap oluşturun",
+      "errorFallback": "Giriş yapılamadı."
+    },
+    "password": {
+      "newPassword": "Yeni şifre",
+      "confirmPassword": "Şifreyi onayla",
+      "validationMin": "Şifre en az 8 karakter olmalıdır.",
+      "validationMatch": "Şifreler eşleşmelidir."
+    },
+    "acceptInvite": {
+      "title": "Daveti kabul et",
+      "subtitle": "Bu çalışma alanına katılmak için bir şifre belirleyin.",
+      "submit": "Şifreyi belirle",
+      "success": "Davet kabul edildi",
+      "errorFallback": "Davet kabul edilemedi.",
+      "missingToken": "Davet bağlantısı eksik veya hatalı."
+    },
+    "resetPassword": {
+      "title": "Şifreyi sıfırla",
+      "subtitle": "Bu hesap için yeni bir şifre belirleyin.",
+      "submit": "Şifreyi sıfırla",
+      "success": "Şifre güncellendi",
+      "errorFallback": "Şifre sıfırlanamadı.",
+      "missingToken": "Sıfırlama bağlantısı eksik veya hatalı."
+    },
+    "register": {
+      "subtitle": "DetailFlow çalışma alanınızı oluşturun",
+      "shopName": "Dükkan adı",
+      "shopSlug": "Dükkan Kimliği / Slug",
+      "shopSlugHint": "URL'niz: detailflow.app/{slug}",
+      "shopSlugFallback": "dukkan-id",
+      "shopSlugError": "3-30 küçük harf, rakam veya tire kullanın.",
+      "ownerName": "Ad soyad",
+      "submit": "Çalışma alanı oluştur",
+      "switch": "Zaten bir hesabınız var mı?",
+      "errorFallback": "Hesap oluşturulamadı.",
+      "heroTitle": "500'den fazla detaylı temizlik dükkanına katılın",
+      "heroPoints": [
+        "Canlı operasyon panosu",
+        "Müşteriye hazır takip bağlantıları",
+        "Fiş PDF'leri ve fotoğraf geçmişi"
+      ]
+    }
+  },
+  "board": {
+    "summary": {
+      "active": "Aktif",
+      "ready": "Hazır",
+      "completed": "Tamamlandı",
+      "liveBoard": "Canlı pano"
+    },
+    "toasts": {
+      "liveActive": "Canlı güncellemeler aktif",
+      "liveLost": "Canlı bağlantı kesildi. Yeniden deneniyor...",
+      "walkInAdded": "Randevusuz müşteri eklendi",
+      "walkInError": "Randevusuz müşteri eklenemedi",
+      "movedTo": "{stage} aşamasına taşındı",
+      "moveFailed": "Taşıma başarısız",
+      "staffAssigned": "Personel atandı",
+      "staffUnassigned": "Personel ataması kaldırıldı",
+      "paymentUpdated": "Ödeme durumu güncellendi",
+      "invalidPrice": "Geçerli bir fiyat girin.",
+      "workOrderUpdated": "İş emri güncellendi",
+      "photoDeleted": "Fotoğraf silindi",
+      "whatsAppOpened": "WhatsApp mesajı hazırlandı",
+      "whatsAppFailed": "WhatsApp mesajı hazırlanamadı",
+      "whatsAppInvalidPhone": "Müşteri telefon numarası en az 7 haneli olmalıdır."
+    },
+    "help": {
+      "compact": "Aşamalar arasında kaydırın veya her kartın üzerindeki hızlı taşıma butonlarını kullanın.",
+      "desktop": "Ayrıntıları görmek için bir karta tıklayın. Aşamalar arasında taşımak için tutamaçtan sürükleyin.",
+      "stageProgress": "Aşama {current} / {total}",
+      "previousStage": "Önceki aşama",
+      "nextStage": "Sonraki aşama",
+      "quickMove": "Hızlı taşı",
+      "open": "Aç",
+      "dragVehicle": "{plate} plakasını sürükle",
+      "dragToMove": "Aşamayı değiştirmek için sürükleyin"
+    },
+    "stageEmpty": "Bu aşamada araç yok",
+    "walkIn": {
+      "title": "Randevusuz müşteri ekle",
+      "submit": "Randevusuz kayıt oluştur",
+      "servicePlaceholder": "Hizmet seçin",
+      "vehicleTypeDefault": "Sedan"
+    },
+    "workOrder": {
+      "title": "İş emri",
+      "tabs": {
+        "details": "Ayrıntılar",
+        "photos": "Fotoğraflar",
+        "history": "Geçmiş"
+      },
+      "customerCommunication": "Müşteri iletişimi",
+      "whatsAppDescription": "Herkese açık takip ve fiş bağlantılarını içeren Hazır WhatsApp mesajını yeniden gönderin.",
+      "whatsAppTrackingDescription": "Bu iş emri penceresinden müşteri takip bağlantısını WhatsApp ile yeniden gönderin.",
+      "reSendReadyWhatsApp": "Hazır WhatsApp'ı yeniden gönder",
+      "reSendTrackingWhatsApp": "Takip bağlantısını yeniden gönder",
+      "paymentStatus": "Ödeme durumu",
+      "paymentRequiredForDelivery": "Teslimattan önce ödemeyi Paid olarak işaretleyin.",
+      "unsavedTitle": "Kaydedilmemiş değişiklikler",
+      "unsavedDescription": "Fiyat veya notlar değiştirildi. Bu iş emrinden ayrılmadan önce kaydedilsin mi?",
+      "discardChanges": "Değişiklikleri iptal et",
+      "saveAndLeave": "Kaydet ve çık",
+      "notesPlaceholder": "Dahili notlar",
+      "before": "Önce",
+      "after": "Sonra",
+      "uploadLabel": "{type} yükle",
+      "uploadingLabel": "%{progress} yükleniyor",
+      "uploadSuccess": "{type} fotoğrafı yüklendi",
+      "uploadFailed": "Yükleme başarısız",
+      "historyTo": "→",
+      "historyBy": "{name} tarafından {time}",
+      "historyEmpty": "Henüz aşama değişikliği yok."
+    },
+    "card": {
+      "unassigned": "Atanmamış",
+      "previous": "Geri",
+      "next": "İleri"
+    }
+  },
+  "bookings": {
+    "title": "Yeni randevu",
+    "countOnDate": "{date} tarihinde {count} randevu",
+    "emptyTitle": "Bu gün için randevu yok.",
+    "statusUpdated": "Durum güncellendi",
+    "customerSearchEmpty": "Yeni müşteri, bu kayıt oluşturulacak",
+    "actionsLabel": "Randevu işlemleri",
+    "confirm": "Onayla",
+    "cancel": "İptal",
+    "viewWorkOrder": "İş emrini görüntüle",
+    "success": {
+      "title": "Randevu onaylandı!",
+      "copy": "Bağlantıyı kopyala",
+      "new": "Yeni randevu",
+      "whatsAppTemplate": "Aracınızı takip edin: {url}"
+    },
+    "form": {
+      "customerName": "Müşteri adı",
+      "timePlaceholder": "Aşağıdan seçin",
+      "servicePlaceholder": "Hizmet seçin",
+      "notesPlaceholder": "Notlar",
+      "confirmed": "Randevu onaylandı",
+      "failed": "Randevu başarısız",
+      "validation": {
+        "phone": "Geçerli telefon numarası gerekli",
+        "name": "Ad gerekli",
+        "service": "Bir hizmet seçin",
+        "date": "Tarih gerekli",
+        "time": "Bir zaman aralığı seçin",
+        "make": "Marka gerekli",
+        "model": "Model gerekli",
+        "color": "Renk gerekli"
+      }
+    }
+  },
+  "publicBooking": {
+    "eyebrow": "Hizmet randevusu alın",
+    "notFound": {
+      "title": "Randevu sayfası bulunamadı",
+      "description": "Dükkan bağlantısını kontrol edip tekrar deneyin."
+    },
+    "service": {
+      "choose": "Bir hizmet seçin",
+      "empty": "Şu anda kullanılabilir hizmet yok."
+    },
+    "schedule": {
+      "title": "Tarih ve saat",
+      "availableSlots": "Uygun 30 dakikalık aralıklar",
+      "noSlots": "Bu tarih için uygun saat yok.",
+      "chooseServiceFirst": "Saatleri görmek için önce bir hizmet seçin.",
+      "loadFailed": "Uygun saatler yüklenemedi.",
+      "selectTime": "Devam etmek için bir saat seçin",
+      "summary": "{date}, saat {time}"
+    },
+    "customer": {
+      "phone": "Telefon numarası"
+    },
+    "notes": {
+      "placeholder": "Lütfen iç kısma odaklanın"
+    },
+    "confirmation": {
+      "title": "Randevu onaylandı",
+      "description": "Takip bağlantınız artık hazır. Aracın durumunu takip etmek için kullanın.",
+      "copyLink": "Takip bağlantısını kopyala",
+      "copyToast": "Takip bağlantısı kopyalandı",
+      "bookAnother": "Başka bir hizmet için randevu al",
+      "toast": "Randevu onaylandı"
+    },
+    "validation": {
+      "service": "Bir hizmet seçin.",
+      "date": "Bir tarih seçin.",
+      "time": "Uygun bir saat seçin.",
+      "name": "Adınızı girin.",
+      "phone": "Geçerli bir telefon numarası girin.",
+      "make": "Aracın markasını girin.",
+      "model": "Aracın modelini girin.",
+      "color": "Aracın rengini girin.",
+      "plate": "Plaka numarasını girin.",
+      "failed": "Randevu başarısız oldu."
+    }
+  },
+  "customers": {
+    "metrics": {
+      "customers": "Müşteriler",
+      "visitsOnPage": "Sayfa ziyaretleri",
+      "repeatCustomers": "Tekrarlayan müşteriler"
+    },
+    "title": "Müşteriler",
+    "subtitle": "Arama yapın, ziyaret geçmişini inceleyin ve son iş emri bağlamını açın.",
+    "searchPlaceholder": "Ad veya telefon ara",
+    "emptyTitle": "Müşteri bulunamadı",
+    "emptyDescription": "Farklı bir ad veya telefon numarası deneyin.",
+    "visits": "Ziyaretler",
+    "lastVisit": "Son ziyaret",
+    "recentWork": "Son işlemler",
+    "noWorkOrders": "İş emri yok",
+    "pagination": "Sayfa {page} / {total}",
+    "drawer": {
+      "totalVisits": "Toplam ziyaret",
+      "noVisitsYet": "Henüz ziyaret yok",
+      "recentWorkOrders": "Son iş emirleri",
+      "noHistoryTitle": "İş geçmişi yok",
+      "noHistoryDescription": "Bu müşteri ziyaret ettikten sonra iş emirleri burada görünecek."
+    }
+  },
+  "analytics": {
+    "stats": {
+      "bookingsToday": "Bugünkü randevular",
+      "activeVehicles": "Aktif araçlar",
+      "completedToday": "Bugün tamamlanan",
+      "repeatCustomers": "Tekrarlayan müşteriler"
+    },
+    "jobsThisWeek": "Bu haftaki işler",
+    "topServices": "En çok tercih edilen hizmetler",
+    "recentActivity": "Son etkinlikler",
+    "noActivity": "Son etkinlik yok",
+    "lockedTitle": "Analiz için Pro gerekir",
+    "lockedDescription": "Hizmet trendlerini, tekrarlayan müşteri metriklerini ve son etkinlik raporlamasını açmak için Pro'ya yükseltin.",
+    "activityItem": "{name} tarafından {plate} üzerinde {time}",
+    "charts": {
+      "count": "Sayı",
+      "jobsDate": "{date}"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profil",
+      "services": "Hizmetler",
+      "availability": "Müsaitlik",
+      "receipts": "Fişler",
+      "staff": "Personel",
+      "notifications": "Bildirimler"
+    },
+    "profile": {
+      "title": "Dükkan profili",
+      "saved": "Profil kaydedildi",
+      "uploaded": "Logo yüklendi"
+    },
+    "services": {
+      "title": "Hizmetler",
+      "add": "Hizmet ekle",
+      "saved": "Hizmet kaydedildi",
+      "reordered": "Hizmet sırası güncellendi",
+      "toggleAria": "{name} durumunu değiştir"
+    },
+    "availability": {
+      "title": "Randevu müsaitliği",
+      "subtitle": "Personel ve herkese açık randevu akışlarında kullanılan dükkan saatlerini ve randevu kapasitesini ayarlayın.",
+      "bayCapacity": "Bölme kapasitesi",
+      "bayCapacityHint": "Aynı zaman aralığında çakışabilecek maksimum onaylı randevu sayısı.",
+      "weeklyHours": "Haftalık saatler",
+      "open": "Açık",
+      "closed": "Kapalı",
+      "opens": "Açılış",
+      "closes": "Kapanış",
+      "closures": "Kapanış dönemleri",
+      "closuresHint": "Buradaki tarihlerde uygun randevu saati bulunmaz.",
+      "noClosures": "Herhangi bir kapanış dönemi ayarlanmadı.",
+      "addClosure": "Kapanış ekle",
+      "removeClosure": "Kapanışı kaldır",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "reason": "Sebep",
+      "reasonPlaceholder": "Tatil, bakım, özel etkinlik",
+      "saved": "Müsaitlik ayarları kaydedildi",
+      "saveFailed": "Müsaitlik ayarları kaydedilemedi",
+      "restricted": "Müsaitlik ayarları yöneticiler ve sahipler için kullanılabilir."
+    },
+    "receipts": {
+      "title": "Fiş fiyatlandırması",
+      "subtitle": "Fiş PDF'lerinde yazdırılan ve hizmet fiyat önizlemelerinde kullanılan para birimini seçin.",
+      "currency": "Fiş para birimi",
+      "currencyHint": "Yeni ve mevcut fişler, seçili dükkan para birimini kullanır.",
+      "previewLabel": "Önizleme",
+      "saved": "Fiş ayarları kaydedildi",
+      "saveFailed": "Fiş ayarları kaydedilemedi",
+      "restricted": "Fiş ayarları yöneticiler ve sahipler için kullanılabilir.",
+      "currencyOptions": {
+        "SAR": "Suudi riyali",
+        "USD": "ABD doları",
+        "TRY": "Türk lirası",
+        "EUR": "Euro",
+        "SYP": "Suriye lirası"
+      }
+    },
+    "staff": {
+      "title": "Personel",
+      "invite": "Personel davet et",
+      "inviteTitle": "Personel davet et",
+      "fullNamePlaceholder": "Ad soyad",
+      "emailPlaceholder": "E-posta",
+      "temporaryPasswordPlaceholder": "Geçici şifre",
+      "createUser": "Kullanıcı oluştur",
+      "added": "Personel eklendi",
+      "addFailed": "Personel eklenemedi",
+      "updated": "Personel güncellendi",
+      "restricted": "Personel yönetimi yöneticiler ve sahipler için kullanılabilir.",
+      "pendingInvite": "Beklemede",
+      "inviteLinkLabel": "Davet bağlantısı",
+      "copyInviteLink": "Davet bağlantısını kopyala",
+      "copyResetLink": "Sıfırlama bağlantısını kopyala",
+      "inviteCopied": "Davet bağlantısı kopyalandı",
+      "resetCopied": "Sıfırlama bağlantısı kopyalandı",
+      "copyFailed": "Bağlantı kopyalanamadı",
+      "inviteLinkFailed": "Davet bağlantısı oluşturulamadı",
+      "resetLinkFailed": "Sıfırlama bağlantısı oluşturulamadı",
+      "linkExpires": "{date} tarihinde sona erer",
+      "makeStaff": "Personel yap",
+      "makeManager": "Yönetici yap",
+      "activate": "Etkinleştir",
+      "deactivate": "Devre dışı bırak"
+    },
+    "notifications": {
+      "title": "WhatsApp bildirimleri",
+      "subtitle": "Hazır aşamasındaki müşteri mesajları için Meta WhatsApp Business teslimatını yapılandırın.",
+      "saved": "Bildirim ayarları kaydedildi",
+      "saveFailed": "Bildirim ayarları kaydedilemedi",
+      "restricted": "WhatsApp bildirim ayarları sahipler için kullanılabilir.",
+      "lockedTitle": "WhatsApp için Pro gerekir",
+      "lockedDescription": "WhatsApp takip bağlantılarını ve otomatik Hazır bildirimlerini etkinleştirmek için Pro'ya yükseltin.",
+      "enabled": "Sağlayıcı etkin",
+      "enabledHint": "Bu kiracının Meta üzerinden otomatik Hazır bildirimleri göndermesine izin verin.",
+      "phoneNumberId": "İşletme telefon numarası kimliği",
+      "accessToken": "Erişim jetonu",
+      "accessTokenStored": "Güvenli şekilde saklanır. Sadece değiştirmek için yeni bir jeton girin.",
+      "clearToken": "Saklanan jetonu temizle",
+      "clearTokenHint": "Bunu yalnızca entegrasyonu değiştirirken veya devre dışı bırakırken kullanın.",
+      "templateName": "Hazır şablon adı",
+      "templateLanguage": "Şablon dil kodu",
+      "autoReady": "Otomatik Hazır mesajı",
+      "autoReadyHint": "Bir iş emri Hazır aşamasına girdiğinde onaylı WhatsApp şablonunu gönderin.",
+      "activityTitle": "Teslimat etkinliği",
+      "activitySubtitle": "Son Hazır bildirim denemeleri ve sağlayıcı durum güncellemeleri.",
+      "activityEmpty": "Henüz bildirim etkinliği yok.",
+      "lastEvent": "Son güncelleme {time}",
+      "statuses": {
+        "Requested": "Talep edildi",
+        "Accepted": "Kabul edildi",
+        "Sent": "Gönderildi",
+        "Delivered": "Teslim edildi",
+        "Read": "Okundu",
+        "Failed": "Başarısız"
+      }
+    }
+  },
+  "tracking": {
+    "notFoundTitle": "Randevu bulunamadı.",
+    "notFoundDescription": "Takip bağlantısının süresi dolmuş veya geçersiz olabilir.",
+    "readyDeliveredTitle": "Aracınız teslim edildi.",
+    "readyDeliveredDescription": "Bu dükkanı tercih ettiğiniz için teşekkür ederiz.",
+    "readyPickupTitle": "Aracınız teslim alınmaya hazır!",
+    "readyPickupDescription": "Lütfen en kısa sürede dükkana geliniz.",
+    "currentStage": "Güncel aşama",
+    "estimatedReadyBy": "Tahmini hazır olma zamanı:",
+    "readySoon": "Aracınız yakında hazır olacak.",
+    "live": "Canlı güncellemeler aktif",
+    "polling": "Her dakika güncelleme kontrol ediliyor",
+    "lastUpdated": "Son güncelleme: {time}",
+    "poweredBy": "{brand} tarafından desteklenmektedir"
+  },
+  "errors": {
+    "genericTitle": "Bir şeyler ters gitti",
+    "genericDescription": "Çalışma alanını yenileyip tekrar deneyin."
+  },
+  "stages": {
+    "Booked": "Randevulu",
+    "Arrived": "Geldi",
+    "Washing": "Yıkama",
+    "Detailing": "Detaylı Temizlik",
+    "Polishing": "Cilalama",
+    "Ready": "Hazır",
+    "Delivered": "Teslim Edildi"
+  },
+  "bookingStatuses": {
+    "Pending": "Beklemede",
+    "Confirmed": "Onaylandı",
+    "Cancelled": "İptal Edildi"
+  },
+  "roles": {
+    "Owner": "Sahip",
+    "Manager": "Yönetici",
+    "Staff": "Personel"
+  },
+  "vehicleTypes": {
+    "Sedan": "Sedan",
+    "SUV": "SUV",
+    "Truck": "Kamyonet",
+    "Van": "Van",
+    "Motorcycle": "Motosiklet",
+    "Other": "Diğer"
+  },
+  "sse": {
+    "connected": "Canlı güncellemeler aktif",
+    "connecting": "Yeniden bağlanıyor...",
+    "error": "Bağlantı kesildi",
+    "closed": "Bağlantı kapatıldı"
+  },
+  "landing": {
+    "meta": {
+      "title": "DetailFlow | Suudi Arabistan'daki detaylı temizlik ve kaporta dükkanları için işletim sistemi",
+      "description": "Suudi detaylı temizlik ve kaporta dükkanlarında randevu ve operasyon yönetimi için müşteri takibi ve WhatsApp bildirimleri sunan SaaS platformu."
+    },
+    "nav": {
+      "product": "Ürün",
+      "features": "Özellikler",
+      "pricing": "Fiyatlandırma",
+      "faq": "SSS"
+    },
+    "header": {
+      "navigationLabel": "Ana gezinme",
+      "tagline": "Detaylı temizlik ve kaporta ekipleri için canlı dükkan operasyonları",
+      "login": "Giriş yap",
+      "startFree": "Ücretsiz başla",
+      "openMenu": "Menüyü aç",
+      "closeMenu": "Menüyü kapat"
+    },
+    "hero": {
+      "eyebrow": "Yüksek hacimli detaylı temizlik ve kaporta dükkanları için tasarlandı",
+      "titleLineTwo": "Randevuları, bölmeleri, personeli ve teslimi tek bir canlı panodan yönetin",
+      "text": "DetailFlow, defterlerin ve dağınık WhatsApp yazışmalarının yerini randevu bağlantısı, canlı araç aşamaları, müşteri takibi, fişler ve dükkan analizleriyle alır.",
+      "dashboardLogin": "Panoyu aç",
+      "metaLabel": "Hızlı avantajlar",
+      "meta": [
+        "Randevu bağlantısı",
+        "Canlı operasyon panosu",
+        "Müşteri takibi"
+      ],
+      "previewLabel": "DetailFlow pano önizlemesi",
+      "windowTitle": "Canlı dükkan panosu",
+      "shopName": "Riyadh Shine",
+      "shopArea": "Al Olaya",
+      "metrics": {
+        "activeCars": "Aktif araçlar",
+        "onTime": "Zamanında teslim oranı",
+        "customerSatisfaction": "Müşteri memnuniyeti"
+      },
+      "columns": {
+        "booked": "Randevulu",
+        "arrived": "Geldi",
+        "washing": "Yıkama",
+        "ready": "Hazır"
+      },
+      "jobs": {
+        "mercedes": "Mercedes S",
+        "premiumWash": "Premium yıkama",
+        "bmw": "BMW X7",
+        "ceramic": "Seramik kaplama",
+        "lexus": "Lexus ES",
+        "interiorPolish": "İç mekan cilalama",
+        "rangeRover": "Range Rover",
+        "completePackage": "Tam paket",
+        "landCruiser": "Land Cruiser",
+        "exteriorWash": "Dış yıkama",
+        "audi": "Audi Q8",
+        "notified": "Müşteri bilgilendirildi"
+      }
+    },
+    "workflow": {
+      "eyebrow": "Ürün tanıtımı",
+      "title": "Tüm dükkan gününü darboğaz haline gelmeden önce görün",
+      "text": "Her randevu, araç, personel devri, teslim mesajı ve fiş, ekibinizin saniyeler içinde tarayabileceği tek bir operasyonel görünümde toplanır.",
+      "steps": [
+        {
+          "title": "Talebi düzenli şekilde yakalayın",
+          "body": "WhatsApp veya Instagram üzerinden tek bir randevu bağlantısı paylaşın; müşteri, araç, hizmet ve zaman aralığı bilgilerini karşılıklı mesajlaşmaya gerek kalmadan toplayın."
+        },
+        {
+          "title": "Araçları aşamalara göre taşıyın",
+          "body": "Randevulu, geldi, yıkama, detaylı temizlik, cilalama, hazır ve teslim edildi aşamaları, bir hafıza testi yerine paylaşılan bir akışa dönüşür."
+        },
+        {
+          "title": "Müşterilerle süreci tamamlayın",
+          "body": "Müşteriler özel bir takip bağlantısını izler, hazır mesajlarını alır ve resepsiyonu tekrar tekrar aramadan fişlerine erişir."
+        }
+      ]
+    },
+    "saudi": {
+      "eyebrow": "Müşteri deneyimi",
+      "title": "Müşterilerin hizmet talep etme şekline uygun mobil randevu ve takip akışı",
+      "text": "Müşteriler mobil üzerinden randevu alır, WhatsApp üzerinden sorar ve tekrar tekrar aramadan net bir durum bekler. DetailFlow bu deneyimi her iki taraf için de basit tutar.",
+      "points": [
+        "Mobil öncelikli tasarlanmış Arapça RTL ve İngilizce arayüzler",
+        "Hizmetler, fiyatlar, kapasite ve uygun saatleri gösteren herkese açık randevu sayfası",
+        "Her iş emri için özel takip bağlantısı",
+        "WhatsApp'a hazır teslim mesajları ve fiş bağlantıları"
+      ],
+      "phoneLabel": "Mobil randevu ve takip önizlemesi",
+      "bookingTitle": "Hizmet randevusu alın",
+      "shopName": "Riyadh Shine Detailing",
+      "serviceName": "Tam cilalama",
+      "servicePrice": "SAR 220",
+      "trackingTitle": "Araç takibi",
+      "trackingVehicle": "Range Rover - Tam paket",
+      "progressStages": [
+        "Randevulu",
+        "Geldi",
+        "Yıkama",
+        "Hazır"
+      ],
+      "whatsAppReadyPrefix": "Hazır WhatsApp bildirimi:",
+      "whatsAppReadyMessage": "Aracınız teslim alınmaya hazır"
+    },
+    "features": {
+      "eyebrow": "Özellikler",
+      "title": "Yoğun bir dükkanı kontrol altında hissettiren araçlar",
+      "text": "DetailFlow en önemli iş akışına odaklanır: takvimi doldurmak, araçları aşamalar arasında taşımak, müşterileri bilgilendirmek ve performansı anlamak.",
+      "items": [
+        {
+          "title": "Online randevu",
+          "body": "Dükkan kapasitesine göre hizmetleri, fiyatları ve uygun saatleri gösteren herkese açık bir sayfa."
+        },
+        {
+          "title": "Operasyon Kanban Panosu",
+          "body": "Her araç için net aşamalar, hızlı taşıma imkanı ve ekip için canlı güncellemeler."
+        },
+        {
+          "title": "Müşteri takibi",
+          "body": "Her iş emri için aşamayı, tahmini hazır olma zamanını ve teslimattan sonra fişi gösteren özel bir bağlantı."
+        },
+        {
+          "title": "Hazır WhatsApp Bildirimi",
+          "body": "Araç teslim almaya hazır aşamasına ulaştığında hazırlanmış veya otomatik mesajlar."
+        },
+        {
+          "title": "Performans analizi",
+          "body": "Randevular, en çok talep edilen hizmetler ve tekrarlayan müşteriler hakkında günlük görünürlük."
+        },
+        {
+          "title": "Ekip ve yetkiler",
+          "body": "Net plan tabanlı limitlere sahip sahip, yönetici ve personel rolleri."
+        }
+      ]
+    },
+    "pricing": {
+      "eyebrow": "Fiyatlandırma",
+      "title": "Panoyla başlayın. Dükkan otomasyona hazır olduğunda yükseltin.",
+      "text": "Basit planlar: düzenli bir deneme için Ücretsiz, WhatsApp ve analizlerle günlük operasyonlar için Pro, ve şube desteği ile Business ileride gelecek.",
+      "featuredBadge": "En uygun",
+      "comingLaterBadge": "Yakında geliyor",
+      "plans": [
+        {
+          "name": "Ücretsiz",
+          "price": "Ücretsiz",
+          "note": "Ödeme kartı olmadan akışı test etmek için",
+          "features": [
+            "Ayda 30 randevu",
+            "Herkese açık randevu sayfası",
+            "Operasyon panosu",
+            "Müşteri takibi",
+            "2 ekip kullanıcısı"
+          ],
+          "cta": "Ücretsiz başla"
+        },
+        {
+          "name": "Pro",
+          "price": "SAR 149",
+          "note": "Günlük randevu ve teslim mesajları yürüten dükkanlar için",
+          "features": [
+            "Sınırsız randevu",
+            "WhatsApp bildirimleri",
+            "Analiz ve raporlar",
+            "10 ekip hesabı",
+            "İş emri başına 10 fotoğraf"
+          ],
+          "cta": "Pro'ya başla"
+        },
+        {
+          "name": "Business",
+          "price": "Yakında",
+          "note": "Çoklu lokasyon ve şube desteği ileride gelecek",
+          "features": [
+            "Pro'daki her şey",
+            "Şube yönetimi ileride gelecek",
+            "Lokasyonlar için birleşik operasyonlar ileride gelecek",
+            "Lansmanda öncelikli destek"
+          ],
+          "cta": "Yakında geliyor"
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "SSS",
+      "title": "Başlamadan önce hızlı cevaplar",
+      "items": [
+        {
+          "question": "Kayıt olmak için ödeme kartına ihtiyacım var mı?",
+          "answer": "Hayır. Bir çalışma alanı oluşturup hemen ücretsiz planla başlayabilir, WhatsApp veya analiz ihtiyacınız olduğunda yükseltebilirsiniz."
+        },
+        {
+          "question": "DetailFlow mevcut WhatsApp'ımızla çalışır mı?",
+          "answer": "Ekip, WhatsApp üzerinden hazır bağlantılar gönderebilir; otomatik bildirimler ise Pro planda Meta WhatsApp Business ayarları üzerinden kullanılabilir."
+        },
+        {
+          "question": "Müşteri randevu aldıktan sonra ne görür?",
+          "answer": "Müşteri, araç durumunu, hizmeti, tahmini hazır olma zamanını ve teslimattan sonra fişi gösteren bir takip bağlantısı alır."
+        },
+        {
+          "question": "Deneyim mobil uyumlu mu?",
+          "answer": "Evet. Randevu, takip ve operasyon panosu, tam Arapça RTL desteğiyle mobil öncelikli olarak tasarlanmıştır."
+        },
+        {
+          "question": "Birden fazla şube işletebilir miyim?",
+          "answer": "DetailFlow şu anda çalışma alanı başına tek şubeyi desteklemektedir. Çoklu lokasyon ve şube desteği ileride gelecek."
+        }
+      ]
+    },
+    "finalCta": {
+      "eyebrow": "Bugün başlayın",
+      "title": "Her araca dükkan içinde net bir yol sunun",
+      "text": "Bir DetailFlow çalışma alanı oluşturun, randevu bağlantınızı paylaşın ve randevuları, aşamaları, müşterileri ve fişleri tek bir panodan yönetmeye başlayın.",
+      "cta": "Şimdi ücretsiz başla"
+    },
+    "footer": {
+      "tagline": "Detaylı temizlik ve kaporta dükkanları için canlı operasyonlar",
+      "product": "Ürün",
+      "access": "Erişim",
+      "createWorkspace": "Çalışma alanı oluştur",
+      "dashboardLogin": "Panoyu aç",
+      "faq": "SSS",
+      "contact": "İletişim",
+      "email": "hello@detailflow.sa",
+      "phone": "+966 50 000 0000",
+      "phoneHref": "+966500000000",
+      "country": "Suudi Arabistan",
+      "rights": "2026 DetailFlow. Tüm hakları saklıdır."
+    }
+  },
+  "platformAdmin": {
+    "title": "Platform Yönetimi",
+    "login": {
+      "subtitle": "Platform destek konsolu",
+      "errorFallback": "Destek hesabıyla giriş yapılamadı.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "passwordRequired": "Şifre gereklidir."
+    },
+    "toasts": {
+      "tenantUpdated": "Kiracı güncellendi",
+      "updateFailed": "Kiracı güncellenemedi.",
+      "supportSessionFailed": "Destek oturumu başlatılamadı."
+    },
+    "filters": {
+      "search": "Kiracı ara",
+      "searchPlaceholder": "Ad veya slug",
+      "plan": "Plan",
+      "status": "Durum",
+      "billing": "Faturalandırma"
+    },
+    "list": {
+      "title": "Kiracılar",
+      "total": "Toplam {total}",
+      "loading": "Kiracılar yükleniyor...",
+      "empty": "Mevcut filtrelerle eşleşen kiracı yok."
+    },
+    "metrics": {
+      "bookings": "Randevular",
+      "monthBookings": "Aylık randevular",
+      "openJobs": "Açık işler",
+      "staff": "Personel",
+      "activeStaff": "Aktif personel"
+    },
+    "detail": {
+      "loading": "Kiracı yükleniyor...",
+      "empty": "Yönetmek için bir kiracı seçin.",
+      "created": "Oluşturulma: {date}",
+      "createdHeader": "Oluşturulma",
+      "owner": "Sahip: {name} ? {email}",
+      "accountControls": "Hesap kontrolleri",
+      "billingStatus": "Faturalandırma durumu",
+      "billingNotes": "Faturalandırma notları",
+      "billingNotesPlaceholder": "Manuel fatura durumu, yenileme notları veya ödeme takibi.",
+      "saveNotes": "Notları kaydet",
+      "disableTenant": "Kiracıyı devre dışı bırak",
+      "reactivateTenant": "Kiracıyı yeniden etkinleştir",
+      "supportAccess": "Destek erişimi",
+      "supportEnabledUntil": "{date} tarihine kadar etkin",
+      "noSupportWindow": "Aktif destek penceresi yok",
+      "supportDescription": "Bir oturum başlatmak, bu kiracı için geçici sahip düzeyinde bir destek görünümü açar.",
+      "durationMinutes": "Süre (dakika)",
+      "startSupportSession": "Destek oturumu başlat",
+      "closeSupportAccess": "Destek erişimini kapat",
+      "publicBookingPage": "Herkese açık randevu sayfası",
+      "users": "Kullanıcılar"
+    },
+    "statuses": {
+      "invitePending": "Davet beklemede"
+    },
+    "billingStatuses": {
+      "Trial": "Deneme",
+      "Active": "Aktif",
+      "PastDue": "Vadesi geçmiş",
+      "Suspended": "Askıya alındı",
+      "Manual": "Manuel"
+    }
+  }
+}

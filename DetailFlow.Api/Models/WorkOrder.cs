@@ -27,6 +27,7 @@ public class WorkOrder
     public string TrackingToken { get; private set; } = GenerateTrackingToken();
     public decimal? ActualPrice { get; set; }
     public string? Notes { get; set; }
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public List<WorkOrderStageHistory> StageHistory { get; set; } = [];
@@ -51,4 +52,11 @@ public enum WorkOrderStage
     Polishing = 4,
     Ready = 5,
     Delivered = 6
+}
+
+public enum PaymentStatus
+{
+    Pending = 0,
+    Paid = 1,
+    Refunded = 2
 }

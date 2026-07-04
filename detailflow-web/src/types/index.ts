@@ -1,4 +1,5 @@
 export type Stage = 'Booked'|'Arrived'|'Washing'|'Detailing'|'Polishing'|'Ready'|'Delivered';
+export type PaymentStatus = 'Pending'|'Paid'|'Refunded';
 export type VehicleType = 'Sedan'|'SUV'|'Truck'|'Van'|'Motorcycle'|'Other';
 export type TenantPlan = 'Free'|'Pro'|'Business';
 export type TenantBillingStatus = 'Trial'|'Active'|'PastDue'|'Suspended'|'Manual';
@@ -21,7 +22,8 @@ export interface WorkOrderCard {
   vehicle: Pick<Vehicle, 'plateNumber'|'make'|'model'|'color'|'vehicleType'>;
   serviceName: string; serviceBasePrice: number;
   assignedStaff?: { id: string; fullName: string } | null;
-  estimatedReadyAt?: string; actualPrice?: number; notes?: string; photoCount: number;
+  estimatedReadyAt?: string; actualPrice?: number; notes?: string;
+  paymentStatus: PaymentStatus; photoCount: number;
   createdAt: string; updatedAt: string;
 }
 export interface BoardData { booked: WorkOrderCard[]; arrived: WorkOrderCard[]; washing: WorkOrderCard[]; detailing: WorkOrderCard[]; polishing: WorkOrderCard[]; ready: WorkOrderCard[]; delivered: WorkOrderCard[]; }

@@ -7,11 +7,11 @@ export const defaultTenantCurrency: TenantCurrency = 'SAR';
 export const fallbackReceiptSettings: ReceiptSettings = {
   currency: defaultTenantCurrency,
   supportedCurrencies: [
-    { currency: 'SAR', label: 'Saudi riyal', symbol: 'SAR' },
-    { currency: 'USD', label: 'US dollar', symbol: '$' },
-    { currency: 'TRY', label: 'Turkish lira', symbol: 'TL' },
-    { currency: 'EUR', label: 'Euro', symbol: 'EUR' },
-    { currency: 'SYP', label: 'Syrian pound', symbol: 'SYP' },
+    { currency: 'SAR', label: 'SAR', symbol: 'SAR' },
+    { currency: 'USD', label: 'USD', symbol: '$' },
+    { currency: 'TRY', label: 'TRY', symbol: 'TL' },
+    { currency: 'EUR', label: 'EUR', symbol: 'EUR' },
+    { currency: 'SYP', label: 'SYP', symbol: 'SYP' },
   ],
 };
 

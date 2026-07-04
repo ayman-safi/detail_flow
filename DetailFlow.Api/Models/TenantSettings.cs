@@ -4,6 +4,8 @@ public class TenantSettings
 {
     public int BayCapacity { get; set; } = 3;
     public TenantCurrency Currency { get; set; } = TenantCurrency.SAR;
+    public string DefaultLocale { get; set; } = "en";
+    public List<string> AvailableLocales { get; set; } = ["en", "ar", "tr"];
     public List<WorkingDay> WorkingDays { get; set; } = DefaultWorkingDays();
     public List<ClosurePeriod> ClosurePeriods { get; set; } = [];
 

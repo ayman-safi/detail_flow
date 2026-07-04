@@ -22,9 +22,15 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useI18n } from '@/i18n/I18nProvider';
+import { getRoleKey } from '@/i18n/domain';
 
 const plans: TenantPlan[] = ['Free', 'Pro', 'Business'];
 const billingStatuses: TenantBillingStatus[] = ['Trial', 'Active', 'PastDue', 'Suspended', 'Manual'];
+
+function getBillingStatusKey(status: TenantBillingStatus) {
+  return `platformAdmin.billingStatuses.${status}`;
+}
 
 type TenantPatch = {
   plan?: TenantPlan;
@@ -37,6 +43,7 @@ type TenantPatch = {
 export default function PlatformAdminPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const user = useAuthStore((state) => state.user);
   const hydrated = useAuthStore((state) => state.hydrated);
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -118,18 +125,18 @@ export default function PlatformAdminPage() {
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h1 className="font-[var(--font-display)] text-2xl font-semibold">Platform Admin</h1>
+              <h1 className="font-[var(--font-display)] text-2xl font-semibold">{t('platformAdmin.title')}</h1>
               <p className="text-sm text-[var(--color-text-muted)]">{me.data.fullName} · {me.data.email}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={refresh}>
               <RefreshCw size={16} />
-              Refresh
+              {t('common.actions.refresh')}
             </Button>
             <Button variant="ghost" onClick={signOut}>
               <LogOut size={16} />
-              Sign out
+              {t('common.actions.signOut')}
             </Button>
           </div>
         </div>
@@ -156,10 +163,10 @@ export default function PlatformAdminPage() {
               if (!effectiveSelectedTenantId) return;
               try {
                 await api.patch(`/platform/admin/tenants/${effectiveSelectedTenantId}`, patch);
-                toast.success('Tenant updated');
+                toast.success(t('platformAdmin.toasts.tenantUpdated'));
                 refresh();
               } catch (error) {
-                toast.error(getApiErrorMessage(error, 'Unable to update tenant.'));
+                toast.error(getApiErrorMessage(error, t('platformAdmin.toasts.updateFailed')));
               }
             }}
             onSupportSession={async (durationMinutes) => {
@@ -172,7 +179,7 @@ export default function PlatformAdminPage() {
                 setAuth(data.user);
                 router.push(data.redirectPath);
               } catch (error) {
-                toast.error(getApiErrorMessage(error, 'Unable to start support session.'));
+                toast.error(getApiErrorMessage(error, t('platformAdmin.toasts.supportSessionFailed')));
               }
             }}
           />
@@ -189,11 +196,13 @@ function TenantFilters({
   filters: { search: string; plan: string; active: string; billingStatus: string };
   onChange: (filters: { search: string; plan: string; active: string; billingStatus: string }) => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <Card className="p-4">
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_140px_140px_160px]">
         <div>
-          <Label htmlFor="tenant-search">Search tenants</Label>
+          <Label htmlFor="tenant-search">{t('platformAdmin.filters.search')}</Label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]" />
             <Input
@@ -201,32 +210,32 @@ function TenantFilters({
               className="pl-9"
               value={filters.search}
               onChange={(event) => onChange({ ...filters, search: event.target.value })}
-              placeholder="Name or slug"
+              placeholder={t('platformAdmin.filters.searchPlaceholder')}
             />
           </div>
         </div>
         <SelectField
           id="tenant-plan"
-          label="Plan"
+          label={t('platformAdmin.filters.plan')}
           value={filters.plan}
-          options={plans}
+          options={plans.map((plan) => ({ value: plan, label: t(`plans.${plan}`) }))}
           onChange={(plan) => onChange({ ...filters, plan })}
         />
         <SelectField
           id="tenant-active"
-          label="Status"
+          label={t('platformAdmin.filters.status')}
           value={filters.active}
           options={[
-            { value: 'true', label: 'Active' },
-            { value: 'false', label: 'Disabled' },
+            { value: 'true', label: t('common.states.active') },
+            { value: 'false', label: t('common.states.disabled') },
           ]}
           onChange={(active) => onChange({ ...filters, active })}
         />
         <SelectField
           id="tenant-billing"
-          label="Billing"
+          label={t('platformAdmin.filters.billing')}
           value={filters.billingStatus}
-          options={billingStatuses}
+          options={billingStatuses.map((status) => ({ value: status, label: t(getBillingStatusKey(status)) }))}
           onChange={(billingStatus) => onChange({ ...filters, billingStatus })}
         />
       </div>
@@ -247,6 +256,8 @@ function SelectField({
   options: string[] | { value: string; label: string }[];
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <div>
       <Label htmlFor={id}>{label}</Label>
@@ -256,7 +267,7 @@ function SelectField({
         onChange={(event) => onChange(event.target.value)}
         className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]"
       >
-        <option value="">All</option>
+        <option value="">{t('common.filters.all')}</option>
         {options.map((option) => {
           const normalized = typeof option === 'string' ? { value: option, label: option } : option;
           return <option key={normalized.value} value={normalized.value}>{normalized.label}</option>;
@@ -279,19 +290,21 @@ function TenantList({
   onSelect: (id: string) => void;
   total: number;
 }) {
+  const { t, formatNumber } = useI18n();
+
   return (
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border)] p-4">
         <div>
-          <h2 className="font-[var(--font-display)] text-lg font-semibold">Tenants</h2>
-          <p className="text-sm text-[var(--color-text-muted)]">{total} total</p>
+          <h2 className="font-[var(--font-display)] text-lg font-semibold">{t('platformAdmin.list.title')}</h2>
+          <p className="text-sm text-[var(--color-text-muted)]">{t('platformAdmin.list.total', { total: formatNumber(total) })}</p>
         </div>
       </div>
       <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
         {loading ? (
-          <p className="p-4 text-sm text-[var(--color-text-muted)]">Loading tenants...</p>
+          <p className="p-4 text-sm text-[var(--color-text-muted)]">{t('platformAdmin.list.loading')}</p>
         ) : tenants.length === 0 ? (
-          <p className="p-4 text-sm text-[var(--color-text-muted)]">No tenants match the current filters.</p>
+          <p className="p-4 text-sm text-[var(--color-text-muted)]">{t('platformAdmin.list.empty')}</p>
         ) : (
           <div className="divide-y divide-[var(--color-border)]">
             {tenants.map((tenant) => (
@@ -310,14 +323,16 @@ function TenantList({
                     {tenant.owner && <p className="mt-1 truncate text-xs text-[var(--color-text-muted)]">{tenant.owner.email}</p>}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    <StatusBadge tone={tenant.isActive ? 'success' : 'danger'}>{tenant.isActive ? 'Active' : 'Disabled'}</StatusBadge>
-                    <span className="text-xs text-[var(--color-text-muted)]">{tenant.plan}</span>
+                    <StatusBadge tone={tenant.isActive ? 'success' : 'danger'}>
+                      {tenant.isActive ? t('common.states.active') : t('common.states.disabled')}
+                    </StatusBadge>
+                    <span className="text-xs text-[var(--color-text-muted)]">{t(`plans.${tenant.plan}`)}</span>
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-[var(--color-text-muted)]">
-                  <Metric label="Bookings" value={tenant.stats.currentMonthBookings} />
-                  <Metric label="Open jobs" value={tenant.stats.activeWorkOrders} />
-                  <Metric label="Staff" value={tenant.stats.staffAccounts} />
+                  <Metric label={t('platformAdmin.metrics.bookings')} value={tenant.stats.currentMonthBookings} />
+                  <Metric label={t('platformAdmin.metrics.openJobs')} value={tenant.stats.activeWorkOrders} />
+                  <Metric label={t('platformAdmin.metrics.staff')} value={tenant.stats.staffAccounts} />
                 </div>
               </button>
             ))}
@@ -349,18 +364,22 @@ function TenantDetailPanel({
   onPatch: (patch: TenantPatch) => Promise<void>;
   onSupportSession: (durationMinutes: number) => Promise<void>;
 }) {
+  const { t, formatDate } = useI18n();
   const [billingDraft, setBillingDraft] = useState<{ tenantId: string; value: string } | null>(null);
   const [supportMinutes, setSupportMinutes] = useState(60);
 
   if (loading) {
-    return <Card className="p-5 text-sm text-[var(--color-text-muted)]">Loading tenant...</Card>;
+    return <Card className="p-5 text-sm text-[var(--color-text-muted)]">{t('platformAdmin.detail.loading')}</Card>;
   }
 
   if (!tenant) {
-    return <Card className="p-5 text-sm text-[var(--color-text-muted)]">Select a tenant to manage.</Card>;
+    return <Card className="p-5 text-sm text-[var(--color-text-muted)]">{t('platformAdmin.detail.empty')}</Card>;
   }
 
   const billingNotes = billingDraft?.tenantId === tenant.id ? billingDraft.value : tenant.billingNotes ?? '';
+  const supportAccessExpiresAt = tenant.supportAccessExpiresAt
+    ? formatDate(tenant.supportAccessExpiresAt, { dateStyle: 'medium', timeStyle: 'short' })
+    : '';
 
   return (
     <div className="space-y-4">
@@ -369,83 +388,87 @@ function TenantDetailPanel({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="truncate font-[var(--font-display)] text-2xl font-semibold">{tenant.name}</h2>
-              <StatusBadge tone={tenant.isActive ? 'success' : 'danger'}>{tenant.isActive ? 'Active' : 'Disabled'}</StatusBadge>
-              <StatusBadge>{tenant.billingStatus}</StatusBadge>
+              <StatusBadge tone={tenant.isActive ? 'success' : 'danger'}>
+                {tenant.isActive ? t('common.states.active') : t('common.states.disabled')}
+              </StatusBadge>
+              <StatusBadge>{t(getBillingStatusKey(tenant.billingStatus))}</StatusBadge>
             </div>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">/{tenant.slug} · Created {formatDate(tenant.createdAt)}</p>
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+              /{tenant.slug} · {t('platformAdmin.detail.created', { date: formatDate(tenant.createdAt, { dateStyle: 'medium' }) })}
+            </p>
             {summary?.owner && (
               <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-                Owner: {summary.owner.fullName} · {summary.owner.email}
+                {t('platformAdmin.detail.owner', { name: summary.owner.fullName, email: summary.owner.email })}
               </p>
             )}
           </div>
           <div className="grid min-w-[280px] grid-cols-3 gap-2 text-sm">
-            <Stat label="Month bookings" value={tenant.stats.currentMonthBookings} />
-            <Stat label="Open jobs" value={tenant.stats.activeWorkOrders} />
-            <Stat label="Active staff" value={tenant.stats.activeStaffAccounts} />
+            <Stat label={t('platformAdmin.metrics.monthBookings')} value={tenant.stats.currentMonthBookings} />
+            <Stat label={t('platformAdmin.metrics.openJobs')} value={tenant.stats.activeWorkOrders} />
+            <Stat label={t('platformAdmin.metrics.activeStaff')} value={tenant.stats.activeStaffAccounts} />
           </div>
         </div>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(320px,0.7fr)]">
         <Card className="p-5">
-          <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">Account Controls</h3>
+          <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">{t('platformAdmin.detail.accountControls')}</h3>
           <div className="grid gap-4 md:grid-cols-2">
             <SelectField
               id="detail-plan"
-              label="Plan"
+              label={t('platformAdmin.filters.plan')}
               value={tenant.plan}
-              options={plans}
+              options={plans.map((plan) => ({ value: plan, label: t(`plans.${plan}`) }))}
               onChange={(plan) => onPatch({ plan: plan as TenantPlan })}
             />
             <SelectField
               id="detail-billing"
-              label="Billing status"
+              label={t('platformAdmin.detail.billingStatus')}
               value={tenant.billingStatus}
-              options={billingStatuses}
+              options={billingStatuses.map((status) => ({ value: status, label: t(getBillingStatusKey(status)) }))}
               onChange={(billingStatus) => onPatch({ billingStatus: billingStatus as TenantBillingStatus })}
             />
           </div>
 
           <div className="mt-4">
-            <Label htmlFor="billing-notes">Billing notes</Label>
+            <Label htmlFor="billing-notes">{t('platformAdmin.detail.billingNotes')}</Label>
             <Textarea
               id="billing-notes"
               value={billingNotes}
               onChange={(event) => setBillingDraft({ tenantId: tenant.id, value: event.target.value })}
               rows={5}
-              placeholder="Manual invoice status, renewal notes, or payment follow-up."
+              placeholder={t('platformAdmin.detail.billingNotesPlaceholder')}
             />
             <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={() => onPatch({ billingNotes })}>
                 <Save size={16} />
-                Save notes
+                {t('platformAdmin.detail.saveNotes')}
               </Button>
               <Button
                 variant={tenant.isActive ? 'danger' : 'secondary'}
                 onClick={() => onPatch({ isActive: !tenant.isActive })}
               >
-                {tenant.isActive ? 'Disable tenant' : 'Reactivate tenant'}
+                {tenant.isActive ? t('platformAdmin.detail.disableTenant') : t('platformAdmin.detail.reactivateTenant')}
               </Button>
             </div>
           </div>
         </Card>
 
         <Card className="p-5">
-          <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">Support Access</h3>
+          <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">{t('platformAdmin.detail.supportAccess')}</h3>
           <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/40 p-4">
             <p className="text-sm font-medium">
               {tenant.supportAccessEnabled && tenant.supportAccessExpiresAt
-                ? `Enabled until ${formatDateTime(tenant.supportAccessExpiresAt)}`
-                : 'No active support window'}
+                ? t('platformAdmin.detail.supportEnabledUntil', { date: supportAccessExpiresAt })
+                : t('platformAdmin.detail.noSupportWindow')}
             </p>
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Starting a session opens a temporary owner-level support view for this tenant.
+              {t('platformAdmin.detail.supportDescription')}
             </p>
           </div>
 
           <div className="mt-4">
-            <Label htmlFor="support-duration">Duration minutes</Label>
+            <Label htmlFor="support-duration">{t('platformAdmin.detail.durationMinutes')}</Label>
             <Input
               id="support-duration"
               type="number"
@@ -459,14 +482,14 @@ function TenantDetailPanel({
           <div className="mt-4 flex flex-wrap gap-2">
             <Button disabled={!tenant.isActive} onClick={() => onSupportSession(supportMinutes)}>
               <LifeBuoy size={16} />
-              Start support session
+              {t('platformAdmin.detail.startSupportSession')}
             </Button>
             <Button
               variant="secondary"
               onClick={() => onPatch({ supportAccessEnabled: false })}
               disabled={!tenant.supportAccessEnabled}
             >
-              Close support access
+              {t('platformAdmin.detail.closeSupportAccess')}
             </Button>
           </div>
           <a
@@ -475,23 +498,23 @@ function TenantDetailPanel({
             rel="noreferrer"
             className="mt-4 inline-flex items-center gap-2 text-sm text-[var(--color-primary)]"
           >
-            Public booking page
+            {t('platformAdmin.detail.publicBookingPage')}
             <ExternalLink size={14} />
           </a>
         </Card>
       </div>
 
       <Card className="p-5">
-        <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">Users</h3>
+        <h3 className="mb-4 font-[var(--font-display)] text-lg font-semibold">{t('platformAdmin.detail.users')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               <tr>
-                <th className="pb-2 font-medium">Name</th>
-                <th className="pb-2 font-medium">Email</th>
-                <th className="pb-2 font-medium">Role</th>
-                <th className="pb-2 font-medium">Status</th>
-                <th className="pb-2 font-medium">Created</th>
+                <th className="pb-2 font-medium">{t('common.labels.name')}</th>
+                <th className="pb-2 font-medium">{t('common.labels.email')}</th>
+                <th className="pb-2 font-medium">{t('common.labels.role')}</th>
+                <th className="pb-2 font-medium">{t('common.labels.status')}</th>
+                <th className="pb-2 font-medium">{t('platformAdmin.detail.createdHeader')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
@@ -499,13 +522,15 @@ function TenantDetailPanel({
                 <tr key={member.id}>
                   <td className="py-3 font-medium">{member.fullName}</td>
                   <td className="py-3 text-[var(--color-text-secondary)]">{member.email}</td>
-                  <td className="py-3">{member.role}</td>
+                  <td className="py-3">{t(getRoleKey(member.role))}</td>
                   <td className="py-3">
                     <StatusBadge tone={member.isActive ? 'success' : 'danger'}>
-                      {member.isInvitePending ? 'Invite pending' : member.isActive ? 'Active' : 'Inactive'}
+                      {member.isInvitePending
+                        ? t('platformAdmin.statuses.invitePending')
+                        : member.isActive ? t('common.states.active') : t('common.states.inactive')}
                     </StatusBadge>
                   </td>
-                  <td className="py-3 text-[var(--color-text-muted)]">{formatDate(member.createdAt)}</td>
+                  <td className="py-3 text-[var(--color-text-muted)]">{formatDate(member.createdAt, { dateStyle: 'medium' })}</td>
                 </tr>
               ))}
             </tbody>
@@ -543,12 +568,4 @@ function StatusBadge({
       {children}
     </Badge>
   );
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }

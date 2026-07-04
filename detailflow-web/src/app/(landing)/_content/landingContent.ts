@@ -1,111 +1,71 @@
 export const navItems = [
-  { label: 'المنتج', href: '#workflow' },
-  { label: 'الميزات', href: '#features' },
-  { label: 'الأسعار', href: '#pricing' },
-  { label: 'الأسئلة', href: '#faq' },
+  { labelKey: 'landing.nav.product', href: '#workflow' },
+  { labelKey: 'landing.nav.features', href: '#features' },
+  { labelKey: 'landing.nav.pricing', href: '#pricing' },
+  { labelKey: 'landing.nav.faq', href: '#faq' },
 ] as const;
 
 export const workflowSteps = [
   {
     step: '01',
-    title: 'رابط حجز جاهز لكل ورشة',
-    body: 'شارك رابطك على واتساب أو إنستقرام، واستقبل بيانات العميل والمركبة والخدمة بدون رسائل متفرقة.',
+    titleKey: 'landing.workflow.steps.0.title',
+    bodyKey: 'landing.workflow.steps.0.body',
   },
   {
     step: '02',
-    title: 'لوحة تشغيل مباشرة للفريق',
-    body: 'كل سيارة تتحرك بين الحجز، الوصول، الغسيل، التلميع، الجاهزية، والتسليم في مسار واحد واضح.',
+    titleKey: 'landing.workflow.steps.1.title',
+    bodyKey: 'landing.workflow.steps.1.body',
   },
   {
     step: '03',
-    title: 'تتبع وواتساب للعميل',
-    body: 'يرى العميل حالة مركبته من رابط خاص، وتصل رسالة الجاهزية تلقائيا عند اكتمال العمل.',
+    titleKey: 'landing.workflow.steps.2.title',
+    bodyKey: 'landing.workflow.steps.2.body',
   },
 ] as const;
 
-export const features = [
-  {
-    title: 'حجز إلكتروني',
-    body: 'صفحة عامة تعرض الخدمات، الأسعار، والأوقات المتاحة حسب طاقة الورشة.',
-  },
-  {
-    title: 'Kanban للعمليات',
-    body: 'مراحل واضحة لكل سيارة مع نقل سريع وتحديثات مباشرة للفريق.',
-  },
-  {
-    title: 'تتبع العميل',
-    body: 'رابط خاص لكل أمر عمل يعرض المرحلة، الوقت المتوقع، والفاتورة عند التسليم.',
-  },
-  {
-    title: 'واتساب جاهزية',
-    body: 'رسائل جاهزة أو تلقائية عند وصول المركبة إلى مرحلة الاستلام.',
-  },
-  {
-    title: 'تحليلات الأداء',
-    body: 'قراءة يومية للحجوزات، الخدمات الأكثر طلبا، والعملاء المتكررين.',
-  },
-  {
-    title: 'فريق وصلاحيات',
-    body: 'أدوار للمالك والمدير والموظفين مع حدود واضحة حسب الخطة.',
-  },
-] as const;
+export const features = Array.from({ length: 6 }, (_, index) => ({
+  titleKey: `landing.features.items.${index}.title`,
+  bodyKey: `landing.features.items.${index}.body`,
+})) as {
+  titleKey: string;
+  bodyKey: string;
+}[];
 
-export const saudiPoints = [
-  'واجهة عربية RTL مصممة أولا للجوال',
-  'تجربة واتساب تناسب طريقة حجز العملاء في السعودية',
-  'أسعار وخطط واضحة بالريال السعودي',
-  'جاهز الآن للورش ذات الفرع الواحد، ودعم الفروع قادم لاحقا',
-] as const;
+export const saudiPointKeys = Array.from({ length: 4 }, (_, index) => `landing.saudi.points.${index}`);
+
+export const progressStageKeys = Array.from({ length: 4 }, (_, index) => `landing.saudi.progressStages.${index}`);
 
 export const plans = [
   {
-    name: 'Free',
-    price: 'مجاني',
-    note: 'لبداية منظمة بدون بطاقة دفع',
-    features: ['30 حجز شهريا', 'صفحة حجز عامة', 'لوحة عمليات', 'تتبع العميل', 'مستخدمان للفريق'],
-    cta: 'ابدأ مجانا',
+    nameKey: 'landing.pricing.plans.0.name',
+    priceKey: 'landing.pricing.plans.0.price',
+    noteKey: 'landing.pricing.plans.0.note',
+    featureKeys: Array.from({ length: 5 }, (_, index) => `landing.pricing.plans.0.features.${index}`),
+    ctaKey: 'landing.pricing.plans.0.cta',
     featured: false,
     comingLater: false,
   },
   {
-    name: 'Pro',
-    price: '149 ريال',
-    note: 'للورش التي تريد تشغيل اليوم بالكامل',
-    features: ['حجوزات غير محدودة', 'إشعارات واتساب', 'تحليلات وتقارير', '10 حسابات فريق', '10 صور لكل أمر عمل'],
-    cta: 'ابدأ Pro',
+    nameKey: 'landing.pricing.plans.1.name',
+    priceKey: 'landing.pricing.plans.1.price',
+    noteKey: 'landing.pricing.plans.1.note',
+    featureKeys: Array.from({ length: 5 }, (_, index) => `landing.pricing.plans.1.features.${index}`),
+    ctaKey: 'landing.pricing.plans.1.cta',
     featured: true,
     comingLater: false,
   },
   {
-    name: 'Business',
-    price: 'قريبا',
-    note: 'دعم المواقع والفروع المتعددة قادم لاحقا',
-    features: ['كل مزايا Pro', 'إدارة الفروع قادمة لاحقا', 'تشغيل موحد للمواقع قادم لاحقا', 'أولوية الدعم عند الإطلاق'],
-    cta: 'قادم لاحقا',
+    nameKey: 'landing.pricing.plans.2.name',
+    priceKey: 'landing.pricing.plans.2.price',
+    noteKey: 'landing.pricing.plans.2.note',
+    featureKeys: Array.from({ length: 4 }, (_, index) => `landing.pricing.plans.2.features.${index}`),
+    ctaKey: 'landing.pricing.plans.2.cta',
     featured: false,
     comingLater: true,
   },
 ] as const;
 
-export const faqs = [
-  {
-    question: 'هل أحتاج بطاقة دفع للتسجيل؟',
-    answer: 'لا. يمكن إنشاء مساحة عمل والبدء بالخطة المجانية مباشرة، ثم الترقية عندما تحتاج واتساب أو التحليلات.',
-  },
-  {
-    question: 'هل يعمل DetailFlow مع واتساب الحالي؟',
-    answer: 'يمكن للفريق إرسال روابط جاهزة عبر واتساب، وتفعيل الإشعارات التلقائية متاح في خطة Pro عبر إعدادات Meta WhatsApp Business.',
-  },
-  {
-    question: 'ماذا يرى العميل بعد الحجز؟',
-    answer: 'يحصل العميل على رابط تتبع يعرض حالة السيارة، الخدمة، وقت الجاهزية المتوقع، والفاتورة بعد التسليم.',
-  },
-  {
-    question: 'هل الصفحة مناسبة للجوال؟',
-    answer: 'نعم. الحجز والتتبع ولوحة التشغيل مصممة للجوال أولا، مع دعم كامل للاتجاه العربي RTL.',
-  },
-  {
-    question: 'هل أستطيع تشغيل أكثر من فرع؟',
-    answer: 'حاليا يدعم DetailFlow فرعا واحدا لكل مساحة عمل. دعم المواقع والفروع المتعددة قادم لاحقا.',
-  },
-] as const;
+export const faqs = Array.from({ length: 5 }, (_, index) => ({
+  questionKey: `landing.faq.items.${index}.question`,
+  answerKey: `landing.faq.items.${index}.answer`,
+}));

@@ -56,7 +56,7 @@ public class WorkOrderService(
         var workOrder = await WorkOrderMappings.BaseQuery(db).AsNoTracking().FirstOrDefaultAsync(w => w.Id == id)
             ?? throw new KeyNotFoundException("Work order not found.");
         var fromStage = workOrder.Stage;
-        WorkOrderMappings.ValidateTransition(fromStage, input.NewStage);
+        WorkOrderMappings.ValidateTransition(fromStage, input.NewStage, workOrder.PaymentStatus);
 
         var updatedAt = DateTimeOffset.UtcNow;
         var readyAt = input.NewStage == WorkOrderStage.Ready ? updatedAt.AddMinutes(30) : (DateTimeOffset?)null;
@@ -135,22 +135,36 @@ public class WorkOrderService(
             ?? throw new ArgumentException("Invalid service type.");
 
         await using var tx = await db.Database.BeginTransactionAsync();
-        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone)
-            ?? new Customer { TenantId = tenantContext.TenantId, Phone = phone };
-        customer.FullName = customerName;
-        if (customer.Id == Guid.Empty)
-            customer.Id = Guid.NewGuid();
-        if (db.Entry(customer).State == EntityState.Detached)
+        
+        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
+        var notes = input.Notes;
+        if (customer is null)
+        {
+            customer = new Customer { TenantId = tenantContext.TenantId, FullName = customerName, Phone = phone };
             db.Customers.Add(customer);
+        }
+        else if (!string.Equals(customer.FullName, customerName, StringComparison.OrdinalIgnoreCase))
+        {
+            notes = string.IsNullOrWhiteSpace(notes)
+                ? $"[Walk-in under name: {customerName}]"
+                : $"[Walk-in under name: {customerName}]\n{notes}";
+        }
 
-        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate)
-            ?? new Vehicle { TenantId = tenantContext.TenantId, Customer = customer, PlateNumber = plate };
-        vehicle.Make = vehicleMake;
-        vehicle.Model = vehicleModel;
-        vehicle.Color = vehicleColor;
-        vehicle.VehicleType = input.VehicleType;
-        if (db.Entry(vehicle).State == EntityState.Detached)
+        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate);
+        if (vehicle is null)
+        {
+            vehicle = new Vehicle 
+            { 
+                TenantId = tenantContext.TenantId, 
+                Customer = customer, 
+                PlateNumber = plate,
+                Make = vehicleMake,
+                Model = vehicleModel,
+                Color = vehicleColor,
+                VehicleType = input.VehicleType 
+            };
             db.Vehicles.Add(vehicle);
+        }
 
         var workOrder = new WorkOrder
         {
@@ -159,7 +173,7 @@ public class WorkOrderService(
             Vehicle = vehicle,
             ServiceTypeId = service.Id,
             Stage = WorkOrderStage.Arrived,
-            Notes = input.Notes
+            Notes = notes
         };
         customer.TotalVisits++;
         db.WorkOrders.Add(workOrder);
@@ -239,6 +253,30 @@ public class WorkOrderService(
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(w => w.ActualPrice, input.ActualPrice)
                 .SetProperty(w => w.Notes, w => input.Notes ?? w.Notes)
+                .SetProperty(w => w.UpdatedAt, updatedAt));
+
+        if (changed == 0)
+            throw new KeyNotFoundException("Work order not found.");
+
+        var workOrder = await WorkOrderMappings.BaseQuery(db).AsNoTracking().FirstOrDefaultAsync(w => w.Id == id)
+            ?? throw new KeyNotFoundException("Work order not found.");
+        var card = WorkOrderMappings.ToCard(workOrder);
+        await events.BroadcastToTenantAsync(tenantContext.TenantId, new BoardEvent("work_order_updated", new
+        {
+            workOrder = card
+        }));
+        return card;
+    }
+
+    public async Task<WorkOrderCardDto> UpdatePaymentStatusAsync(Guid id, PaymentStatusRequest input)
+    {
+        EnsureManagerOrOwner();
+
+        var updatedAt = DateTimeOffset.UtcNow;
+        var changed = await db.WorkOrders
+            .Where(w => w.Id == id)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(w => w.PaymentStatus, input.Status)
                 .SetProperty(w => w.UpdatedAt, updatedAt));
 
         if (changed == 0)

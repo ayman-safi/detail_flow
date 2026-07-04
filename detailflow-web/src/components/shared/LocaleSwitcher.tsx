@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import type { AppLocale } from '@/i18n/config';
 import { cn } from '@/lib/utils';
 
-const locales: AppLocale[] = ['en', 'ar'];
+const locales: AppLocale[] = ['en', 'ar', 'tr'];
 
 export function LocaleSwitcher({ compact = false }: { compact?: boolean }) {
   const { locale, setLocale, t } = useI18n();

@@ -1,35 +1,41 @@
-import { saudiPoints } from '../_content/landingContent';
+'use client';
+
+import { Check } from 'lucide-react';
+import { useI18n } from '@/i18n/I18nProvider';
+import { progressStageKeys, saudiPointKeys } from '../_content/landingContent';
 import { Reveal } from './Reveal';
 import styles from './landing.module.css';
 
 export function SaudiSection() {
+  const { t } = useI18n();
+
   return (
     <section className={`${styles.section} ${styles.sectionBorder}`} aria-labelledby="saudi-title">
       <div className={`${styles.shell} ${styles.splitGrid}`}>
         <Reveal>
-          <p className={styles.eyebrow}>مصمم للسعودية</p>
+          <p className={styles.eyebrow}>{t('landing.saudi.eyebrow')}</p>
           <h2 id="saudi-title" className={styles.sectionTitle}>
-            تجربة عربية تناسب طريقة عمل ورش التلميع في الرياض وجدة والدمام
+            {t('landing.saudi.title')}
           </h2>
           <p className={styles.sectionText}>
-            العملاء يحجزون من الجوال، يسألون عبر واتساب، ويتوقعون معرفة حالة السيارة بدون اتصال متكرر. DetailFlow يبني حول هذه الحقيقة.
+            {t('landing.saudi.text')}
           </p>
           <ul className={styles.saudiList}>
-            {saudiPoints.map((point) => (
-              <li key={point}>{point}</li>
+            {saudiPointKeys.map((pointKey) => (
+              <li key={pointKey}>{t(pointKey)}</li>
             ))}
           </ul>
         </Reveal>
 
         <Reveal delay={140}>
-          <div className={styles.phoneMockup} aria-label="معاينة صفحة الحجز والتتبع على الجوال">
+          <div className={styles.phoneMockup} aria-label={t('landing.saudi.phoneLabel')}>
             <div className={styles.phoneScreen}>
               <div className={styles.bookingPanel}>
-                <strong>حجز خدمة</strong>
-                <span>لمعة الرياض للتفصيل</span>
+                <strong>{t('landing.saudi.bookingTitle')}</strong>
+                <span>{t('landing.saudi.shopName')}</span>
                 <div className={styles.serviceRow}>
-                  <span>تلميع كامل</span>
-                  <b>220 ريال</b>
+                  <span>{t('landing.saudi.serviceName')}</span>
+                  <b>{t('landing.saudi.servicePrice')}</b>
                 </div>
                 <div className={styles.slotsGrid}>
                   <span className={styles.slot}>10:00</span>
@@ -42,20 +48,20 @@ export function SaudiSection() {
               </div>
 
               <div className={styles.trackingPanel}>
-                <strong>تتبع السيارة</strong>
-                <span>رنج روفر - باقة كاملة</span>
+                <strong>{t('landing.saudi.trackingTitle')}</strong>
+                <span>{t('landing.saudi.trackingVehicle')}</span>
                 <div className={styles.progressTrack}>
-                  {['محجوز', 'وصل', 'غسيل', 'جاهز'].map((item, index) => (
-                    <div className={styles.progressItem} key={item}>
+                  {progressStageKeys.map((itemKey, index) => (
+                    <div className={styles.progressItem} key={itemKey}>
                       <span className={`${styles.progressDot} ${index < 3 ? styles.progressDone : ''}`}>
-                        {index < 3 ? '✓' : index + 1}
+                        {index < 3 ? <Check aria-hidden size={14} /> : index + 1}
                       </span>
-                      <span>{item}</span>
+                      <span>{t(itemKey)}</span>
                     </div>
                   ))}
                 </div>
                 <p className={styles.cardText}>
-                  إشعار واتساب عند الجاهزية: <b>مركبتك جاهزة للاستلام</b>
+                  {t('landing.saudi.whatsAppReadyPrefix')} <b>{t('landing.saudi.whatsAppReadyMessage')}</b>
                 </p>
               </div>
             </div>

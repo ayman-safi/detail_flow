@@ -133,6 +133,7 @@ public class BookingService(
             throw new ConflictException("Selected time slot is full.");
 
         var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
+        var notes = input.Notes;
         if (customer is null)
         {
             customer = new Customer
@@ -143,9 +144,11 @@ public class BookingService(
             };
             db.Customers.Add(customer);
         }
-        else
+        else if (!string.Equals(customer.FullName, customerName, StringComparison.OrdinalIgnoreCase))
         {
-            customer.FullName = customerName;
+            notes = string.IsNullOrWhiteSpace(notes)
+                ? $"[Booked under name: {customerName}]"
+                : $"[Booked under name: {customerName}]\n{notes}";
         }
 
         var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate);
@@ -155,15 +158,14 @@ public class BookingService(
             {
                 TenantId = tenantContext.TenantId,
                 Customer = customer,
-                PlateNumber = plate
+                PlateNumber = plate,
+                Make = vehicleMake,
+                Model = vehicleModel,
+                Color = vehicleColor,
+                VehicleType = input.VehicleType
             };
             db.Vehicles.Add(vehicle);
         }
-
-        vehicle.Make = vehicleMake;
-        vehicle.Model = vehicleModel;
-        vehicle.Color = vehicleColor;
-        vehicle.VehicleType = input.VehicleType;
 
         var booking = new Booking
         {
@@ -173,7 +175,7 @@ public class BookingService(
             ServiceTypeId = service.Id,
             ScheduledAt = scheduledAt,
             Status = BookingStatus.Confirmed,
-            Notes = input.Notes
+            Notes = notes
         };
         db.Bookings.Add(booking);
 
@@ -186,7 +188,7 @@ public class BookingService(
             ServiceTypeId = service.Id,
             ServiceType = service,
             Stage = WorkOrderStage.Booked,
-            Notes = input.Notes
+            Notes = notes
         };
         customer.TotalVisits++;
         db.WorkOrders.Add(workOrder);

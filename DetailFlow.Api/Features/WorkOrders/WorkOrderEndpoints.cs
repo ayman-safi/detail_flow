@@ -56,6 +56,14 @@ public class WorkOrdersController(WorkOrderService service) : ControllerBase
         return Ok(await service.UpdatePriceAsync(id, input));
     }
 
+    [HttpPatch("{id:guid}/payment-status")]
+    [Authorize]
+    [EnableRateLimiting("api-mutations")]
+    public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] PaymentStatusRequest input)
+    {
+        return Ok(await service.UpdatePaymentStatusAsync(id, input));
+    }
+
     [HttpGet("track/{token}")]
     [AllowAnonymous]
     [EnableRateLimiting("public-track")]

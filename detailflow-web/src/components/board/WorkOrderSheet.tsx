@@ -9,7 +9,7 @@ import api, { getApiErrorMessage } from '@/lib/api';
 import { useTenantCurrency } from '@/hooks/useTenantCurrency';
 import { useAuthStore } from '@/store/authStore';
 import { useBoardStore } from '@/store/boardStore';
-import type { Stage, StaffMember, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
+import type { PaymentStatus, Stage, StaffMember, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -25,6 +25,7 @@ import { getStageKey, stageSequence } from '@/i18n/domain';
 import { cn } from '@/lib/utils';
 
 const defaultTab = 'details';
+const paymentStatuses: PaymentStatus[] = ['Pending', 'Paid', 'Refunded'];
 
 export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string | null; onClose: () => void }) {
   const [tab, setTab] = useState<'details' | 'photos' | 'history'>(defaultTab);
@@ -181,6 +182,14 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
     refreshBoardCard(updated);
     toast.success(t('board.toasts.workOrderUpdated'));
     return true;
+  };
+
+  const updatePaymentStatus = async (status: PaymentStatus) => {
+    const { data: updated } = await api.patch<WorkOrderCard>(`/work-orders/${workOrderId}/payment-status`, {
+      status,
+    });
+    refreshBoardCard(updated);
+    toast.success(t('board.toasts.paymentUpdated'));
   };
 
   const downloadReceipt = async () => {
@@ -359,6 +368,22 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                       </select>
                     </div>
                   )}
+                  {managerOrOwner && (
+                    <div>
+                      <Label>{t('board.workOrder.paymentStatus')}</Label>
+                      <select
+                        className={cn(selectClassName, 'mt-2')}
+                        value={card.paymentStatus}
+                        onChange={(event) => updatePaymentStatus(event.target.value as PaymentStatus)}
+                      >
+                        {paymentStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </section>
 
                 <section>
@@ -437,13 +462,19 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                   )}
 
                   {card.stage === 'Ready' && (
-                    <Button
-                      className="h-11 w-full rounded-[var(--radius-md)] bg-[var(--color-success)] hover:bg-[var(--color-success)]"
-                      onClick={() => changeStage('Delivered')}
-                    >
-                      <CheckCircle size={16} />
-                      {t('common.actions.markDelivered')}
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        className="h-11 w-full rounded-[var(--radius-md)] bg-[var(--color-success)] hover:bg-[var(--color-success)]"
+                        onClick={() => changeStage('Delivered')}
+                        disabled={card.paymentStatus !== 'Paid'}
+                      >
+                        <CheckCircle size={16} />
+                        {t('common.actions.markDelivered')}
+                      </Button>
+                      {card.paymentStatus !== 'Paid' && (
+                        <p className="text-xs text-[var(--color-text-muted)]">{t('board.workOrder.paymentRequiredForDelivery')}</p>
+                      )}
+                    </div>
                   )}
                 </section>
               </TabsContent>

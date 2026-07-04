@@ -19,15 +19,17 @@
       "copyLink": "Copy link",
       "newBooking": "New booking",
       "confirmBooking": "Confirm booking",
-    "create": "Create",
-    "logout": "Log out",
-    "showDelivered": "Show delivered",
+      "create": "Create",
+      "logout": "Log out",
+      "showDelivered": "Show delivered",
       "hideDelivered": "Hide delivered",
       "saveChanges": "Save changes",
       "downloadReceipt": "Receipt PDF",
       "markDelivered": "Mark as delivered",
       "addNotes": "Add notes +",
-      "whatsApp": "WhatsApp"
+      "whatsApp": "WhatsApp",
+      "refresh": "Refresh",
+      "signOut": "Sign out"
     },
     "labels": {
       "date": "Date",
@@ -61,7 +63,8 @@
       "active": "Active",
       "inactive": "Inactive",
       "unassigned": "Unassigned",
-      "loading": "Loading"
+      "loading": "Loading",
+      "disabled": "Disabled"
     },
     "units": {
       "minutesShort": "{value} min",
@@ -75,6 +78,9 @@
       "enShort": "EN",
       "arShort": "AR",
       "switcherLabel": "Switch language"
+    },
+    "filters": {
+      "all": "All"
     }
   },
   "navigation": {
@@ -179,6 +185,7 @@
       "moveFailed": "Move failed",
       "staffAssigned": "Staff assigned",
       "staffUnassigned": "Staff unassigned",
+      "paymentUpdated": "Payment status updated",
       "invalidPrice": "Enter a valid price.",
       "workOrderUpdated": "Work order updated",
       "photoDeleted": "Photo deleted",
@@ -216,6 +223,8 @@
       "whatsAppTrackingDescription": "Re-send the customer tracking link by WhatsApp from this work order window.",
       "reSendReadyWhatsApp": "Re-send Ready WhatsApp",
       "reSendTrackingWhatsApp": "Re-send tracking link",
+      "paymentStatus": "Payment status",
+      "paymentRequiredForDelivery": "Mark payment as Paid before delivery.",
       "unsavedTitle": "Unsaved changes",
       "unsavedDescription": "Price or notes were changed. Save before leaving this work order?",
       "discardChanges": "Discard changes",
@@ -533,5 +542,302 @@
     "connecting": "Reconnecting...",
     "error": "Disconnected",
     "closed": "Connection closed"
+  },
+  "landing": {
+    "meta": {
+      "title": "DetailFlow | Operating system for detailing and denting shops in Saudi Arabia",
+      "description": "SaaS platform for managing bookings and operations at Saudi detailing and denting shops with customer tracking and WhatsApp notifications."
+    },
+    "nav": {
+      "product": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "faq": "FAQ"
+    },
+    "header": {
+      "navigationLabel": "Primary navigation",
+      "tagline": "Live shop operations for detailing and denting teams",
+      "login": "Sign in",
+      "startFree": "Start free",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
+    },
+    "hero": {
+      "eyebrow": "Built for high-volume detailing and denting shops",
+      "titleLineTwo": "Run bookings, bays, staff, and pickup from one live board",
+      "text": "DetailFlow replaces notebooks and scattered WhatsApp threads with a booking link, live vehicle stages, customer tracking, receipts, and shop analytics.",
+      "dashboardLogin": "Open dashboard",
+      "metaLabel": "Quick benefits",
+      "meta": [
+        "Booking link",
+        "Live operations board",
+        "Customer tracking"
+      ],
+      "previewLabel": "DetailFlow board preview",
+      "windowTitle": "Live shop board",
+      "shopName": "Riyadh Shine",
+      "shopArea": "Al Olaya",
+      "metrics": {
+        "activeCars": "Active cars",
+        "onTime": "On-time rate",
+        "customerSatisfaction": "Customer satisfaction"
+      },
+      "columns": {
+        "booked": "Booked",
+        "arrived": "Arrived",
+        "washing": "Washing",
+        "ready": "Ready"
+      },
+      "jobs": {
+        "mercedes": "Mercedes S",
+        "premiumWash": "Premium wash",
+        "bmw": "BMW X7",
+        "ceramic": "Ceramic",
+        "lexus": "Lexus ES",
+        "interiorPolish": "Interior polish",
+        "rangeRover": "Range Rover",
+        "completePackage": "Full package",
+        "landCruiser": "Land Cruiser",
+        "exteriorWash": "Exterior wash",
+        "audi": "Audi Q8",
+        "notified": "Customer notified"
+      }
+    },
+    "workflow": {
+      "eyebrow": "Product demo",
+      "title": "See the entire shop day before it becomes a bottleneck",
+      "text": "Every booking, vehicle, staff handoff, pickup message, and receipt sits in one operational view your team can scan in seconds.",
+      "steps": [
+        {
+          "title": "Capture demand cleanly",
+          "body": "Share one booking link on WhatsApp or Instagram and collect customer, vehicle, service, and time-slot details without back-and-forth messages."
+        },
+        {
+          "title": "Move vehicles by stage",
+          "body": "Booked, arrived, washing, detailing, polishing, ready, and delivered become a shared flow instead of a memory test."
+        },
+        {
+          "title": "Close the loop with customers",
+          "body": "Customers follow a private tracking link, receive ready messages, and get receipt access without repeated calls to the front desk."
+        }
+      ]
+    },
+    "saudi": {
+      "eyebrow": "Customer experience",
+      "title": "A mobile booking and tracking flow that matches how customers actually ask for service",
+      "text": "Customers book from mobile, ask through WhatsApp, and expect clear status without repeated calls. DetailFlow keeps that experience simple for both sides.",
+      "points": [
+        "Arabic RTL and English interfaces designed mobile-first",
+        "Public booking page with services, prices, capacity, and available times",
+        "Private tracking link for each work order",
+        "WhatsApp-ready pickup messages and receipt links"
+      ],
+      "phoneLabel": "Mobile booking and tracking preview",
+      "bookingTitle": "Book a service",
+      "shopName": "Riyadh Shine Detailing",
+      "serviceName": "Full polish",
+      "servicePrice": "SAR 220",
+      "trackingTitle": "Vehicle tracking",
+      "trackingVehicle": "Range Rover - Full package",
+      "progressStages": [
+        "Booked",
+        "Arrived",
+        "Washing",
+        "Ready"
+      ],
+      "whatsAppReadyPrefix": "Ready WhatsApp notification:",
+      "whatsAppReadyMessage": "Your vehicle is ready for pickup"
+    },
+    "features": {
+      "eyebrow": "Features",
+      "title": "The tools that make a busy shop feel controlled",
+      "text": "DetailFlow focuses on the workflow that matters most: fill the schedule, move cars through stages, notify customers, and understand performance.",
+      "items": [
+        {
+          "title": "Online booking",
+          "body": "A public page that shows services, prices, and available times based on shop capacity."
+        },
+        {
+          "title": "Operations Kanban",
+          "body": "Clear stages for every vehicle with quick moves and live updates for the team."
+        },
+        {
+          "title": "Customer tracking",
+          "body": "A private link for each work order showing the stage, estimated ready time, and receipt after delivery."
+        },
+        {
+          "title": "Ready WhatsApp",
+          "body": "Prepared or automatic messages when the vehicle reaches the pickup-ready stage."
+        },
+        {
+          "title": "Performance analytics",
+          "body": "Daily visibility into bookings, most requested services, and repeat customers."
+        },
+        {
+          "title": "Team and permissions",
+          "body": "Owner, manager, and staff roles with clear plan-based limits."
+        }
+      ]
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Start with the board. Upgrade when the shop is ready for automation.",
+      "text": "Simple plans: Free for an organized trial, Pro for daily operations with WhatsApp and analytics, and Business branch support coming later.",
+      "featuredBadge": "Best fit",
+      "comingLaterBadge": "Coming later",
+      "plans": [
+        {
+          "name": "Free",
+          "price": "Free",
+          "note": "For testing the flow with no payment card",
+          "features": [
+            "30 bookings per month",
+            "Public booking page",
+            "Operations board",
+            "Customer tracking",
+            "2 team users"
+          ],
+          "cta": "Start free"
+        },
+        {
+          "name": "Pro",
+          "price": "SAR 149",
+          "note": "For shops running daily bookings and pickup messages",
+          "features": [
+            "Unlimited bookings",
+            "WhatsApp notifications",
+            "Analytics and reports",
+            "10 team accounts",
+            "10 photos per work order"
+          ],
+          "cta": "Start Pro"
+        },
+        {
+          "name": "Business",
+          "price": "Coming soon",
+          "note": "Multi-location and branch support is coming later",
+          "features": [
+            "Everything in Pro",
+            "Branch management coming later",
+            "Unified operations for locations coming later",
+            "Priority support at launch"
+          ],
+          "cta": "Coming later"
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Quick answers before you start",
+      "items": [
+        {
+          "question": "Do I need a payment card to register?",
+          "answer": "No. You can create a workspace and start on the free plan immediately, then upgrade when you need WhatsApp or analytics."
+        },
+        {
+          "question": "Does DetailFlow work with our current WhatsApp?",
+          "answer": "The team can send ready-made links through WhatsApp, and automatic notifications are available on Pro through Meta WhatsApp Business settings."
+        },
+        {
+          "question": "What does the customer see after booking?",
+          "answer": "The customer gets a tracking link that shows the vehicle status, service, estimated ready time, and receipt after delivery."
+        },
+        {
+          "question": "Is the experience mobile-friendly?",
+          "answer": "Yes. Booking, tracking, and the operations board are designed mobile-first, with full Arabic RTL support."
+        },
+        {
+          "question": "Can I run more than one branch?",
+          "answer": "DetailFlow currently supports one branch per workspace. Multi-location and branch support is coming later."
+        }
+      ]
+    },
+    "finalCta": {
+      "eyebrow": "Start today",
+      "title": "Give every vehicle a clear path through the shop",
+      "text": "Create a DetailFlow workspace, share your booking link, and start running bookings, stages, customers, and receipts from one board.",
+      "cta": "Start free now"
+    },
+    "footer": {
+      "tagline": "Live operations for detailing and denting shops",
+      "product": "Product",
+      "access": "Access",
+      "createWorkspace": "Create workspace",
+      "dashboardLogin": "Open dashboard",
+      "faq": "FAQ",
+      "contact": "Contact",
+      "email": "hello@detailflow.sa",
+      "phone": "+966 50 000 0000",
+      "phoneHref": "+966500000000",
+      "country": "Saudi Arabia",
+      "rights": "2026 DetailFlow. All rights reserved."
+    }
+  },
+  "platformAdmin": {
+    "title": "Platform Admin",
+    "login": {
+      "subtitle": "Platform support console",
+      "errorFallback": "Unable to sign in with the support account.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Password is required."
+    },
+    "toasts": {
+      "tenantUpdated": "Tenant updated",
+      "updateFailed": "Unable to update tenant.",
+      "supportSessionFailed": "Unable to start support session."
+    },
+    "filters": {
+      "search": "Search tenants",
+      "searchPlaceholder": "Name or slug",
+      "plan": "Plan",
+      "status": "Status",
+      "billing": "Billing"
+    },
+    "list": {
+      "title": "Tenants",
+      "total": "{total} total",
+      "loading": "Loading tenants...",
+      "empty": "No tenants match the current filters."
+    },
+    "metrics": {
+      "bookings": "Bookings",
+      "monthBookings": "Month bookings",
+      "openJobs": "Open jobs",
+      "staff": "Staff",
+      "activeStaff": "Active staff"
+    },
+    "detail": {
+      "loading": "Loading tenant...",
+      "empty": "Select a tenant to manage.",
+      "created": "Created {date}",
+      "createdHeader": "Created",
+      "owner": "Owner: {name} ? {email}",
+      "accountControls": "Account controls",
+      "billingStatus": "Billing status",
+      "billingNotes": "Billing notes",
+      "billingNotesPlaceholder": "Manual invoice status, renewal notes, or payment follow-up.",
+      "saveNotes": "Save notes",
+      "disableTenant": "Disable tenant",
+      "reactivateTenant": "Reactivate tenant",
+      "supportAccess": "Support access",
+      "supportEnabledUntil": "Enabled until {date}",
+      "noSupportWindow": "No active support window",
+      "supportDescription": "Starting a session opens a temporary owner-level support view for this tenant.",
+      "durationMinutes": "Duration minutes",
+      "startSupportSession": "Start support session",
+      "closeSupportAccess": "Close support access",
+      "publicBookingPage": "Public booking page",
+      "users": "Users"
+    },
+    "statuses": {
+      "invitePending": "Invite pending"
+    },
+    "billingStatuses": {
+      "Trial": "Trial",
+      "Active": "Active",
+      "PastDue": "Past due",
+      "Suspended": "Suspended",
+      "Manual": "Manual"
+    }
   }
 }

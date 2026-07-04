@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 import { navItems } from '../_content/landingContent';
 import styles from './landing.module.css';
 
 export function LandingHeader() {
+  const { t } = useI18n();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const brandName = `${t('common.brandLead')}${t('common.brandAccent')}`;
 
   useEffect(() => {
     const updateHeader = () => setScrolled(window.scrollY > 16);
@@ -21,38 +24,38 @@ export function LandingHeader() {
 
   return (
     <header className={`${styles.header} ${scrolled || open ? styles.headerActive : ''}`}>
-      <nav className={`${styles.nav} ${styles.shell}`} aria-label="التنقل الرئيسي">
-        <Link className={styles.brand} href="/" aria-label="DetailFlow">
+      <nav className={`${styles.nav} ${styles.shell}`} aria-label={t('landing.header.navigationLabel')}>
+        <Link className={styles.brand} href="/" aria-label={brandName}>
           <span className={styles.brandMark} aria-hidden />
           <span className={styles.brandText}>
             <strong>
-              Detail<span>Flow</span>
+              {t('common.brandLead')}<span>{t('common.brandAccent')}</span>
             </strong>
-            <small>منصة تشغيل فاخرة لورش التلميع والتفصيل في السعودية</small>
+            <small>{t('landing.header.tagline')}</small>
           </span>
         </Link>
 
         <div className={styles.desktopNav}>
           {navItems.map((item) => (
             <a key={item.href} href={item.href}>
-              {item.label}
+              {t(item.labelKey)}
             </a>
           ))}
         </div>
 
         <div className={styles.headerActions}>
           <Link className={`${styles.button} ${styles.buttonGhost} ${styles.buttonSmall}`} href="/login">
-            دخول
+            {t('landing.header.login')}
           </Link>
           <Link className={`${styles.button} ${styles.buttonPrimary} ${styles.buttonSmall}`} href="/register">
-            ابدأ مجانا
+            {t('landing.header.startFree')}
           </Link>
         </div>
 
         <button
           className={styles.menuButton}
           type="button"
-          aria-label={open ? 'إغلاق القائمة' : 'فتح القائمة'}
+          aria-label={open ? t('landing.header.closeMenu') : t('landing.header.openMenu')}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
         >
@@ -62,14 +65,14 @@ export function LandingHeader() {
         <div className={`${styles.mobilePanel} ${open ? styles.mobilePanelOpen : ''}`}>
           {navItems.map((item) => (
             <a key={item.href} href={item.href} onClick={closeMenu}>
-              {item.label}
+              {t(item.labelKey)}
             </a>
           ))}
           <Link href="/login" onClick={closeMenu}>
-            دخول
+            {t('landing.header.login')}
           </Link>
           <Link className={`${styles.button} ${styles.buttonPrimary}`} href="/register" onClick={closeMenu}>
-            ابدأ مجانا
+            {t('landing.header.startFree')}
           </Link>
         </div>
       </nav>

@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { arSA, enUS } from 'date-fns/locale';
+import { arSA, enUS, tr } from 'date-fns/locale';
 import {
   createContext,
   useCallback,
@@ -39,6 +39,7 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 const dateFnsLocales = {
   en: enUS,
   ar: arSA,
+  tr: tr,
 } as const;
 
 const currencySymbols: Record<string, string> = {

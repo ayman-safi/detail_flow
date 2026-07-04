@@ -90,6 +90,46 @@ public class WorkOrderApiTests
     }
 
     [Fact]
+    public async Task Ready_work_order_requires_paid_status_before_delivery()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var booking = await TestApi.CreatePublicBookingAsync(client, tenant.Slug, serviceId, TestApi.NextOpenSlot());
+
+        var readyResponse = await client.PatchAsJsonAsync($"/api/work-orders/{booking.WorkOrderId}/stage", new
+        {
+            newStage = "Ready"
+        });
+        await TestApi.AssertStatusAsync(readyResponse, HttpStatusCode.OK);
+
+        var unpaidDeliveryResponse = await client.PatchAsJsonAsync($"/api/work-orders/{booking.WorkOrderId}/stage", new
+        {
+            newStage = "Delivered"
+        });
+        await TestApi.AssertStatusAsync(unpaidDeliveryResponse, HttpStatusCode.BadRequest);
+
+        var paymentResponse = await client.PatchAsJsonAsync($"/api/work-orders/{booking.WorkOrderId}/payment-status", new
+        {
+            status = "Paid"
+        });
+        await TestApi.AssertStatusAsync(paymentResponse, HttpStatusCode.OK);
+        using (var paymentJson = await TestApi.ReadJsonAsync(paymentResponse))
+        {
+            Assert.Equal("Paid", paymentJson.RootElement.GetProperty("paymentStatus").GetString());
+        }
+
+        var paidDeliveryResponse = await client.PatchAsJsonAsync($"/api/work-orders/{booking.WorkOrderId}/stage", new
+        {
+            newStage = "Delivered"
+        });
+        await TestApi.AssertStatusAsync(paidDeliveryResponse, HttpStatusCode.OK);
+        using var deliveredJson = await TestApi.ReadJsonAsync(paidDeliveryResponse);
+        Assert.Equal("Delivered", deliveredJson.RootElement.GetProperty("stage").GetString());
+    }
+
+    [Fact]
     public async Task Authenticated_and_public_receipts_generate_pdf_files()
     {
         using var app = new DetailFlowApiFactory();

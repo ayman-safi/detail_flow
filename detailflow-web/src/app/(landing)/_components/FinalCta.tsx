@@ -1,20 +1,25 @@
+'use client';
+
 import Link from 'next/link';
+import { useI18n } from '@/i18n/I18nProvider';
 import { Reveal } from './Reveal';
 import styles from './landing.module.css';
 
 export function FinalCta() {
+  const { t } = useI18n();
+
   return (
     <section className={styles.finalCta} aria-labelledby="final-cta-title">
       <Reveal className={`${styles.shell} ${styles.finalInner}`}>
-        <p className={styles.eyebrow}>ابدأ اليوم</p>
+        <p className={styles.eyebrow}>{t('landing.finalCta.eyebrow')}</p>
         <h2 id="final-cta-title" className={styles.finalTitle}>
-          حوّل تشغيل الورشة إلى نظام واضح قبل حجزك القادم
+          {t('landing.finalCta.title')}
         </h2>
         <p className={styles.finalText}>
-          أنشئ مساحة DetailFlow، شارك رابط الحجز، وابدأ إدارة السيارات والموظفين والعملاء من لوحة واحدة.
+          {t('landing.finalCta.text')}
         </p>
         <Link className={`${styles.button} ${styles.buttonPrimary}`} href="/register">
-          ابدأ مجانا الآن
+          {t('landing.finalCta.cta')}
         </Link>
       </Reveal>
     </section>

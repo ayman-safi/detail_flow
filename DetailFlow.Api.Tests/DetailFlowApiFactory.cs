@@ -2,6 +2,7 @@ using System.Data;
 using System.Data.Common;
 using DetailFlow.Api.Data;
 using DetailFlow.Api.Infrastructure;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -22,6 +23,11 @@ public sealed class DetailFlowApiFactory : WebApplicationFactory<Program>
     public const string JwtSecret = "test-secret-with-enough-length-for-hmac-signing";
 
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
+    private readonly string _dataProtectionKeysPath = Path.Combine(
+        Path.GetTempPath(),
+        "DetailFlow.Api.Tests",
+        Guid.NewGuid().ToString("N"),
+        "data-protection-keys");
     private readonly ServiceProvider _sqliteServices = new ServiceCollection()
         .AddEntityFrameworkSqlite()
         .BuildServiceProvider();
@@ -53,6 +59,10 @@ public sealed class DetailFlowApiFactory : WebApplicationFactory<Program>
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(TestConfiguration);
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DATA_PROTECTION_KEYS_PATH"] = _dataProtectionKeysPath
+            });
         });
 
         builder.ConfigureTestServices(services =>
@@ -70,6 +80,10 @@ public sealed class DetailFlowApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<IR2StorageService, FakeR2StorageService>();
             services.RemoveAll<IHttpClientFactory>();
             services.AddSingleton<IHttpClientFactory, FakeHttpClientFactory>();
+            Directory.CreateDirectory(_dataProtectionKeysPath);
+            services.AddDataProtection()
+                .SetApplicationName("DetailFlow.Api.Tests")
+                .PersistKeysToFileSystem(new DirectoryInfo(_dataProtectionKeysPath));
         });
     }
 
