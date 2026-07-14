@@ -13,6 +13,7 @@ public static class PlanLimits
             PhotosPerWorkOrder = 3,
             AnalyticsEnabled = false,
             WhatsAppEnabled = false,
+            WhatsAppMonthlyMessages = 0,
             MultiLocation = false
         },
         [TenantPlan.Pro] = new PlanQuota
@@ -22,6 +23,7 @@ public static class PlanLimits
             PhotosPerWorkOrder = 10,
             AnalyticsEnabled = true,
             WhatsAppEnabled = true,
+            WhatsAppMonthlyMessages = 500,
             MultiLocation = false
         },
         [TenantPlan.Business] = new PlanQuota
@@ -31,6 +33,7 @@ public static class PlanLimits
             PhotosPerWorkOrder = 10,
             AnalyticsEnabled = true,
             WhatsAppEnabled = true,
+            WhatsAppMonthlyMessages = 500,
             MultiLocation = false
         }
     };
@@ -43,5 +46,6 @@ public class PlanQuota
     public int PhotosPerWorkOrder { get; init; }
     public bool AnalyticsEnabled { get; init; }
     public bool WhatsAppEnabled { get; init; }
+    public int WhatsAppMonthlyMessages { get; init; }
     public bool MultiLocation { get; init; }
 }

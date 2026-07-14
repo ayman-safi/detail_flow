@@ -50,5 +50,6 @@ public class StaffController(StaffService service) : ControllerBase
 public record StaffCreateRequest(
     [Required, MinLength(2)] string FullName,
     [Required, EmailAddress] string Email,
+    [Required, MinLength(7)] string Phone,
     UserRole Role);
-public record StaffPatchRequest(string? FullName, UserRole? Role, bool? IsActive);
+public record StaffPatchRequest(string? FullName, string? Phone, UserRole? Role, bool? IsActive);

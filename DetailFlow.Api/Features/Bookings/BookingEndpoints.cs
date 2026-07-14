@@ -35,6 +35,13 @@ public class BookingsController(BookingService service) : ControllerBase
         return Ok(await service.CreateAsync(input));
     }
 
+    [HttpPut("bookings/{id:guid}")]
+    [EnableRateLimiting("api-mutations")]
+    public async Task<IActionResult> UpdateBooking(Guid id, [FromBody] BookingUpdateRequest input)
+    {
+        return Ok(await service.UpdateAsync(id, input));
+    }
+
     [HttpPatch("bookings/{id:guid}/status")]
     [EnableRateLimiting("api-mutations")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] BookingStatusRequest input)
@@ -58,6 +65,17 @@ public class BookingsController(BookingService service) : ControllerBase
 }
 
 public record BookingCreateRequest(
+    [Required, MinLength(2)] string CustomerName,
+    [Required, MinLength(7)] string CustomerPhone,
+    [Required, MinLength(2)] string VehiclePlate,
+    [Required] string VehicleMake,
+    [Required] string VehicleModel,
+    [Required] string VehicleColor,
+    VehicleType VehicleType,
+    Guid ServiceTypeId,
+    DateTimeOffset ScheduledAt,
+    string? Notes);
+public record BookingUpdateRequest(
     [Required, MinLength(2)] string CustomerName,
     [Required, MinLength(7)] string CustomerPhone,
     [Required, MinLength(2)] string VehiclePlate,

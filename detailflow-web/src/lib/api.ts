@@ -21,10 +21,18 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const body = error.response?.data as ApiErrorBody | undefined;
+    const requestUrl = String(error.config?.url ?? '');
+    const isAnonymousAuthRequest = [
+      '/auth/login',
+      '/auth/register-tenant',
+      '/auth/accept-invite',
+      '/auth/reset-password',
+      '/platform/auth/login',
+    ].some((path) => requestUrl.endsWith(path));
     if (error.response?.status === 402 && body?.upgrade === true) {
       emitPlanLimit({ message: body.message ?? body.error ?? body.title });
     }
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
+    if (error.response?.status === 401 && !isAnonymousAuthRequest && typeof window !== 'undefined') {
       useAuthStore.getState().logout();
       window.location.href = window.location.pathname.startsWith('/admin') ? '/admin/login' : '/login';
     }

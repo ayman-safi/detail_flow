@@ -50,8 +50,18 @@ export interface Booking {
   id: string; scheduledAt: string; status: 'Pending'|'Confirmed'|'Cancelled';
   serviceName: string; durationMinutes: number;
   customer: Pick<Customer, 'id'|'fullName'|'phone'>;
-  vehicle: Pick<Vehicle, 'id'|'plateNumber'|'make'|'model'>;
+  vehicle: Pick<Vehicle, 'id'|'plateNumber'|'make'|'model'|'color'|'vehicleType'>;
   workOrderId?: string; trackingToken?: string;
+}
+export interface BookingDetail {
+  id: string;
+  scheduledAt: string;
+  status: Booking['status'];
+  notes?: string | null;
+  customer: Pick<Customer, 'id'|'fullName'|'phone'>;
+  vehicle: Vehicle;
+  serviceType: ServiceType;
+  workOrder?: { id: string; stage: Stage; photosCount: number } | null;
 }
 export interface AvailabilitySlot { time: string; available: boolean; bookingCount: number; }
 export type DayOfWeek = 'Sunday'|'Monday'|'Tuesday'|'Wednesday'|'Thursday'|'Friday'|'Saturday';
@@ -92,14 +102,19 @@ export interface BookingCreateResult {
   serviceName: string;
 }
 export interface TrackingInfo { customerName: string; vehicleMake: string; vehicleModel: string; vehicleColor: string; vehiclePlate: string; stage: Stage; stageName: string; serviceName: string; estimatedReadyAt?: string; shopName: string; shopLogoUrl?: string; lastUpdatedAt: string; }
-export interface StaffMember { id: string; fullName: string; email: string; role: 'Owner'|'Manager'|'Staff'; isActive: boolean; isInvitePending: boolean; completedJobsToday: number; }
-export interface WhatsAppShare { customerPhone: string; trackingUrl: string; receiptUrl: string; whatsAppText: string; }
+export interface StaffMember { id: string; fullName: string; email: string; phone?: string | null; role: 'Owner'|'Manager'|'Staff'; isActive: boolean; isInvitePending: boolean; completedJobsToday: number; }
+export type NotificationEventType = 'ReadyForPickup'|'TrackingLink'|'StaffInvite'|'PasswordReset';
+export interface WhatsAppShare { eventType: NotificationEventType; customerPhone: string; trackingUrl: string; receiptUrl: string; whatsAppText: string; }
+export interface WhatsAppTemplateSettings {
+  eventType: NotificationEventType;
+  templateName: string;
+  languageCode: string;
+}
 export interface WhatsAppSettings {
   isEnabled: boolean;
   businessPhoneNumberId: string;
   hasAccessToken: boolean;
-  readyTemplateName: string;
-  templateLanguageCode: string;
+  templates: WhatsAppTemplateSettings[];
   autoSendReady: boolean;
   updatedAt?: string;
 }
@@ -107,7 +122,7 @@ export interface NotificationLogEntry {
   id: string;
   workOrderId?: string;
   channel: 'WhatsApp';
-  eventType: 'ReadyForPickup'|'TrackingLink';
+  eventType: NotificationEventType;
   dispatchType: 'Manual'|'Automatic';
   recipientPhone: string;
   providerMessageId?: string;
@@ -136,6 +151,12 @@ export interface PlanStatus {
   staffLimit: number;
   photosPerWorkOrder: number;
   whatsAppEnabled: boolean;
+  whatsAppProviderSendEnabled: boolean;
+  whatsAppMessagesIncluded: number;
+  whatsAppMessagesAddon: number;
+  whatsAppMessagesUsed: number;
+  whatsAppMessagesLimit: number;
+  whatsAppMessagesRemaining: number;
   analyticsEnabled: boolean;
   multiLocation: boolean;
 }
@@ -201,6 +222,7 @@ export interface PlatformTenantDetail {
   plan: TenantPlan;
   billingStatus: TenantBillingStatus;
   billingNotes?: string | null;
+  whatsAppMonthlyAddonMessages: number;
   isActive: boolean;
   supportAccessEnabled: boolean;
   supportAccessExpiresAt?: string | null;

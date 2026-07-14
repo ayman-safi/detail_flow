@@ -102,8 +102,9 @@ export function I18nProvider({
 
   const t = useCallback((key: string, values?: TranslationValues) => {
     const message = getMessage(messages, key);
-    if (typeof message !== 'string') return key;
-    return interpolate(message, values);
+    if (typeof message === 'string') return interpolate(message, values);
+    const fallback = getMessage(dictionaries.en, key);
+    return typeof fallback === 'string' ? interpolate(fallback, values) : key;
   }, [messages]);
 
   const formatDate = useCallback((value: Date | string | number, options?: Intl.DateTimeFormatOptions) => {

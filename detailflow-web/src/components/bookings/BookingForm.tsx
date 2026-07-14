@@ -118,6 +118,7 @@ export function BookingForm({ initialDate }: { initialDate?: Date | string } = {
       setSuccess(data);
       qc.invalidateQueries({ queryKey: ['bookings'] });
       qc.invalidateQueries({ queryKey: ['board'] });
+      qc.invalidateQueries({ queryKey: ['customers'] });
       qc.invalidateQueries({ queryKey: ['plan-status'] });
       toast.success(t('bookings.form.confirmed'));
     } catch (error) {

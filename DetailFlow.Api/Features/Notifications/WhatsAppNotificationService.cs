@@ -46,8 +46,18 @@ public class WhatsAppNotificationService(
 
         settings.IsEnabled = input.IsEnabled;
         settings.BusinessPhoneNumberId = NormalizeOptional(input.BusinessPhoneNumberId);
-        settings.ReadyTemplateName = NormalizeOptional(input.ReadyTemplateName);
-        settings.TemplateLanguageCode = NormalizeOptional(input.TemplateLanguageCode) ?? "en_US";
+        var readyTemplate = GetTemplateInput(input, NotificationEventType.ReadyForPickup);
+        var trackingTemplate = GetTemplateInput(input, NotificationEventType.TrackingLink);
+        settings.ReadyTemplateName = NormalizeOptional(readyTemplate?.TemplateName);
+        settings.TemplateLanguageCode = NormalizeOptional(readyTemplate?.LanguageCode) ?? "en_US";
+        settings.TrackingTemplateName = NormalizeOptional(trackingTemplate?.TemplateName);
+        settings.TrackingTemplateLanguageCode = NormalizeOptional(trackingTemplate?.LanguageCode) ?? "en_US";
+        var staffInviteTemplate = GetTemplateInput(input, NotificationEventType.StaffInvite);
+        var passwordResetTemplate = GetTemplateInput(input, NotificationEventType.PasswordReset);
+        settings.StaffInviteTemplateName = NormalizeOptional(staffInviteTemplate?.TemplateName);
+        settings.StaffInviteTemplateLanguageCode = NormalizeOptional(staffInviteTemplate?.LanguageCode) ?? "en_US";
+        settings.PasswordResetTemplateName = NormalizeOptional(passwordResetTemplate?.TemplateName);
+        settings.PasswordResetTemplateLanguageCode = NormalizeOptional(passwordResetTemplate?.LanguageCode) ?? "en_US";
         settings.AutoSendReady = input.AutoSendReady;
         settings.UpdatedAt = DateTimeOffset.UtcNow;
 
@@ -58,10 +68,16 @@ public class WhatsAppNotificationService(
 
         if (settings.IsEnabled &&
             (string.IsNullOrWhiteSpace(settings.BusinessPhoneNumberId) ||
-             string.IsNullOrWhiteSpace(settings.AccessTokenCiphertext) ||
-             string.IsNullOrWhiteSpace(settings.ReadyTemplateName)))
+             string.IsNullOrWhiteSpace(settings.AccessTokenCiphertext)))
         {
-            throw new ArgumentException("Business phone number, access token, and ready template are required when WhatsApp automation is enabled.");
+            throw new ArgumentException("Business phone number and access token are required when WhatsApp provider delivery is enabled.");
+        }
+
+        if (settings.IsEnabled &&
+            settings.AutoSendReady &&
+            string.IsNullOrWhiteSpace(settings.ReadyTemplateName))
+        {
+            throw new ArgumentException("Ready template is required when automatic Ready notifications are enabled.");
         }
 
         await db.SaveChangesAsync();
@@ -96,23 +112,24 @@ public class WhatsAppNotificationService(
             .ToListAsync();
     }
 
-    public async Task<object> CreateManualTrackingShareAsync(Guid workOrderId, string? locale)
+    public async Task<object> CreateManualTrackingShareAsync(Guid workOrderId, NotificationEventType? eventType, string? locale)
     {
         var workOrder = await LoadWorkOrderAsync(workOrderId)
             ?? throw new KeyNotFoundException("Work order not found.");
-        await planEnforcement.AssertWhatsAppEnabledAsync(workOrder.TenantId);
 
         var recipientPhone = NormalizeRecipientPhone(workOrder.Customer.Phone);
         if (recipientPhone is null)
             throw new ArgumentException("Customer phone must include at least 7 digits.");
 
-        var share = BuildSharePayload(workOrder, locale);
+        var selectedEventType = eventType ?? InferManualEventType(workOrder);
+        EnsureSupportedShareEventType(selectedEventType);
+        var share = BuildSharePayload(workOrder, selectedEventType, locale);
         db.NotificationLogs.Add(new NotificationLog
         {
             TenantId = workOrder.TenantId,
             WorkOrderId = workOrder.Id,
             Channel = NotificationChannel.WhatsApp,
-            EventType = NotificationEventType.TrackingLink,
+            EventType = selectedEventType,
             DispatchType = NotificationDispatchType.Manual,
             RecipientPhone = recipientPhone,
             Status = NotificationStatus.Requested,
@@ -124,6 +141,56 @@ public class WhatsAppNotificationService(
         return share;
     }
 
+    public async Task<WhatsAppDeliveryDto> SendAccountActionLinkAsync(User user, NotificationEventType eventType, string link)
+    {
+        EnsureSupportedAccountActionEventType(eventType);
+
+        var recipientPhone = NormalizeRecipientPhone(user.Phone);
+        if (recipientPhone is null)
+            return await RecordAccountActionFailedAttemptAsync(user, eventType, "PHONE_INVALID", "Staff phone must include at least 7 digits.");
+
+        var quota = await planEnforcement.GetWhatsAppQuotaStatusAsync(user.TenantId);
+        if (!quota.ProviderSendEnabled)
+            return await RecordAccountActionFailedAttemptAsync(user, eventType, "PLAN_REQUIRED", "WhatsApp notifications require Pro plan.");
+
+        var settings = await db.TenantWhatsAppSettings.AsNoTracking().FirstOrDefaultAsync(s => s.TenantId == user.TenantId);
+        var template = settings is null ? null : GetTemplateSettings(settings, eventType);
+        if (settings is null ||
+            !settings.IsEnabled ||
+            string.IsNullOrWhiteSpace(settings.BusinessPhoneNumberId) ||
+            string.IsNullOrWhiteSpace(settings.AccessTokenCiphertext) ||
+            string.IsNullOrWhiteSpace(template?.Name))
+        {
+            return await RecordAccountActionFailedAttemptAsync(user, eventType, "SETTINGS_INCOMPLETE", "WhatsApp settings are incomplete for account action notifications.");
+        }
+
+        if (quota.Remaining <= 0)
+            return await RecordAccountActionFailedAttemptAsync(user, eventType, "QUOTA_EXCEEDED", "WhatsApp message quota reached. Add more messages to send account action notifications.");
+
+        string accessToken;
+        try
+        {
+            accessToken = _tokenProtector.Unprotect(settings.AccessTokenCiphertext);
+        }
+        catch
+        {
+            return await RecordAccountActionFailedAttemptAsync(user, eventType, "TOKEN_INVALID", "WhatsApp access token could not be decrypted.");
+        }
+
+        return await SendTemplateMessageAsync(
+            user.TenantId,
+            workOrderId: null,
+            eventType,
+            recipientPhone,
+            settings.BusinessPhoneNumberId,
+            accessToken,
+            template.Name,
+            template.LanguageCode,
+            [link],
+            tenantContext.UserId == Guid.Empty ? null : tenantContext.UserId,
+            tenantContext.UserName);
+    }
+
     public async Task TryAutoSendReadyAsync(Guid workOrderId)
     {
         try
@@ -132,8 +199,8 @@ public class WhatsAppNotificationService(
             if (workOrder is null || workOrder.Stage != WorkOrderStage.Ready)
                 return;
 
-            var quota = await planEnforcement.GetQuotaAsync(workOrder.TenantId);
-            if (!quota.WhatsAppEnabled)
+            var quota = await planEnforcement.GetWhatsAppQuotaStatusAsync(workOrder.TenantId);
+            if (!quota.ProviderSendEnabled)
                 return;
 
             var settings = await db.TenantWhatsAppSettings.AsNoTracking().FirstOrDefaultAsync(s => s.TenantId == workOrder.TenantId);
@@ -143,7 +210,7 @@ public class WhatsAppNotificationService(
             var recipientPhone = NormalizeRecipientPhone(workOrder.Customer.Phone);
             if (recipientPhone is null)
             {
-                await RecordFailedAttemptAsync(workOrder, "PHONE_INVALID", "Customer phone must include at least 7 digits.");
+                await RecordFailedAttemptAsync(workOrder, NotificationEventType.ReadyForPickup, "PHONE_INVALID", "Customer phone must include at least 7 digits.");
                 return;
             }
 
@@ -157,11 +224,17 @@ public class WhatsAppNotificationService(
             if (hasPriorSuccessfulAttempt)
                 return;
 
+            if (quota.Remaining <= 0)
+            {
+                await RecordFailedAttemptAsync(workOrder, NotificationEventType.ReadyForPickup, "QUOTA_EXCEEDED", "WhatsApp message quota reached. Add more messages to send automatic Ready notifications.");
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(settings.BusinessPhoneNumberId) ||
                 string.IsNullOrWhiteSpace(settings.AccessTokenCiphertext) ||
                 string.IsNullOrWhiteSpace(settings.ReadyTemplateName))
             {
-                await RecordFailedAttemptAsync(workOrder, "SETTINGS_INCOMPLETE", "WhatsApp settings are incomplete for automatic Ready notifications.");
+                await RecordFailedAttemptAsync(workOrder, NotificationEventType.ReadyForPickup, "SETTINGS_INCOMPLETE", "WhatsApp settings are incomplete for automatic Ready notifications.");
                 return;
             }
 
@@ -172,85 +245,23 @@ public class WhatsAppNotificationService(
             }
             catch
             {
-                await RecordFailedAttemptAsync(workOrder, "TOKEN_INVALID", "WhatsApp access token could not be decrypted.");
+                await RecordFailedAttemptAsync(workOrder, NotificationEventType.ReadyForPickup, "TOKEN_INVALID", "WhatsApp access token could not be decrypted.");
                 return;
             }
 
-            var share = BuildSharePayload(workOrder, settings.TemplateLanguageCode);
-            var requestLog = new NotificationLog
-            {
-                TenantId = workOrder.TenantId,
-                WorkOrderId = workOrder.Id,
-                Channel = NotificationChannel.WhatsApp,
-                EventType = NotificationEventType.ReadyForPickup,
-                DispatchType = NotificationDispatchType.Automatic,
-                RecipientPhone = recipientPhone,
-                Status = NotificationStatus.Requested
-            };
-            db.NotificationLogs.Add(requestLog);
-            await db.SaveChangesAsync();
-
-            var graphVersion = config["WHATSAPP_GRAPH_API_VERSION"] ?? "v23.0";
-            var endpoint = $"https://graph.facebook.com/{graphVersion}/{settings.BusinessPhoneNumberId}/messages";
-            var body = new
-            {
-                messaging_product = "whatsapp",
-                recipient_type = "individual",
-                to = recipientPhone,
-                type = "template",
-                template = new
-                {
-                    name = settings.ReadyTemplateName,
-                    language = new { code = settings.TemplateLanguageCode },
-                    components = new[]
-                    {
-                        new
-                        {
-                            type = "body",
-                            parameters = new object[]
-                            {
-                                new { type = "text", text = share.TrackingUrl },
-                                new { type = "text", text = share.ReceiptUrl }
-                            }
-                        }
-                    }
-                }
-            };
-
-            using var client = httpClientFactory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-
-            using var response = await client.SendAsync(request);
-            var payload = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-            {
-                requestLog.Status = NotificationStatus.Failed;
-                requestLog.ErrorCode = $"HTTP_{(int)response.StatusCode}";
-                requestLog.ErrorMessage = ExtractErrorMessage(payload) ?? "Meta WhatsApp send request failed.";
-                requestLog.UpdatedAt = DateTimeOffset.UtcNow;
-                await db.SaveChangesAsync();
-                return;
-            }
-
-            string? providerMessageId = null;
-            try
-            {
-                using var json = JsonDocument.Parse(payload);
-                providerMessageId = json.RootElement.GetProperty("messages")[0].GetProperty("id").GetString();
-            }
-            catch
-            {
-                logger.LogWarning("Meta WhatsApp send succeeded but provider message id was not parsed for work order {WorkOrderId}", workOrder.Id);
-            }
-
-            requestLog.ProviderMessageId = providerMessageId;
-            requestLog.Status = NotificationStatus.Accepted;
-            requestLog.ErrorCode = null;
-            requestLog.ErrorMessage = null;
-            requestLog.UpdatedAt = DateTimeOffset.UtcNow;
-            await db.SaveChangesAsync();
+            var share = BuildSharePayload(workOrder, NotificationEventType.ReadyForPickup, settings.TemplateLanguageCode);
+            await SendTemplateMessageAsync(
+                workOrder.TenantId,
+                workOrder.Id,
+                NotificationEventType.ReadyForPickup,
+                recipientPhone,
+                settings.BusinessPhoneNumberId,
+                accessToken,
+                settings.ReadyTemplateName,
+                settings.TemplateLanguageCode,
+                [share.TrackingUrl, share.ReceiptUrl],
+                requestedByUserId: null,
+                requestedByName: null);
         }
         catch (Exception ex)
         {
@@ -306,8 +317,9 @@ public class WhatsAppNotificationService(
             .FirstOrDefaultAsync(w => w.Id == workOrderId);
     }
 
-    private WhatsAppShareDto BuildSharePayload(WorkOrder workOrder, string? locale)
+    private WhatsAppShareDto BuildSharePayload(WorkOrder workOrder, NotificationEventType eventType, string? locale)
     {
+        EnsureSupportedShareEventType(eventType);
         var frontendUrl = RequireAbsoluteUrl(config["FRONTEND_URL"], "FRONTEND_URL");
         var publicApiUrl = RequireAbsoluteUrl(
             string.IsNullOrWhiteSpace(config["PUBLIC_API_URL"]) ? $"{frontendUrl}/api" : config["PUBLIC_API_URL"],
@@ -318,22 +330,21 @@ public class WhatsAppNotificationService(
             : string.Empty;
         var receiptUrl = $"{publicApiUrl}/work-orders/track/{workOrder.TrackingToken}/receipt{encodedLocale}";
         var isArabic = !string.IsNullOrWhiteSpace(locale) && locale.StartsWith("ar", StringComparison.OrdinalIgnoreCase);
-        var isReadyLike = workOrder.Stage is WorkOrderStage.Ready or WorkOrderStage.Delivered;
         var whatsAppText = isArabic
-            ? BuildArabicShareMessage(isReadyLike, trackingUrl, receiptUrl)
-            : BuildEnglishShareMessage(isReadyLike, trackingUrl, receiptUrl);
+            ? BuildArabicShareMessage(eventType, trackingUrl, receiptUrl)
+            : BuildEnglishShareMessage(eventType, trackingUrl, receiptUrl);
 
-        return new WhatsAppShareDto(workOrder.Customer.Phone, trackingUrl, receiptUrl, whatsAppText);
+        return new WhatsAppShareDto(eventType, workOrder.Customer.Phone, trackingUrl, receiptUrl, whatsAppText);
     }
 
-    private async Task RecordFailedAttemptAsync(WorkOrder workOrder, string code, string message)
+    private async Task RecordFailedAttemptAsync(WorkOrder workOrder, NotificationEventType eventType, string code, string message)
     {
         db.NotificationLogs.Add(new NotificationLog
         {
             TenantId = workOrder.TenantId,
             WorkOrderId = workOrder.Id,
             Channel = NotificationChannel.WhatsApp,
-            EventType = NotificationEventType.ReadyForPickup,
+            EventType = eventType,
             DispatchType = NotificationDispatchType.Automatic,
             RecipientPhone = NormalizeRecipientPhone(workOrder.Customer.Phone) ?? workOrder.Customer.Phone,
             Status = NotificationStatus.Failed,
@@ -341,6 +352,120 @@ public class WhatsAppNotificationService(
             ErrorMessage = message
         });
         await db.SaveChangesAsync();
+    }
+
+    private async Task<WhatsAppDeliveryDto> RecordAccountActionFailedAttemptAsync(User user, NotificationEventType eventType, string code, string message)
+    {
+        var log = new NotificationLog
+        {
+            TenantId = user.TenantId,
+            WorkOrderId = null,
+            Channel = NotificationChannel.WhatsApp,
+            EventType = eventType,
+            DispatchType = NotificationDispatchType.Automatic,
+            RecipientPhone = NormalizeRecipientPhone(user.Phone) ?? user.Phone ?? "",
+            Status = NotificationStatus.Failed,
+            ErrorCode = code,
+            ErrorMessage = message,
+            RequestedByUserId = tenantContext.UserId == Guid.Empty ? null : tenantContext.UserId,
+            RequestedByName = tenantContext.UserName
+        };
+        db.NotificationLogs.Add(log);
+        await db.SaveChangesAsync();
+        return ToDeliveryDto(log);
+    }
+
+    private async Task<WhatsAppDeliveryDto> SendTemplateMessageAsync(
+        Guid tenantId,
+        Guid? workOrderId,
+        NotificationEventType eventType,
+        string recipientPhone,
+        string businessPhoneNumberId,
+        string accessToken,
+        string templateName,
+        string languageCode,
+        IReadOnlyList<string> bodyParameters,
+        Guid? requestedByUserId,
+        string? requestedByName)
+    {
+        var requestLog = new NotificationLog
+        {
+            TenantId = tenantId,
+            WorkOrderId = workOrderId,
+            Channel = NotificationChannel.WhatsApp,
+            EventType = eventType,
+            DispatchType = NotificationDispatchType.Automatic,
+            RecipientPhone = recipientPhone,
+            Status = NotificationStatus.Requested,
+            RequestedByUserId = requestedByUserId,
+            RequestedByName = requestedByName
+        };
+        db.NotificationLogs.Add(requestLog);
+        await db.SaveChangesAsync();
+
+        var graphVersion = config["WHATSAPP_GRAPH_API_VERSION"] ?? "v23.0";
+        var endpoint = $"https://graph.facebook.com/{graphVersion}/{businessPhoneNumberId}/messages";
+        var body = new
+        {
+            messaging_product = "whatsapp",
+            recipient_type = "individual",
+            to = recipientPhone,
+            type = "template",
+            template = new
+            {
+                name = templateName,
+                language = new { code = languageCode },
+                components = new[]
+                {
+                    new
+                    {
+                        type = "body",
+                        parameters = bodyParameters
+                            .Select(parameter => new { type = "text", text = parameter })
+                            .ToArray()
+                    }
+                }
+            }
+        };
+
+        using var client = httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request);
+        var payload = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            requestLog.Status = NotificationStatus.Failed;
+            requestLog.ErrorCode = $"HTTP_{(int)response.StatusCode}";
+            requestLog.ErrorMessage = ExtractErrorMessage(payload) ?? "Meta WhatsApp send request failed.";
+            requestLog.UpdatedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+            return ToDeliveryDto(requestLog);
+        }
+
+        string? providerMessageId = null;
+        try
+        {
+            using var json = JsonDocument.Parse(payload);
+            providerMessageId = json.RootElement.GetProperty("messages")[0].GetProperty("id").GetString();
+        }
+        catch
+        {
+            logger.LogWarning(
+                "Meta WhatsApp send succeeded but provider message id was not parsed for event {EventType} and work order {WorkOrderId}",
+                eventType,
+                workOrderId);
+        }
+
+        requestLog.ProviderMessageId = providerMessageId;
+        requestLog.Status = NotificationStatus.Accepted;
+        requestLog.ErrorCode = null;
+        requestLog.ErrorMessage = null;
+        requestLog.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+        return ToDeliveryDto(requestLog);
     }
 
     private static string? NormalizeOptional(string? value)
@@ -477,8 +602,25 @@ public class WhatsAppNotificationService(
             isEnabled = settings?.IsEnabled ?? false,
             businessPhoneNumberId = settings?.BusinessPhoneNumberId ?? "",
             hasAccessToken = !string.IsNullOrWhiteSpace(settings?.AccessTokenCiphertext),
-            readyTemplateName = settings?.ReadyTemplateName ?? "",
-            templateLanguageCode = settings?.TemplateLanguageCode ?? "en_US",
+            templates = new[]
+            {
+                new WhatsAppTemplateSettingsDto(
+                    NotificationEventType.TrackingLink,
+                    settings?.TrackingTemplateName ?? "",
+                    settings?.TrackingTemplateLanguageCode ?? "en_US"),
+                new WhatsAppTemplateSettingsDto(
+                    NotificationEventType.ReadyForPickup,
+                    settings?.ReadyTemplateName ?? "",
+                    settings?.TemplateLanguageCode ?? "en_US"),
+                new WhatsAppTemplateSettingsDto(
+                    NotificationEventType.StaffInvite,
+                    settings?.StaffInviteTemplateName ?? "",
+                    settings?.StaffInviteTemplateLanguageCode ?? "en_US"),
+                new WhatsAppTemplateSettingsDto(
+                    NotificationEventType.PasswordReset,
+                    settings?.PasswordResetTemplateName ?? "",
+                    settings?.PasswordResetTemplateLanguageCode ?? "en_US")
+            },
             autoSendReady = settings?.AutoSendReady ?? false,
             updatedAt = settings?.UpdatedAt
         };
@@ -496,17 +638,69 @@ public class WhatsAppNotificationService(
         string? ErrorCode,
         string? ErrorMessage);
 
-    private static string BuildEnglishShareMessage(bool isReadyLike, string trackingUrl, string receiptUrl)
+    private static WhatsAppTemplateSettingsRequest? GetTemplateInput(TenantWhatsAppSettingsRequest input, NotificationEventType eventType)
     {
-        if (isReadyLike)
+        var template = input.Templates?.FirstOrDefault(t => t.EventType == eventType);
+        if (template is not null)
+            return template;
+
+        if (eventType == NotificationEventType.ReadyForPickup &&
+            (!string.IsNullOrWhiteSpace(input.ReadyTemplateName) || !string.IsNullOrWhiteSpace(input.TemplateLanguageCode)))
+        {
+            return new WhatsAppTemplateSettingsRequest(
+                NotificationEventType.ReadyForPickup,
+                input.ReadyTemplateName,
+                input.TemplateLanguageCode);
+        }
+
+        return null;
+    }
+
+    private static WhatsAppTemplateSettings? GetTemplateSettings(TenantWhatsAppSettings settings, NotificationEventType eventType)
+    {
+        return eventType switch
+        {
+            NotificationEventType.TrackingLink => new WhatsAppTemplateSettings(settings.TrackingTemplateName, settings.TrackingTemplateLanguageCode),
+            NotificationEventType.ReadyForPickup => new WhatsAppTemplateSettings(settings.ReadyTemplateName, settings.TemplateLanguageCode),
+            NotificationEventType.StaffInvite => new WhatsAppTemplateSettings(settings.StaffInviteTemplateName, settings.StaffInviteTemplateLanguageCode),
+            NotificationEventType.PasswordReset => new WhatsAppTemplateSettings(settings.PasswordResetTemplateName, settings.PasswordResetTemplateLanguageCode),
+            _ => null
+        };
+    }
+
+    private static WhatsAppDeliveryDto ToDeliveryDto(NotificationLog log) =>
+        new(log.Status, log.ErrorCode, log.ErrorMessage, log.ProviderMessageId);
+
+    private static NotificationEventType InferManualEventType(WorkOrder workOrder)
+    {
+        return workOrder.Stage is WorkOrderStage.Ready or WorkOrderStage.Delivered
+            ? NotificationEventType.ReadyForPickup
+            : NotificationEventType.TrackingLink;
+    }
+
+    private static void EnsureSupportedShareEventType(NotificationEventType eventType)
+    {
+        if (eventType is not (NotificationEventType.ReadyForPickup or NotificationEventType.TrackingLink))
+            throw new ArgumentException("Unsupported WhatsApp notification event type.");
+    }
+
+    private static void EnsureSupportedAccountActionEventType(NotificationEventType eventType)
+    {
+        if (eventType is not (NotificationEventType.StaffInvite or NotificationEventType.PasswordReset))
+            throw new ArgumentException("Unsupported WhatsApp account action event type.");
+    }
+
+    private static string BuildEnglishShareMessage(NotificationEventType eventType, string trackingUrl, string receiptUrl)
+    {
+        if (eventType == NotificationEventType.ReadyForPickup)
             return $"Your vehicle is ready for pickup.{Environment.NewLine}Track status: {trackingUrl}{Environment.NewLine}Receipt: {receiptUrl}";
 
         return $"Track your vehicle status: {trackingUrl}";
     }
 
-    private static string BuildArabicShareMessage(bool isReadyLike, string trackingUrl, string receiptUrl)
+    private static string BuildArabicShareMessage(NotificationEventType eventType, string trackingUrl, string receiptUrl)
     {
-        if (isReadyLike)
+        if (eventType == NotificationEventType.ReadyForPickup)
         {
             return "\u0633\u064a\u0627\u0631\u062a\u0643 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0627\u0633\u062a\u0644\u0627\u0645."
                 + $"{Environment.NewLine}\u062a\u062a\u0628\u0639 \u0627\u0644\u062d\u0627\u0644\u0629: {trackingUrl}"
@@ -517,17 +711,39 @@ public class WhatsAppNotificationService(
     }
 }
 
-public record TenantWhatsAppSettingsRequest(
-    bool IsEnabled,
-    string? BusinessPhoneNumberId,
-    string? AccessToken,
-    bool ClearAccessToken,
-    string? ReadyTemplateName,
-    string? TemplateLanguageCode,
-    bool AutoSendReady);
+public class TenantWhatsAppSettingsRequest
+{
+    public bool IsEnabled { get; init; }
+    public string? BusinessPhoneNumberId { get; init; }
+    public string? AccessToken { get; init; }
+    public bool ClearAccessToken { get; init; }
+    public IReadOnlyList<WhatsAppTemplateSettingsRequest>? Templates { get; init; }
+    public string? ReadyTemplateName { get; init; }
+    public string? TemplateLanguageCode { get; init; }
+    public bool AutoSendReady { get; init; }
+}
+
+public record WhatsAppTemplateSettingsRequest(
+    NotificationEventType EventType,
+    string? TemplateName,
+    string? LanguageCode);
+
+public record WhatsAppTemplateSettingsDto(
+    NotificationEventType EventType,
+    string TemplateName,
+    string LanguageCode);
 
 public record WhatsAppShareDto(
+    NotificationEventType EventType,
     string CustomerPhone,
     string TrackingUrl,
     string ReceiptUrl,
     string WhatsAppText);
+
+public record WhatsAppDeliveryDto(
+    NotificationStatus Status,
+    string? ErrorCode,
+    string? ErrorMessage,
+    string? ProviderMessageId);
+
+internal sealed record WhatsAppTemplateSettings(string? Name, string LanguageCode);

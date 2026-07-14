@@ -19,6 +19,7 @@ public class WorkOrderApiTests
         {
             fullName = "Assigned Staff",
             email = "assigned@example.test",
+            phone = "+15550103000",
             role = "Staff"
         });
         await TestApi.AssertStatusAsync(staffResponse, HttpStatusCode.OK);
@@ -63,6 +64,41 @@ public class WorkOrderApiTests
             Assert.Equal(75, priceJson.RootElement.GetProperty("actualPrice").GetDecimal());
             Assert.Equal("Adjusted after inspection", priceJson.RootElement.GetProperty("notes").GetString());
         }
+    }
+
+    [Fact]
+    public async Task Free_plan_monthly_booking_limit_blocks_walk_in_creation()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+
+        await SeedMonthlyBookingsAsync(app, tenant.Id, serviceId, 30);
+
+        var response = await client.PostAsJsonAsync("/api/work-orders", new
+        {
+            customerName = "Limit Walk In",
+            customerPhone = "+1 555 010 3031",
+            vehiclePlate = "WLK-LIMIT",
+            vehicleMake = "Ford",
+            vehicleModel = "Focus",
+            vehicleColor = "Blue",
+            vehicleType = "Sedan",
+            serviceTypeId = serviceId,
+            notes = "Should be blocked at plan limit"
+        });
+
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.PaymentRequired);
+        using var json = await TestApi.ReadJsonAsync(response);
+        Assert.Equal("plan_limit_exceeded", json.RootElement.GetProperty("error").GetString());
+        Assert.True(json.RootElement.GetProperty("upgrade").GetBoolean());
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            Assert.Equal(30, await db.Bookings.IgnoreQueryFilters().CountAsync(b => b.TenantId == tenant.Id));
+            Assert.False(await db.WorkOrders.IgnoreQueryFilters().AnyAsync(w => w.TenantId == tenant.Id && w.BookingId == null));
+        });
     }
 
     [Fact]
@@ -178,5 +214,49 @@ public class WorkOrderApiTests
         await TestApi.AssertStatusAsync(missingResponse2, HttpStatusCode.NotFound);
         var suppressedResponse = await client.GetAsync("/api/work-orders/track/BCDEFGH");
         await TestApi.AssertStatusAsync(suppressedResponse, HttpStatusCode.NotFound);
+    }
+
+    private static async Task SeedMonthlyBookingsAsync(
+        DetailFlowApiFactory app,
+        Guid tenantId,
+        Guid serviceId,
+        int count)
+    {
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            for (var i = 0; i < count; i++)
+            {
+                var customer = new Customer
+                {
+                    TenantId = tenantId,
+                    FullName = $"Quota Customer {i:00}",
+                    Phone = $"155501{i:0000}"
+                };
+                var vehicle = new Vehicle
+                {
+                    TenantId = tenantId,
+                    Customer = customer,
+                    PlateNumber = $"QTA-{i:00}",
+                    Make = "Toyota",
+                    Model = "Corolla",
+                    Color = "Silver"
+                };
+
+                db.Bookings.Add(new Booking
+                {
+                    TenantId = tenantId,
+                    Customer = customer,
+                    Vehicle = vehicle,
+                    ServiceTypeId = serviceId,
+                    ScheduledAt = TestApi.NextOpenSlot(daysFromNow: 10 + i),
+                    Status = BookingStatus.Confirmed,
+                    CreatedAt = now
+                });
+            }
+
+            await db.SaveChangesAsync();
+        });
     }
 }

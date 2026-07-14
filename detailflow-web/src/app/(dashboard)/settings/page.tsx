@@ -13,7 +13,7 @@ import { fallbackReceiptSettings, useReceiptSettings, useTenantCurrency } from '
 import { isUnlimitedLimit } from '@/lib/planLimits';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
-import type { DayOfWeek, NotificationLogEntry, ReceiptSettings, ServiceType, StaffMember, TenantCurrency, TenantSettings, WhatsAppSettings, WorkingDay } from '@/types';
+import type { DayOfWeek, NotificationEventType, NotificationLogEntry, ReceiptSettings, ServiceType, StaffMember, TenantCurrency, TenantSettings, WhatsAppSettings, WhatsAppTemplateSettings, WorkingDay } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PlanUpgradePanel } from '@/components/plans/PlanUpgradePanel';
@@ -29,6 +29,23 @@ import { getRoleKey } from '@/i18n/domain';
 type TenantProfile = { name?: string; logoUrl?: string };
 type LogoUploadResponse = { logoUrl: string };
 const weekdays: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const whatsAppTemplateEventTypes: NotificationEventType[] = ['TrackingLink', 'ReadyForPickup', 'StaffInvite', 'PasswordReset'];
+
+function defaultWhatsAppTemplates(): WhatsAppTemplateSettings[] {
+  return whatsAppTemplateEventTypes.map((eventType) => ({
+    eventType,
+    templateName: '',
+    languageCode: 'en_US',
+  }));
+}
+
+function mergeWhatsAppTemplates(templates?: WhatsAppTemplateSettings[]) {
+  const byType = new Map((templates ?? []).map((template) => [template.eventType, template]));
+  return defaultWhatsAppTemplates().map((template) => ({
+    ...template,
+    ...(byType.get(template.eventType) ?? {}),
+  }));
+}
 
 function timeInputValue(value?: string) {
   return value?.slice(0, 5) || '08:00';
@@ -469,7 +486,10 @@ function ProfileTab() {
 function ServicesTab() {
   const qc = useQueryClient();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-  const { data: services = [] } = useQuery<ServiceType[]>({ queryKey: ['services'], queryFn: () => api.get<ServiceType[]>('/services').then((response) => response.data) });
+  const { data: services = [] } = useQuery<ServiceType[]>({
+    queryKey: ['services', 'manage'],
+    queryFn: () => api.get<ServiceType[]>('/services', { params: { includeInactive: true } }).then((response) => response.data),
+  });
   const [editing, setEditing] = useState<Partial<ServiceType> | null>(null);
   const { formatCurrency, isRtl, t } = useI18n();
   const currency = useTenantCurrency();
@@ -602,11 +622,10 @@ function NotificationsTab() {
     businessPhoneNumberId: '',
     accessToken: '',
     clearAccessToken: false,
-    readyTemplateName: '',
-    templateLanguageCode: 'en_US',
+    templates: defaultWhatsAppTemplates(),
     autoSendReady: false,
   });
-  const { formatRelativeTime, t } = useI18n();
+  const { formatNumber, formatRelativeTime, t } = useI18n();
   const owner = user?.role === 'Owner';
   const whatsAppEnabled = plan?.whatsAppEnabled === true;
 
@@ -629,8 +648,7 @@ function NotificationsTab() {
       businessPhoneNumberId: settings.businessPhoneNumberId,
       accessToken: '',
       clearAccessToken: false,
-      readyTemplateName: settings.readyTemplateName,
-      templateLanguageCode: settings.templateLanguageCode,
+      templates: mergeWhatsAppTemplates(settings.templates),
       autoSendReady: settings.autoSendReady,
     });
   }, [settings]);
@@ -661,6 +679,15 @@ function NotificationsTab() {
     return translated === key ? status : translated;
   };
 
+  const updateTemplate = (eventType: NotificationEventType, patch: Partial<WhatsAppTemplateSettings>) => {
+    setForm((current) => ({
+      ...current,
+      templates: current.templates.map((template) =>
+        template.eventType === eventType ? { ...template, ...patch } : template,
+      ),
+    }));
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.7fr)]">
       <Card className="p-5">
@@ -675,6 +702,23 @@ function NotificationsTab() {
         </div>
 
         <div className="space-y-5">
+          {plan && (
+            <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4 sm:grid-cols-3">
+              <div>
+                <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaUsed')}</p>
+                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesUsed)} / {formatNumber(plan.whatsAppMessagesLimit)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaRemaining')}</p>
+                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesRemaining)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaAddon')}</p>
+                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesAddon)}</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4">
             <div>
               <p className="font-medium">{t('settings.notifications.enabled')}</p>
@@ -689,14 +733,6 @@ function NotificationsTab() {
               <Input value={form.businessPhoneNumberId} onChange={(event) => setForm((current) => ({ ...current, businessPhoneNumberId: event.target.value }))} />
             </div>
             <div>
-              <Label>{t('settings.notifications.templateLanguage')}</Label>
-              <Input value={form.templateLanguageCode} onChange={(event) => setForm((current) => ({ ...current, templateLanguageCode: event.target.value }))} />
-            </div>
-            <div>
-              <Label>{t('settings.notifications.templateName')}</Label>
-              <Input value={form.readyTemplateName} onChange={(event) => setForm((current) => ({ ...current, readyTemplateName: event.target.value }))} />
-            </div>
-            <div>
               <Label>{t('settings.notifications.accessToken')}</Label>
               <Input
                 type="password"
@@ -706,6 +742,27 @@ function NotificationsTab() {
                 onChange={(event) => setForm((current) => ({ ...current, accessToken: event.target.value }))}
               />
             </div>
+          </div>
+
+          <div className="grid gap-3">
+            {form.templates.map((template) => (
+              <div key={template.eventType} className="rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
+                <div className="mb-3">
+                  <p className="font-medium">{t(`settings.notifications.eventTypes.${template.eventType}`)}</p>
+                  <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t(`settings.notifications.eventHints.${template.eventType}`)}</p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <Label>{t('settings.notifications.templateName')}</Label>
+                    <Input value={template.templateName} onChange={(event) => updateTemplate(template.eventType, { templateName: event.target.value })} />
+                  </div>
+                  <div>
+                    <Label>{t('settings.notifications.templateLanguage')}</Label>
+                    <Input value={template.languageCode} onChange={(event) => updateTemplate(template.eventType, { languageCode: event.target.value })} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -774,14 +831,15 @@ function StaffTab() {
   const { data: plan } = usePlanStatus();
   const { data: staff = [] } = useQuery<StaffMember[]>({ queryKey: ['staff'], enabled: user?.role !== 'Staff', queryFn: () => api.get<StaffMember[]>('/staff').then((response) => response.data) });
   const [open, setOpen] = useState(false);
-  const [invite, setInvite] = useState({ fullName: '', email: '', role: 'Staff' as StaffMember['role'] });
+  const [invite, setInvite] = useState({ fullName: '', email: '', phone: '', role: 'Staff' as StaffMember['role'] });
   const [generatedInvite, setGeneratedInvite] = useState<{ link: string; expiresAt: string } | null>(null);
   const { formatDate, formatNumber, isRtl, t } = useI18n();
   const selectClassName = `h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)] aria-[invalid=true]:border-[var(--color-destructive)] ${isRtl ? 'text-right' : 'text-left'}`;
 
-  type StaffCreateResponse = { user: StaffMember; inviteLink: string; inviteExpiresAt: string };
-  type InviteLinkResponse = { inviteLink: string; inviteExpiresAt: string };
-  type ResetLinkResponse = { resetLink: string; resetExpiresAt: string };
+  type WhatsAppDelivery = { status: 'Requested'|'Accepted'|'Sent'|'Delivered'|'Read'|'Failed'; errorCode?: string; errorMessage?: string; providerMessageId?: string };
+  type StaffCreateResponse = { user: StaffMember; inviteLink: string; inviteExpiresAt: string; whatsAppDelivery?: WhatsAppDelivery };
+  type InviteLinkResponse = { inviteLink: string; inviteExpiresAt: string; whatsAppDelivery?: WhatsAppDelivery };
+  type ResetLinkResponse = { resetLink: string; resetExpiresAt: string; whatsAppDelivery?: WhatsAppDelivery };
 
   const copyLink = async (link: string, successMessage: string) => {
     try {
@@ -792,12 +850,25 @@ function StaffTab() {
     }
   };
 
+  const showWhatsAppDelivery = (delivery?: WhatsAppDelivery) => {
+    if (!delivery) return;
+    if (delivery.status === 'Accepted') {
+      toast.success(t('settings.staff.whatsAppAccepted'));
+      return;
+    }
+
+    if (delivery.status === 'Failed') {
+      toast.error(delivery.errorMessage || t('settings.staff.whatsAppFailed'));
+    }
+  };
+
   const create = async () => {
     try {
       const { data } = await api.post<StaffCreateResponse>('/staff', invite);
-      setInvite({ fullName: '', email: '', role: 'Staff' });
+      setInvite({ fullName: '', email: '', phone: '', role: 'Staff' });
       setGeneratedInvite({ link: data.inviteLink, expiresAt: data.inviteExpiresAt });
       toast.success(t('settings.staff.added'));
+      showWhatsAppDelivery(data.whatsAppDelivery);
       qc.invalidateQueries({ queryKey: ['staff'] });
       qc.invalidateQueries({ queryKey: ['plan-status'] });
     } catch (error) {
@@ -815,6 +886,7 @@ function StaffTab() {
     try {
       const { data } = await api.post<InviteLinkResponse>(`/staff/${id}/invite-link`);
       await copyLink(data.inviteLink, t('settings.staff.inviteCopied'));
+      showWhatsAppDelivery(data.whatsAppDelivery);
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('settings.staff.inviteLinkFailed')));
     }
@@ -824,6 +896,7 @@ function StaffTab() {
     try {
       const { data } = await api.post<ResetLinkResponse>(`/staff/${id}/reset-link`);
       await copyLink(data.resetLink, t('settings.staff.resetCopied'));
+      showWhatsAppDelivery(data.whatsAppDelivery);
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('settings.staff.resetLinkFailed')));
     }
@@ -832,9 +905,15 @@ function StaffTab() {
   const handleDialogOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) {
-      setInvite({ fullName: '', email: '', role: 'Staff' });
+      setInvite({ fullName: '', email: '', phone: '', role: 'Staff' });
       setGeneratedInvite(null);
     }
+  };
+
+  const updatePhone = async (member: StaffMember) => {
+    const phone = window.prompt(t('settings.staff.phonePrompt'), member.phone ?? '');
+    if (phone === null) return;
+    await patchStaff(member.id, { phone });
   };
 
   if (user?.role === 'Staff') return <Card className="p-5">{t('settings.staff.restricted')}</Card>;
@@ -859,6 +938,7 @@ function StaffTab() {
             <div className="grid gap-3">
               <Input aria-label={t('settings.staff.fullNamePlaceholder')} placeholder={t('settings.staff.fullNamePlaceholder')} value={invite.fullName} onChange={(event) => setInvite({ ...invite, fullName: event.target.value })} />
               <Input aria-label={t('settings.staff.emailPlaceholder')} placeholder={t('settings.staff.emailPlaceholder')} value={invite.email} onChange={(event) => setInvite({ ...invite, email: event.target.value })} />
+              <Input aria-label={t('settings.staff.phonePlaceholder')} placeholder={t('settings.staff.phonePlaceholder')} value={invite.phone} onChange={(event) => setInvite({ ...invite, phone: event.target.value })} />
               <select aria-label={t('common.labels.role')} className={selectClassName} value={invite.role} onChange={(event) => setInvite({ ...invite, role: event.target.value as StaffMember['role'] })}>
                 <option value="Staff">{t('roles.Staff')}</option>
                 {user?.role === 'Owner' && <option value="Manager">{t('roles.Manager')}</option>}
@@ -884,9 +964,10 @@ function StaffTab() {
         </Dialog>
       </div>
       <div className="space-y-3">
-        <div className={cn('hidden grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_120px_90px_52px] gap-3 px-3 text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:grid', isRtl ? 'text-right' : 'text-left')}>
+        <div className={cn('hidden grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.8fr)_120px_90px_52px] gap-3 px-3 text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:grid', isRtl ? 'text-right' : 'text-left')}>
           <span>{t('common.labels.name')}</span>
           <span>{t('common.labels.email')}</span>
+          <span>{t('common.labels.phone')}</span>
           <span>{t('common.labels.role')}</span>
           <span>{t('common.labels.status')}</span>
           <span className={isRtl ? 'text-left' : 'text-right'}>{t('common.labels.actions')}</span>
@@ -899,12 +980,14 @@ function StaffTab() {
             ? t('settings.staff.pendingInvite')
             : member.isActive ? t('common.states.active') : t('common.states.inactive');
           return (
-            <div key={member.id} className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_120px_90px_52px] md:items-center">
+            <div key={member.id} className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.8fr)_120px_90px_52px] md:items-center">
               <div className="min-w-0">
                 <p className="font-medium">{member.fullName}</p>
                 <p className="mt-1 text-xs text-[var(--color-text-muted)] md:hidden">{member.email}</p>
+                <p className="mt-1 text-xs text-[var(--color-text-muted)] md:hidden">{member.phone || t('settings.staff.noPhone')}</p>
               </div>
               <div className="hidden min-w-0 text-sm text-[var(--color-text-secondary)] md:block">{member.email}</div>
+              <div className="hidden min-w-0 text-sm text-[var(--color-text-secondary)] md:block">{member.phone || t('settings.staff.noPhone')}</div>
               <div><span className="rounded-full bg-[var(--color-primary-muted)] px-2 py-1 text-xs text-[var(--color-primary)]">{t(getRoleKey(member.role))}</span></div>
               <div className={cn('text-sm', member.isActive && !member.isInvitePending ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]')}>{status}</div>
               <div className="flex justify-end">
@@ -914,6 +997,7 @@ function StaffTab() {
                     {member.isInvitePending
                       ? <DropdownMenuItem disabled={!member.isActive} onClick={() => copyInviteLink(member.id)}>{t('settings.staff.copyInviteLink')}</DropdownMenuItem>
                       : <DropdownMenuItem disabled={!member.isActive} onClick={() => copyResetLink(member.id)}>{t('settings.staff.copyResetLink')}</DropdownMenuItem>}
+                    <DropdownMenuItem disabled={!member.isActive} onClick={() => updatePhone(member)}>{t('settings.staff.updatePhone')}</DropdownMenuItem>
                     {canEditRole && member.role !== 'Staff' && <DropdownMenuItem onClick={() => patchStaff(member.id, { role: 'Staff' })}>{t('settings.staff.makeStaff')}</DropdownMenuItem>}
                     {canEditRole && member.role !== 'Manager' && <DropdownMenuItem onClick={() => patchStaff(member.id, { role: 'Manager' })}>{t('settings.staff.makeManager')}</DropdownMenuItem>}
                     <DropdownMenuItem disabled={isSelf || managerBlocked} onClick={() => patchStaff(member.id, { isActive: !member.isActive })}>{member.isActive ? t('settings.staff.deactivate') : t('settings.staff.activate')}</DropdownMenuItem>

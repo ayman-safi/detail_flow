@@ -7,10 +7,16 @@ namespace DetailFlow.Api.Features.Services;
 
 public class ServiceCatalogService(DetailFlowDbContext db, ITenantContext tenantContext)
 {
-    public async Task<IReadOnlyList<object>> ListAsync()
+    public async Task<IReadOnlyList<object>> ListAsync(bool includeInactive = false)
     {
-        return await db.ServiceTypes
-            .Where(s => s.IsActive)
+        if (includeInactive)
+            EnsureManagerOrOwner();
+
+        var query = db.ServiceTypes.AsQueryable();
+        if (!includeInactive)
+            query = query.Where(s => s.IsActive);
+
+        return await query
             .OrderBy(s => s.SortOrder)
             .Select(s => (object)new
             {

@@ -50,6 +50,7 @@ yarn-error.log*
 
 # Local browser/test tool state
 .playwright-cli/
+.e2e/
 playwright-report/
 test-results/
 

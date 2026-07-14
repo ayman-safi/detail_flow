@@ -84,6 +84,236 @@ public class BookingApiTests
     }
 
     [Fact]
+    public async Task Updating_booking_reschedules_changes_service_and_updates_linked_work_order()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var exteriorWashId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var interiorCleanId = await GetServiceIdByNameAsync(client, tenant.Slug, "Full Interior Clean");
+        var originalSlot = TestApi.NextOpenSlot(daysFromNow: 3);
+        var newSlot = TestApi.NextOpenSlot(daysFromNow: 4).AddHours(1);
+        var booking = await CreateAdminBookingAsync(client, exteriorWashId, originalSlot, "EDIT-001");
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/bookings/{booking.BookingId}", BuildBookingUpdatePayload(
+            interiorCleanId,
+            newSlot,
+            "Edited Customer",
+            "+1 555 010 9090",
+            "EDIT-009",
+            "Nissan",
+            "Altima",
+            "Black",
+            "SUV",
+            "Updated notes"));
+
+        await TestApi.AssertStatusAsync(updateResponse, HttpStatusCode.OK);
+        using (var updateJson = await TestApi.ReadJsonAsync(updateResponse))
+        {
+            Assert.Equal("Edited Customer", updateJson.RootElement.GetProperty("customer").GetProperty("fullName").GetString());
+            Assert.Equal("Full Interior Clean", updateJson.RootElement.GetProperty("serviceType").GetProperty("name").GetString());
+            Assert.Equal("EDIT-009", updateJson.RootElement.GetProperty("vehicle").GetProperty("plateNumber").GetString());
+        }
+
+        var oldDayResponse = await client.GetAsync($"/api/bookings?date={originalSlot:yyyy-MM-dd}&timezoneOffsetMinutes=0");
+        await TestApi.AssertStatusAsync(oldDayResponse, HttpStatusCode.OK);
+        using (var oldDayJson = await TestApi.ReadJsonAsync(oldDayResponse))
+        {
+            Assert.Empty(oldDayJson.RootElement.EnumerateArray());
+        }
+
+        var newDayResponse = await client.GetAsync($"/api/bookings?date={newSlot:yyyy-MM-dd}&timezoneOffsetMinutes=0");
+        await TestApi.AssertStatusAsync(newDayResponse, HttpStatusCode.OK);
+        using (var newDayJson = await TestApi.ReadJsonAsync(newDayResponse))
+        {
+            var item = Assert.Single(newDayJson.RootElement.EnumerateArray());
+            Assert.Equal("Full Interior Clean", item.GetProperty("serviceName").GetString());
+            Assert.Equal("EDIT-009", item.GetProperty("vehicle").GetProperty("plateNumber").GetString());
+            Assert.Equal("Black", item.GetProperty("vehicle").GetProperty("color").GetString());
+        }
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            var workOrder = await db.WorkOrders
+                .IgnoreQueryFilters()
+                .Include(w => w.Customer)
+                .Include(w => w.Vehicle)
+                .Include(w => w.ServiceType)
+                .SingleAsync(w => w.Id == booking.WorkOrderId);
+
+            Assert.Equal("Edited Customer", workOrder.Customer.FullName);
+            Assert.Equal("EDIT-009", workOrder.Vehicle.PlateNumber);
+            Assert.Equal("Full Interior Clean", workOrder.ServiceType.Name);
+            Assert.Equal("Updated notes", workOrder.Notes);
+        });
+    }
+
+    [Fact]
+    public async Task Updating_booking_rejects_full_overlapping_slot()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var occupiedSlot = TestApi.NextOpenSlot(daysFromNow: 3);
+        var editableSlot = TestApi.NextOpenSlot(daysFromNow: 4);
+
+        var availabilityUpdate = await client.PutAsJsonAsync("/api/settings/availability", new { bayCapacity = 1 });
+        await TestApi.AssertStatusAsync(availabilityUpdate, HttpStatusCode.OK);
+        await CreateAdminBookingAsync(client, serviceId, occupiedSlot, "FULL-001");
+        var editable = await CreateAdminBookingAsync(client, serviceId, editableSlot, "FULL-002");
+
+        var response = await client.PutAsJsonAsync($"/api/bookings/{editable.BookingId}", BuildBookingUpdatePayload(
+            serviceId,
+            occupiedSlot,
+            "Full Slot Customer",
+            "+1 555 010 3030",
+            "FULL-002"));
+
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Updating_booking_relinks_customer_vehicle_and_transfers_visit_count()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var first = await CreateAdminBookingAsync(client, serviceId, TestApi.NextOpenSlot(daysFromNow: 3), "LINK-001", "First Customer", "+1 555 010 1111");
+        var second = await CreateAdminBookingAsync(client, serviceId, TestApi.NextOpenSlot(daysFromNow: 4), "LINK-002", "Second Customer", "+1 555 010 2222");
+
+        var response = await client.PutAsJsonAsync($"/api/bookings/{first.BookingId}", BuildBookingUpdatePayload(
+            serviceId,
+            TestApi.NextOpenSlot(daysFromNow: 3).AddHours(1),
+            "Second Customer Updated",
+            "+1 555 010 2222",
+            "LINK-002",
+            "Honda",
+            "Accord",
+            "Green"));
+
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            var firstCustomer = await db.Customers.IgnoreQueryFilters().SingleAsync(c => c.TenantId == tenant.Id && c.Phone == "15550101111");
+            var secondCustomer = await db.Customers.IgnoreQueryFilters().SingleAsync(c => c.TenantId == tenant.Id && c.Phone == "15550102222");
+            var firstWorkOrder = await db.WorkOrders.IgnoreQueryFilters().SingleAsync(w => w.Id == first.WorkOrderId);
+            var secondWorkOrder = await db.WorkOrders.IgnoreQueryFilters().SingleAsync(w => w.Id == second.WorkOrderId);
+
+            Assert.Equal(0, firstCustomer.TotalVisits);
+            Assert.Equal(2, secondCustomer.TotalVisits);
+            Assert.Equal(secondCustomer.Id, firstWorkOrder.CustomerId);
+            Assert.Equal(secondCustomer.Id, secondWorkOrder.CustomerId);
+            Assert.Equal(firstWorkOrder.VehicleId, secondWorkOrder.VehicleId);
+        });
+    }
+
+    [Fact]
+    public async Task Cancelling_booked_booking_deletes_work_order_and_corrects_customer_history()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var booking = await CreateAdminBookingAsync(client, serviceId, TestApi.NextOpenSlot(daysFromNow: 3), "CXL-001");
+
+        var response = await client.PatchAsJsonAsync($"/api/bookings/{booking.BookingId}/status", new { status = "Cancelled" });
+
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            Assert.False(await db.WorkOrders.IgnoreQueryFilters().AnyAsync(w => w.Id == booking.WorkOrderId));
+            var customer = await db.Customers.IgnoreQueryFilters().SingleAsync(c => c.TenantId == tenant.Id && c.Phone == "15550104040");
+            Assert.Equal(0, customer.TotalVisits);
+        });
+
+        var customersResponse = await client.GetAsync("/api/customers?page=1&limit=10");
+        await TestApi.AssertStatusAsync(customersResponse, HttpStatusCode.OK);
+        using var customersJson = await TestApi.ReadJsonAsync(customersResponse);
+        var customerItem = Assert.Single(customersJson.RootElement.GetProperty("items").EnumerateArray());
+        Assert.Equal(0, customerItem.GetProperty("recentWorkOrders").GetArrayLength());
+
+        var boardResponse = await client.GetAsync("/api/work-orders/board");
+        await TestApi.AssertStatusAsync(boardResponse, HttpStatusCode.OK);
+        using var boardJson = await TestApi.ReadJsonAsync(boardResponse);
+        Assert.Equal(0, boardJson.RootElement.GetProperty("booked").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Cancelling_after_arrival_returns_conflict_and_preserves_visit_count()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var booking = await CreateAdminBookingAsync(client, serviceId, TestApi.NextOpenSlot(daysFromNow: 3), "ARR-001");
+
+        var stageResponse = await client.PatchAsJsonAsync($"/api/work-orders/{booking.WorkOrderId}/stage", new { newStage = "Arrived" });
+        await TestApi.AssertStatusAsync(stageResponse, HttpStatusCode.OK);
+
+        var cancelResponse = await client.PatchAsJsonAsync($"/api/bookings/{booking.BookingId}/status", new { status = "Cancelled" });
+
+        await TestApi.AssertStatusAsync(cancelResponse, HttpStatusCode.Conflict);
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            Assert.True(await db.WorkOrders.IgnoreQueryFilters().AnyAsync(w => w.Id == booking.WorkOrderId));
+            var customer = await db.Customers.IgnoreQueryFilters().SingleAsync(c => c.TenantId == tenant.Id && c.Phone == "15550104040");
+            Assert.Equal(1, customer.TotalVisits);
+        });
+    }
+
+    [Fact]
+    public async Task Confirming_pending_booking_creates_one_work_order_and_counts_visit_once()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var bookingId = await SeedPendingBookingAsync(app, tenant.Id, serviceId, TestApi.NextOpenSlot(daysFromNow: 3));
+
+        var firstResponse = await client.PatchAsJsonAsync($"/api/bookings/{bookingId}/status", new { status = "Confirmed" });
+        await TestApi.AssertStatusAsync(firstResponse, HttpStatusCode.OK);
+        var secondResponse = await client.PatchAsJsonAsync($"/api/bookings/{bookingId}/status", new { status = "Confirmed" });
+        await TestApi.AssertStatusAsync(secondResponse, HttpStatusCode.OK);
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            Assert.Equal(1, await db.WorkOrders.IgnoreQueryFilters().CountAsync(w => w.BookingId == bookingId));
+            var customer = await db.Customers.IgnoreQueryFilters().SingleAsync(c => c.TenantId == tenant.Id && c.Phone == "15550107777");
+            Assert.Equal(1, customer.TotalVisits);
+        });
+    }
+
+    [Fact]
+    public async Task Staff_role_can_create_edit_confirm_and_cancel_bookings()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        TestApi.SetBearerToken(client, tenant, UserRole.Staff, "Staff User");
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var booking = await CreateAdminBookingAsync(client, serviceId, TestApi.NextOpenSlot(daysFromNow: 3), "STF-001");
+
+        var editResponse = await client.PutAsJsonAsync($"/api/bookings/{booking.BookingId}", BuildBookingUpdatePayload(
+            serviceId,
+            TestApi.NextOpenSlot(daysFromNow: 3).AddHours(1),
+            "Staff Edited",
+            "+1 555 010 5050",
+            "STF-002"));
+        await TestApi.AssertStatusAsync(editResponse, HttpStatusCode.OK);
+
+        var cancelResponse = await client.PatchAsJsonAsync($"/api/bookings/{booking.BookingId}/status", new { status = "Cancelled" });
+        await TestApi.AssertStatusAsync(cancelResponse, HttpStatusCode.OK);
+
+        var pendingId = await SeedPendingBookingAsync(app, tenant.Id, serviceId, TestApi.NextOpenSlot(daysFromNow: 5), "STF-PND", "15550108888");
+        var confirmResponse = await client.PatchAsJsonAsync($"/api/bookings/{pendingId}/status", new { status = "Confirmed" });
+        await TestApi.AssertStatusAsync(confirmResponse, HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Public_booking_respects_bay_capacity_and_availability()
     {
         using var app = new DetailFlowApiFactory();
@@ -184,5 +414,114 @@ public class BookingApiTests
             TestApi.BuildPublicBookingPayload(serviceId, slot, "CLOSED-1"));
 
         await TestApi.AssertStatusAsync(response, HttpStatusCode.BadRequest);
+    }
+
+    private static async Task<Guid> GetServiceIdByNameAsync(HttpClient client, string tenantSlug, string name)
+    {
+        var response = await client.GetAsync($"/api/public/shops/{tenantSlug}/services");
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+
+        using var json = await TestApi.ReadJsonAsync(response);
+        var service = json.RootElement
+            .EnumerateArray()
+            .First(item => item.GetProperty("name").GetString() == name);
+
+        return Guid.Parse(service.GetProperty("id").GetString()!);
+    }
+
+    private static async Task<BookingResult> CreateAdminBookingAsync(
+        HttpClient client,
+        Guid serviceId,
+        DateTimeOffset scheduledAt,
+        string plate,
+        string customerName = "Admin Customer",
+        string customerPhone = "+1 555 010 4040")
+    {
+        var response = await client.PostAsJsonAsync("/api/bookings", new
+        {
+            customerName,
+            customerPhone,
+            vehiclePlate = plate,
+            vehicleMake = "Mazda",
+            vehicleModel = "3",
+            vehicleColor = "Red",
+            vehicleType = "Sedan",
+            serviceTypeId = serviceId,
+            scheduledAt,
+            notes = "Admin booking"
+        });
+
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+        using var json = await TestApi.ReadJsonAsync(response);
+        return new BookingResult(
+            Guid.Parse(json.RootElement.GetProperty("bookingId").GetString()!),
+            Guid.Parse(json.RootElement.GetProperty("workOrderId").GetString()!),
+            json.RootElement.GetProperty("trackingToken").GetString()!);
+    }
+
+    private static object BuildBookingUpdatePayload(
+        Guid serviceId,
+        DateTimeOffset scheduledAt,
+        string customerName,
+        string customerPhone,
+        string plate,
+        string make = "Mazda",
+        string model = "3",
+        string color = "Red",
+        string vehicleType = "Sedan",
+        string? notes = "Updated booking") => new
+        {
+            customerName,
+            customerPhone,
+            vehiclePlate = plate,
+            vehicleMake = make,
+            vehicleModel = model,
+            vehicleColor = color,
+            vehicleType,
+            serviceTypeId = serviceId,
+            scheduledAt,
+            notes
+        };
+
+    private static async Task<Guid> SeedPendingBookingAsync(
+        DetailFlowApiFactory app,
+        Guid tenantId,
+        Guid serviceId,
+        DateTimeOffset scheduledAt,
+        string plate = "PND-001",
+        string phone = "15550107777")
+    {
+        return await app.ExecuteDbContextAsync(async db =>
+        {
+            var customer = new Customer
+            {
+                TenantId = tenantId,
+                FullName = "Pending Customer",
+                Phone = phone
+            };
+            var vehicle = new Vehicle
+            {
+                TenantId = tenantId,
+                Customer = customer,
+                PlateNumber = plate,
+                Make = "Toyota",
+                Model = "Corolla",
+                Color = "White",
+                VehicleType = VehicleType.Sedan
+            };
+            var booking = new Booking
+            {
+                TenantId = tenantId,
+                Customer = customer,
+                Vehicle = vehicle,
+                ServiceTypeId = serviceId,
+                ScheduledAt = scheduledAt,
+                Status = BookingStatus.Pending,
+                Notes = "Pending booking"
+            };
+            db.Bookings.Add(booking);
+            await db.SaveChangesAsync();
+            return booking.Id;
+        });
     }
 }

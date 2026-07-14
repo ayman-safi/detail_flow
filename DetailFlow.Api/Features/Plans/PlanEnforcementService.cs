@@ -24,6 +24,7 @@ public class PlanEnforcementService(DetailFlowDbContext db)
             .IgnoreQueryFilters()
             .Where(u => u.TenantId == tenantId)
             .CountAsync(ct);
+        var whatsAppUsage = await GetWhatsAppUsageAsync(tenant, quota, ct);
 
         return new PlanStatusDto(
             tenant.Plan,
@@ -35,8 +36,20 @@ public class PlanEnforcementService(DetailFlowDbContext db)
             quota.StaffAccounts,
             quota.PhotosPerWorkOrder,
             quota.WhatsAppEnabled,
+            whatsAppUsage.ProviderSendEnabled,
+            whatsAppUsage.Included,
+            whatsAppUsage.Addon,
+            whatsAppUsage.Used,
+            whatsAppUsage.Limit,
+            whatsAppUsage.Remaining,
             quota.AnalyticsEnabled,
             quota.MultiLocation);
+    }
+
+    public async Task<WhatsAppQuotaStatusDto> GetWhatsAppQuotaStatusAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        var (tenant, quota) = await GetTenantQuotaAsync(tenantId, ct);
+        return await GetWhatsAppUsageAsync(tenant, quota, ct);
     }
 
     public async Task AssertCanBookAsync(Guid tenantId, CancellationToken ct = default)
@@ -91,6 +104,15 @@ public class PlanEnforcementService(DetailFlowDbContext db)
             throw new PlanLimitException("WhatsApp notifications require Pro plan.");
     }
 
+    public async Task AssertCanSendWhatsAppProviderMessageAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        var status = await GetWhatsAppQuotaStatusAsync(tenantId, ct);
+        if (!status.ProviderSendEnabled)
+            throw new PlanLimitException("WhatsApp notifications require Pro plan.");
+        if (status.Remaining <= 0)
+            throw new PlanLimitException("WhatsApp message quota reached. Add more messages or upgrade your plan.");
+    }
+
     public async Task AssertAnalyticsEnabledAsync(Guid tenantId, CancellationToken ct = default)
     {
         var quota = await GetQuotaAsync(tenantId, ct);
@@ -112,6 +134,37 @@ public class PlanEnforcementService(DetailFlowDbContext db)
         return (tenant, quota);
     }
 
+    private async Task<WhatsAppQuotaStatusDto> GetWhatsAppUsageAsync(Tenant tenant, PlanQuota quota, CancellationToken ct)
+    {
+        var used = await db.NotificationLogs
+            .IgnoreQueryFilters()
+            .Where(log =>
+                log.TenantId == tenant.Id &&
+                log.Channel == NotificationChannel.WhatsApp &&
+                log.DispatchType == NotificationDispatchType.Automatic &&
+                log.Status != NotificationStatus.Failed &&
+                log.CreatedAt >= GetCurrentMonthStart())
+            .CountAsync(ct);
+
+        var included = quota.WhatsAppMonthlyMessages;
+        var addon = Math.Max(tenant.WhatsAppMonthlyAddonMessages, 0);
+        var limit = included == int.MaxValue || addon == int.MaxValue
+            ? int.MaxValue
+            : Math.Max(0, included + addon);
+        var providerSendEnabled = quota.WhatsAppEnabled;
+        var remaining = providerSendEnabled
+            ? (limit == int.MaxValue ? int.MaxValue : Math.Max(limit - used, 0))
+            : 0;
+
+        return new WhatsAppQuotaStatusDto(
+            providerSendEnabled,
+            included,
+            addon,
+            used,
+            providerSendEnabled ? limit : 0,
+            remaining);
+    }
+
     private static DateTimeOffset GetCurrentMonthStart()
     {
         var now = DateTimeOffset.UtcNow;
@@ -129,7 +182,21 @@ public sealed record PlanStatusDto(
     int StaffLimit,
     int PhotosPerWorkOrder,
     bool WhatsAppEnabled,
+    bool WhatsAppProviderSendEnabled,
+    int WhatsAppMessagesIncluded,
+    int WhatsAppMessagesAddon,
+    int WhatsAppMessagesUsed,
+    int WhatsAppMessagesLimit,
+    int WhatsAppMessagesRemaining,
     bool AnalyticsEnabled,
     bool MultiLocation);
+
+public sealed record WhatsAppQuotaStatusDto(
+    bool ProviderSendEnabled,
+    int Included,
+    int Addon,
+    int Used,
+    int Limit,
+    int Remaining);
 
 public class PlanLimitException(string message) : Exception(message);

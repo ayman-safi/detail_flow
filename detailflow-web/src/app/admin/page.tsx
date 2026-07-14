@@ -37,6 +37,7 @@ type TenantPatch = {
   billingStatus?: TenantBillingStatus;
   isActive?: boolean;
   billingNotes?: string;
+  whatsAppMonthlyAddonMessages?: number;
   supportAccessEnabled?: boolean;
 };
 
@@ -366,6 +367,7 @@ function TenantDetailPanel({
 }) {
   const { t, formatDate } = useI18n();
   const [billingDraft, setBillingDraft] = useState<{ tenantId: string; value: string } | null>(null);
+  const [whatsAppAddonDraft, setWhatsAppAddonDraft] = useState<{ tenantId: string; value: string } | null>(null);
   const [supportMinutes, setSupportMinutes] = useState(60);
 
   if (loading) {
@@ -377,6 +379,9 @@ function TenantDetailPanel({
   }
 
   const billingNotes = billingDraft?.tenantId === tenant.id ? billingDraft.value : tenant.billingNotes ?? '';
+  const whatsAppAddonMessages = whatsAppAddonDraft?.tenantId === tenant.id
+    ? whatsAppAddonDraft.value
+    : String(tenant.whatsAppMonthlyAddonMessages ?? 0);
   const supportAccessExpiresAt = tenant.supportAccessExpiresAt
     ? formatDate(tenant.supportAccessExpiresAt, { dateStyle: 'medium', timeStyle: 'short' })
     : '';
@@ -428,6 +433,27 @@ function TenantDetailPanel({
               options={billingStatuses.map((status) => ({ value: status, label: t(getBillingStatusKey(status)) }))}
               onChange={(billingStatus) => onPatch({ billingStatus: billingStatus as TenantBillingStatus })}
             />
+          </div>
+
+          <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/40 p-4">
+            <Label htmlFor="whatsapp-addon-messages">{t('platformAdmin.detail.whatsAppAddonMessages')}</Label>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="whatsapp-addon-messages"
+                type="number"
+                min={0}
+                value={whatsAppAddonMessages}
+                onChange={(event) => setWhatsAppAddonDraft({ tenantId: tenant.id, value: event.target.value })}
+              />
+              <Button
+                className="shrink-0"
+                onClick={() => onPatch({ whatsAppMonthlyAddonMessages: Math.max(Number(whatsAppAddonMessages) || 0, 0) })}
+              >
+                <Save size={16} />
+                {t('platformAdmin.detail.saveAddons')}
+              </Button>
+            </div>
+            <p className="mt-2 text-xs text-[var(--color-text-muted)]">{t('platformAdmin.detail.whatsAppAddonHint')}</p>
           </div>
 
           <div className="mt-4">

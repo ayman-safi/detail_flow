@@ -44,7 +44,8 @@ public class PlatformAdminApiTests
             {
                 plan = "Business",
                 billingStatus = "Active",
-                billingNotes = "Manual invoice paid through launch package."
+                billingNotes = "Manual invoice paid through launch package.",
+                whatsAppMonthlyAddonMessages = 250
             });
         await TestApi.AssertStatusAsync(updateResponse, HttpStatusCode.OK);
         using (var updateJson = await TestApi.ReadJsonAsync(updateResponse))
@@ -52,6 +53,7 @@ public class PlatformAdminApiTests
             Assert.Equal("Business", updateJson.RootElement.GetProperty("plan").GetString());
             Assert.Equal("Active", updateJson.RootElement.GetProperty("billingStatus").GetString());
             Assert.Equal("Manual invoice paid through launch package.", updateJson.RootElement.GetProperty("billingNotes").GetString());
+            Assert.Equal(250, updateJson.RootElement.GetProperty("whatsAppMonthlyAddonMessages").GetInt32());
         }
 
         await app.ExecuteDbContextAsync(async db =>
@@ -59,6 +61,7 @@ public class PlatformAdminApiTests
             var updatedTenant = await db.Tenants.IgnoreQueryFilters().SingleAsync(t => t.Id == tenant.Id);
             Assert.Equal(TenantPlan.Business, updatedTenant.Plan);
             Assert.Equal(TenantBillingStatus.Active, updatedTenant.BillingStatus);
+            Assert.Equal(250, updatedTenant.WhatsAppMonthlyAddonMessages);
         });
 
         var supportResponse = await platformClient.PostAsJsonAsync(

@@ -1,5 +1,5 @@
-import useSWR from 'swr';
-import { fetcher } from '@/lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
 
 interface LocalizationSettings {
   defaultLocale: string;
@@ -7,15 +7,16 @@ interface LocalizationSettings {
 }
 
 export function useTenantLocalization() {
-  const { data, error, isLoading, mutate } = useSWR<LocalizationSettings>(
-    '/settings/localization',
-    fetcher
-  );
+  const queryClient = useQueryClient();
+  const query = useQuery<LocalizationSettings>({
+    queryKey: ['tenant-localization'],
+    queryFn: () => api.get<LocalizationSettings>('/settings/localization').then((response) => response.data),
+  });
 
   return {
-    settings: data,
-    isLoading,
-    isError: error,
-    mutate,
+    settings: query.data,
+    isLoading: query.isLoading,
+    isError: query.error,
+    mutate: () => queryClient.invalidateQueries({ queryKey: ['tenant-localization'] }),
   };
 }

@@ -75,8 +75,10 @@
     "locales": {
       "en": "İngilizce",
       "ar": "Arapça",
+      "tr": "Türkçe",
       "enShort": "EN",
       "arShort": "AR",
+      "trShort": "TR",
       "switcherLabel": "Dili değiştir"
     },
     "filters": {
@@ -251,11 +253,26 @@
     "countOnDate": "{date} tarihinde {count} randevu",
     "emptyTitle": "Bu gün için randevu yok.",
     "statusUpdated": "Durum güncellendi",
+    "statusUpdateFailed": "Randevu durumu güncellenemedi",
+    "cancelled": "Randevu iptal edildi",
+    "cancelFailed": "Randevu iptal edilemedi",
     "customerSearchEmpty": "Yeni müşteri, bu kayıt oluşturulacak",
     "actionsLabel": "Randevu işlemleri",
     "confirm": "Onayla",
     "cancel": "İptal",
     "viewWorkOrder": "İş emrini görüntüle",
+    "edit": {
+      "action": "Randevuyu düzenle",
+      "title": "Randevuyu düzenle",
+      "save": "Randevuyu kaydet",
+      "saved": "Randevu güncellendi",
+      "failed": "Randevu güncellenemedi"
+    },
+    "cancelDialog": {
+      "title": "Randevuyu iptal et",
+      "description": "İptal yalnızca iş başlamadan önce yapılabilir. Bağlı iş emri kaldırılır ve müşteri ziyaret sayısı düzeltilir.",
+      "confirm": "Randevuyu iptal et"
+    },
     "success": {
       "title": "Randevu onaylandı!",
       "copy": "Bağlantıyı kopyala",
@@ -437,6 +454,7 @@
       "inviteTitle": "Personel davet et",
       "fullNamePlaceholder": "Ad soyad",
       "emailPlaceholder": "E-posta",
+      "phonePlaceholder": "WhatsApp phone",
       "temporaryPasswordPlaceholder": "Geçici şifre",
       "createUser": "Kullanıcı oluştur",
       "added": "Personel eklendi",
@@ -453,6 +471,11 @@
       "inviteLinkFailed": "Davet bağlantısı oluşturulamadı",
       "resetLinkFailed": "Sıfırlama bağlantısı oluşturulamadı",
       "linkExpires": "{date} tarihinde sona erer",
+      "whatsAppAccepted": "WhatsApp message sent",
+      "whatsAppFailed": "WhatsApp delivery failed; use the copied link fallback.",
+      "noPhone": "No phone",
+      "phonePrompt": "Staff WhatsApp phone",
+      "updatePhone": "Update phone",
       "makeStaff": "Personel yap",
       "makeManager": "Yönetici yap",
       "activate": "Etkinleştir",
@@ -488,6 +511,18 @@
         "Delivered": "Teslim edildi",
         "Read": "Okundu",
         "Failed": "Başarısız"
+      },
+      "eventTypes": {
+        "TrackingLink": "Tracking link",
+        "ReadyForPickup": "Ready for pickup",
+        "StaffInvite": "Staff invite",
+        "PasswordReset": "Password reset"
+      },
+      "eventHints": {
+        "TrackingLink": "Utility template for sending a customer tracking URL.",
+        "ReadyForPickup": "Utility template for pickup-ready messages with tracking and receipt links.",
+        "StaffInvite": "Utility template with one variable for the staff invite link.",
+        "PasswordReset": "Utility template with one variable for the password reset link."
       }
     }
   },

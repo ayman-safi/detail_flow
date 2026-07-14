@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle, Download, Loader2, MessageCircle } from 'lucide-react';
+import { CheckCircle, Copy, Download, Loader2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useTenantCurrency } from '@/hooks/useTenantCurrency';
 import { useAuthStore } from '@/store/authStore';
 import { useBoardStore } from '@/store/boardStore';
-import type { PaymentStatus, Stage, StaffMember, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
+import type { NotificationEventType, PaymentStatus, Stage, StaffMember, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,9 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
   const [savedDraft, setSavedDraft] = useState({ workOrderId: '', actualPrice: '', notes: '' });
   const [receiptLoading, setReceiptLoading] = useState(false);
   const [whatsAppLoading, setWhatsAppLoading] = useState(false);
+  const [whatsAppDialogOpen, setWhatsAppDialogOpen] = useState(false);
+  const [whatsAppEventType, setWhatsAppEventType] = useState<NotificationEventType>('TrackingLink');
+  const [whatsAppShare, setWhatsAppShare] = useState<WhatsAppShare | null>(null);
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingNavigationHref, setPendingNavigationHref] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
@@ -219,12 +222,14 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
     refetch();
   };
 
-  const openTrackingWhatsApp = async () => {
+  const prepareWhatsAppShare = async (eventType?: NotificationEventType) => {
     if (!card) return;
+    const selectedEventType = eventType ?? (card.stage === 'Ready' || card.stage === 'Delivered' ? 'ReadyForPickup' : 'TrackingLink');
+    setWhatsAppEventType(selectedEventType);
     setWhatsAppLoading(true);
     try {
       const { data: share } = await api.post<WhatsAppShare>(`/work-orders/${workOrderId}/share/whatsapp`, null, {
-        params: { locale },
+        params: { eventType: selectedEventType, locale },
       });
       const recipient = String(share.customerPhone ?? '').replace(/\D/g, '');
       if (recipient.length < 7) {
@@ -232,13 +237,30 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
         return;
       }
 
-      const whatsAppUrl = `https://wa.me/${recipient}?text=${encodeURIComponent(String(share.whatsAppText ?? ''))}`;
-      window.open(whatsAppUrl, '_blank', 'noopener,noreferrer');
-      toast.success(t('board.toasts.whatsAppOpened'));
+      setWhatsAppShare(share);
+      setWhatsAppDialogOpen(true);
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('board.toasts.whatsAppFailed')));
     } finally {
       setWhatsAppLoading(false);
+    }
+  };
+
+  const openPreparedWhatsApp = () => {
+    if (!whatsAppShare) return;
+    const recipient = String(whatsAppShare.customerPhone ?? '').replace(/\D/g, '');
+    const whatsAppUrl = `https://wa.me/${recipient}?text=${encodeURIComponent(String(whatsAppShare.whatsAppText ?? ''))}`;
+    window.open(whatsAppUrl, '_blank', 'noopener,noreferrer');
+    toast.success(t('board.toasts.whatsAppOpened'));
+  };
+
+  const copyPreparedWhatsApp = async () => {
+    if (!whatsAppShare) return;
+    try {
+      await navigator.clipboard.writeText(whatsAppShare.whatsAppText);
+      toast.success(t('board.toasts.whatsAppCopied'));
+    } catch {
+      toast.error(t('board.toasts.whatsAppCopyFailed'));
     }
   };
 
@@ -447,7 +469,7 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                       <p className="mt-2 text-sm text-[var(--color-text-muted)]">{card.stage === 'Ready' ? t('board.workOrder.whatsAppDescription') : t('board.workOrder.whatsAppTrackingDescription')}</p>
                       <Button
                         className="mt-4 h-11 w-full rounded-[var(--radius-md)]"
-                        onClick={openTrackingWhatsApp}
+                        onClick={() => void prepareWhatsAppShare()}
                         disabled={!canUseWhatsApp || whatsAppLoading}
                       >
                         {whatsAppLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle size={16} />}
@@ -544,6 +566,49 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
             <Button onClick={() => void handleSaveAndContinue()}>
               {t('board.workOrder.saveAndLeave')}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={whatsAppDialogOpen} onOpenChange={setWhatsAppDialogOpen}>
+        <DialogContent className={cn(isRtl ? 'text-right' : 'text-left')}>
+          <DialogHeader>
+            <DialogTitle>{t('board.workOrder.whatsAppDialogTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('board.workOrder.whatsAppDialogDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>{t('board.workOrder.whatsAppEventType')}</Label>
+              <select
+                className={cn(selectClassName, 'mt-2')}
+                value={whatsAppEventType}
+                disabled={whatsAppLoading}
+                onChange={(event) => void prepareWhatsAppShare(event.target.value as NotificationEventType)}
+              >
+                <option value="TrackingLink">{t('settings.notifications.eventTypes.TrackingLink')}</option>
+                <option value="ReadyForPickup">{t('settings.notifications.eventTypes.ReadyForPickup')}</option>
+              </select>
+            </div>
+            <div>
+              <Label>{t('board.workOrder.whatsAppPreview')}</Label>
+              <Textarea
+                readOnly
+                className="mt-2 min-h-[130px] rounded-[var(--radius-md)] bg-[var(--color-surface-elevated)]"
+                value={whatsAppShare?.whatsAppText ?? ''}
+              />
+            </div>
+            <div className={cn('flex flex-col gap-2 sm:flex-row', isRtl ? 'sm:flex-row-reverse' : 'sm:justify-end')}>
+              <Button variant="secondary" onClick={() => void copyPreparedWhatsApp()} disabled={!whatsAppShare}>
+                <Copy size={16} />
+                {t('board.workOrder.copyWhatsAppMessage')}
+              </Button>
+              <Button onClick={openPreparedWhatsApp} disabled={!whatsAppShare}>
+                <MessageCircle size={16} />
+                {t('board.workOrder.openWhatsApp')}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

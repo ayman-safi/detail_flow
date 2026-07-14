@@ -3,6 +3,7 @@ using System;
 using DetailFlow.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DetailFlow.Api.Migrations
 {
     [DbContext(typeof(DetailFlowDbContext))]
-    partial class DetailFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260704091008_AddWhatsAppQuotaAndTemplates")]
+    partial class AddWhatsAppQuotaAndTemplates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -309,21 +312,7 @@ namespace DetailFlow.Api.Migrations
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("PasswordResetTemplateLanguageCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordResetTemplateName")
-                        .HasColumnType("text");
-
                     b.Property<string>("ReadyTemplateName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("StaffInviteTemplateLanguageCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("StaffInviteTemplateName")
                         .HasColumnType("text");
 
                     b.Property<string>("TemplateLanguageCode")
@@ -377,9 +366,6 @@ namespace DetailFlow.Api.Migrations
 
                     b.Property<DateTimeOffset?>("PasswordSetAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("text");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");

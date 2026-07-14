@@ -221,27 +221,156 @@ public class BookingService(
         };
     }
 
-    public async Task<object> UpdateStatusAsync(Guid id, BookingStatusRequest input)
+    public async Task<object> UpdateAsync(Guid id, BookingUpdateRequest input)
     {
-        if (tenantContext.Role is not (UserRole.Manager or UserRole.Owner))
-            throw new UnauthorizedAccessException("Manager or Owner role required to update booking status.");
-
-        var booking = await db.Bookings.FirstOrDefaultAsync(b => b.Id == id)
+        var booking = await db.Bookings
+            .Include(b => b.Customer)
+            .Include(b => b.Vehicle)
+            .Include(b => b.ServiceType)
+            .FirstOrDefaultAsync(b => b.Id == id)
             ?? throw new KeyNotFoundException("Booking not found.");
-        booking.Status = input.Status;
-        var workOrder = await WorkOrderMappings.BaseQuery(db)
-            .FirstOrDefaultAsync(w => w.BookingId == id);
-        await db.SaveChangesAsync();
+        var workOrder = await GetLinkedWorkOrderAsync(id);
+
+        EnsureBookingCanBeEdited(booking, workOrder);
+
+        var service = await db.ServiceTypes.FirstOrDefaultAsync(s => s.Id == input.ServiceTypeId && s.IsActive)
+            ?? throw new ArgumentException("Invalid service type.");
+        var scheduledAt = await ValidateScheduleAsync(input.ScheduledAt, service, booking.Status == BookingStatus.Confirmed, booking.Id);
+
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var oldCustomer = booking.Customer;
+        var customer = await ResolveCustomerAsync(input.CustomerName, input.CustomerPhone, oldCustomer);
+        var vehicle = await ResolveVehicleAsync(input, customer, booking.Vehicle);
+
+        if (workOrder is not null && workOrder.CustomerId != customer.Id)
+        {
+            DecrementVisits(oldCustomer);
+            IncrementVisits(customer);
+        }
+
+        booking.Customer = customer;
+        booking.CustomerId = customer.Id;
+        booking.Vehicle = vehicle;
+        booking.VehicleId = vehicle.Id;
+        booking.ServiceType = service;
+        booking.ServiceTypeId = service.Id;
+        booking.ScheduledAt = scheduledAt;
+        booking.Notes = input.Notes;
 
         if (workOrder is not null)
         {
-            var shouldHideFromBoard = workOrder.Stage == WorkOrderStage.Booked && input.Status != BookingStatus.Confirmed;
-            await events.BroadcastToTenantAsync(tenantContext.TenantId, shouldHideFromBoard
-                ? new BoardEvent("work_order_removed", new { workOrderId = workOrder.Id })
-                : new BoardEvent("work_order_updated", new { workOrder = WorkOrderMappings.ToCard(workOrder) }));
+            workOrder.Customer = customer;
+            workOrder.CustomerId = customer.Id;
+            workOrder.Vehicle = vehicle;
+            workOrder.VehicleId = vehicle.Id;
+            workOrder.ServiceType = service;
+            workOrder.ServiceTypeId = service.Id;
+            workOrder.Notes = input.Notes;
+            workOrder.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        return new { booking.Id, booking.Status };
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+
+        if (workOrder is not null)
+            await events.BroadcastToTenantAsync(tenantContext.TenantId, new BoardEvent("work_order_updated", new
+            {
+                workOrder = WorkOrderMappings.ToCard(workOrder)
+            }));
+
+        return await GetByIdAsync(id);
+    }
+
+    public async Task<object> UpdateStatusAsync(Guid id, BookingStatusRequest input)
+    {
+        var booking = await db.Bookings
+            .Include(b => b.Customer)
+            .Include(b => b.Vehicle)
+            .Include(b => b.ServiceType)
+            .FirstOrDefaultAsync(b => b.Id == id)
+            ?? throw new KeyNotFoundException("Booking not found.");
+        var workOrder = await GetLinkedWorkOrderAsync(id);
+
+        if (booking.Status == input.Status)
+            return ToStatusResult(booking, workOrder);
+
+        if (booking.Status == BookingStatus.Cancelled)
+            throw new ConflictException("Cancelled bookings cannot be changed.");
+
+        if (input.Status == BookingStatus.Pending)
+            throw new ConflictException("Bookings cannot be moved back to pending.");
+
+        if (input.Status == BookingStatus.Confirmed)
+            return await ConfirmAsync(booking, workOrder);
+
+        if (input.Status == BookingStatus.Cancelled)
+            return await CancelAsync(booking, workOrder);
+
+        booking.Status = input.Status;
+        await db.SaveChangesAsync();
+        return ToStatusResult(booking, workOrder);
+    }
+
+    private async Task<object> ConfirmAsync(Booking booking, WorkOrder? workOrder)
+    {
+        var service = await db.ServiceTypes.FirstOrDefaultAsync(s => s.Id == booking.ServiceTypeId && s.IsActive)
+            ?? throw new ArgumentException("Invalid service type.");
+        await ValidateScheduleAsync(booking.ScheduledAt, service, true, booking.Id);
+
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        booking.Status = BookingStatus.Confirmed;
+        if (workOrder is null)
+        {
+            workOrder = new WorkOrder
+            {
+                TenantId = tenantContext.TenantId,
+                Booking = booking,
+                Customer = booking.Customer,
+                Vehicle = booking.Vehicle,
+                ServiceTypeId = booking.ServiceTypeId,
+                ServiceType = booking.ServiceType,
+                Stage = WorkOrderStage.Booked,
+                Notes = booking.Notes
+            };
+            IncrementVisits(booking.Customer);
+            db.WorkOrders.Add(workOrder);
+        }
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+
+        await events.BroadcastToTenantAsync(tenantContext.TenantId, new BoardEvent("work_order_created", new
+        {
+            workOrder = WorkOrderMappings.ToCard(workOrder)
+        }));
+
+        return ToStatusResult(booking, workOrder);
+    }
+
+    private async Task<object> CancelAsync(Booking booking, WorkOrder? workOrder)
+    {
+        if (booking.Status == BookingStatus.Cancelled)
+            return ToStatusResult(booking, workOrder);
+
+        Guid? removedWorkOrderId = null;
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        booking.Status = BookingStatus.Cancelled;
+        if (workOrder is not null)
+        {
+            EnsureWorkOrderCanBeCancelled(workOrder);
+            removedWorkOrderId = workOrder.Id;
+            DecrementVisits(booking.Customer);
+            db.WorkOrders.Remove(workOrder);
+        }
+        await db.SaveChangesAsync();
+        await tx.CommitAsync();
+
+        if (removedWorkOrderId.HasValue)
+            await events.BroadcastToTenantAsync(tenantContext.TenantId, new BoardEvent("work_order_removed", new
+            {
+                workOrderId = removedWorkOrderId.Value
+            }));
+
+        return ToStatusResult(booking, null);
     }
 
     public async Task<object> GetByIdAsync(Guid id)
@@ -260,9 +389,26 @@ public class BookingService(
             booking.ScheduledAt,
             booking.Status,
             booking.Notes,
-            booking.Customer,
-            booking.Vehicle,
-            booking.ServiceType,
+            customer = new { booking.Customer.Id, booking.Customer.FullName, booking.Customer.Phone },
+            vehicle = new
+            {
+                booking.Vehicle.Id,
+                booking.Vehicle.PlateNumber,
+                booking.Vehicle.Make,
+                booking.Vehicle.Model,
+                booking.Vehicle.Color,
+                booking.Vehicle.VehicleType
+            },
+            serviceType = new
+            {
+                booking.ServiceType.Id,
+                booking.ServiceType.Name,
+                booking.ServiceType.Description,
+                booking.ServiceType.BasePrice,
+                booking.ServiceType.DurationMinutes,
+                booking.ServiceType.IsActive,
+                booking.ServiceType.SortOrder
+            },
             workOrder = workOrder is null ? null : new
             {
                 workOrder.Id,
@@ -333,6 +479,131 @@ public class BookingService(
         }).ToList();
 
         return new { items, total, page = pageValue, limit = limitValue };
+    }
+
+    private async Task<WorkOrder?> GetLinkedWorkOrderAsync(Guid bookingId)
+    {
+        return await db.WorkOrders
+            .Include(w => w.Booking)
+            .Include(w => w.Customer)
+            .Include(w => w.Vehicle)
+            .Include(w => w.ServiceType)
+            .Include(w => w.AssignedStaff)
+            .Include(w => w.Photos)
+            .Include(w => w.StageHistory)
+            .FirstOrDefaultAsync(w => w.BookingId == bookingId);
+    }
+
+    private static void EnsureBookingCanBeEdited(Booking booking, WorkOrder? workOrder)
+    {
+        if (booking.Status == BookingStatus.Cancelled)
+            throw new ConflictException("Cancelled bookings cannot be edited.");
+
+        if (workOrder is not null && workOrder.Stage != WorkOrderStage.Booked)
+            throw new ConflictException("Bookings cannot be edited after work has started.");
+    }
+
+    private static void EnsureWorkOrderCanBeCancelled(WorkOrder workOrder)
+    {
+        if (workOrder.Stage != WorkOrderStage.Booked)
+            throw new ConflictException("Bookings cannot be cancelled after work has started.");
+
+        if (workOrder.Photos.Count > 0 || workOrder.StageHistory.Count > 0 || workOrder.ActualPrice.HasValue || workOrder.PaymentStatus != PaymentStatus.Pending)
+            throw new ConflictException("Booking cannot be cancelled after work order activity has been recorded.");
+    }
+
+    private async Task<DateTimeOffset> ValidateScheduleAsync(
+        DateTimeOffset localScheduledAt,
+        ServiceType service,
+        bool enforceCapacity,
+        Guid? excludeBookingId)
+    {
+        var scheduledAt = localScheduledAt.ToUniversalTime();
+        if (scheduledAt <= DateTimeOffset.UtcNow)
+            throw new ArgumentException("Scheduled time must be in the future.");
+
+        var localDay = DateOnly.FromDateTime(localScheduledAt.DateTime);
+        if (await tenantSettings.IsClosedAsync(localDay))
+            throw new ArgumentException("Shop is closed on this date.");
+
+        var workingDay = await tenantSettings.GetWorkingDayAsync(localDay);
+        if (workingDay is null)
+            throw new ArgumentException("Shop is closed on this day.");
+
+        EnsureWithinBusinessHours(localScheduledAt, service.DurationMinutes, workingDay.OpenTime, workingDay.CloseTime);
+
+        if (!enforceCapacity)
+            return scheduledAt;
+
+        var settings = await tenantSettings.GetAsync();
+        var businessStart = new DateTimeOffset(localDay.ToDateTime(workingDay.OpenTime), localScheduledAt.Offset).ToUniversalTime();
+        var businessEnd = new DateTimeOffset(localDay.ToDateTime(workingDay.CloseTime), localScheduledAt.Offset).ToUniversalTime();
+        var sameDayBookings = await db.Bookings
+            .Include(b => b.ServiceType)
+            .Where(b => b.Status == BookingStatus.Confirmed && b.ScheduledAt >= businessStart && b.ScheduledAt < businessEnd)
+            .Where(b => excludeBookingId == null || b.Id != excludeBookingId.Value)
+            .ToListAsync();
+        var slotCount = CountOverlappingBookings(sameDayBookings, scheduledAt, service.DurationMinutes);
+        if (slotCount >= settings.BayCapacity)
+            throw new ConflictException("Selected time slot is full.");
+
+        return scheduledAt;
+    }
+
+    private async Task<Customer> ResolveCustomerAsync(string customerNameInput, string customerPhoneInput, Customer currentCustomer)
+    {
+        var phone = NormalizePhone(customerPhoneInput);
+        if (phone.Length < 7)
+            throw new ArgumentException("Customer phone must include at least 7 digits.");
+
+        var customerName = RequireText(customerNameInput, "Customer name").Trim();
+        var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
+        if (customer is null)
+        {
+            currentCustomer.Phone = phone;
+            currentCustomer.FullName = customerName;
+            return currentCustomer;
+        }
+
+        customer.FullName = customerName;
+        return customer;
+    }
+
+    private async Task<Vehicle> ResolveVehicleAsync(BookingUpdateRequest input, Customer customer, Vehicle currentVehicle)
+    {
+        var plate = RequireText(input.VehiclePlate, "Vehicle plate").Trim().ToUpperInvariant();
+        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate);
+        if (vehicle is null)
+        {
+            currentVehicle.PlateNumber = plate;
+            vehicle = currentVehicle;
+        }
+
+        vehicle.Customer = customer;
+        vehicle.CustomerId = customer.Id;
+        vehicle.Make = RequireText(input.VehicleMake, "Vehicle make").Trim();
+        vehicle.Model = RequireText(input.VehicleModel, "Vehicle model").Trim();
+        vehicle.Color = RequireText(input.VehicleColor, "Vehicle color").Trim();
+        vehicle.VehicleType = input.VehicleType;
+        return vehicle;
+    }
+
+    private static object ToStatusResult(Booking booking, WorkOrder? workOrder) => new
+    {
+        booking.Id,
+        booking.Status,
+        workOrderId = workOrder?.Id,
+        trackingToken = workOrder?.TrackingToken
+    };
+
+    private static void IncrementVisits(Customer customer)
+    {
+        customer.TotalVisits++;
+    }
+
+    private static void DecrementVisits(Customer customer)
+    {
+        customer.TotalVisits = Math.Max(0, customer.TotalVisits - 1);
     }
 
     public static int CountOverlappingBookings(IEnumerable<Booking> bookings, DateTimeOffset slotStart, int durationMinutes)

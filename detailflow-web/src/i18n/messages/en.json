@@ -75,8 +75,10 @@
     "locales": {
       "en": "English",
       "ar": "Arabic",
+      "tr": "Turkish",
       "enShort": "EN",
       "arShort": "AR",
+      "trShort": "TR",
       "switcherLabel": "Switch language"
     },
     "filters": {
@@ -191,6 +193,8 @@
       "photoDeleted": "Photo deleted",
       "whatsAppOpened": "WhatsApp message prepared",
       "whatsAppFailed": "Unable to prepare WhatsApp message",
+      "whatsAppCopied": "WhatsApp message copied",
+      "whatsAppCopyFailed": "Unable to copy WhatsApp message",
       "whatsAppInvalidPhone": "Customer phone must include at least 7 digits."
     },
     "help": {
@@ -223,6 +227,12 @@
       "whatsAppTrackingDescription": "Re-send the customer tracking link by WhatsApp from this work order window.",
       "reSendReadyWhatsApp": "Re-send Ready WhatsApp",
       "reSendTrackingWhatsApp": "Re-send tracking link",
+      "whatsAppDialogTitle": "Prepared WhatsApp message",
+      "whatsAppDialogDescription": "Review the utility message before opening WhatsApp or copying it.",
+      "whatsAppEventType": "Message type",
+      "whatsAppPreview": "Message preview",
+      "copyWhatsAppMessage": "Copy message",
+      "openWhatsApp": "Open WhatsApp",
       "paymentStatus": "Payment status",
       "paymentRequiredForDelivery": "Mark payment as Paid before delivery.",
       "unsavedTitle": "Unsaved changes",
@@ -251,11 +261,26 @@
     "countOnDate": "{count} bookings on {date}",
     "emptyTitle": "No bookings for this day.",
     "statusUpdated": "Status updated",
+    "statusUpdateFailed": "Unable to update booking status",
+    "cancelled": "Booking cancelled",
+    "cancelFailed": "Unable to cancel booking",
     "customerSearchEmpty": "New customer, this record will be created",
     "actionsLabel": "Booking actions",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "viewWorkOrder": "View work order",
+    "edit": {
+      "action": "Edit booking",
+      "title": "Edit booking",
+      "save": "Save booking",
+      "saved": "Booking updated",
+      "failed": "Unable to update booking"
+    },
+    "cancelDialog": {
+      "title": "Cancel booking",
+      "description": "Cancellation is only available before work starts. The linked work order will be removed and the customer visit count corrected.",
+      "confirm": "Cancel booking"
+    },
     "success": {
       "title": "Booking confirmed!",
       "copy": "Copy link",
@@ -437,6 +462,7 @@
       "inviteTitle": "Invite staff",
       "fullNamePlaceholder": "Full name",
       "emailPlaceholder": "Email",
+      "phonePlaceholder": "WhatsApp phone",
       "temporaryPasswordPlaceholder": "Temporary password",
       "createUser": "Create user",
       "added": "Staff member added",
@@ -453,6 +479,11 @@
       "inviteLinkFailed": "Unable to create invite link",
       "resetLinkFailed": "Unable to create reset link",
       "linkExpires": "Expires {date}",
+      "whatsAppAccepted": "WhatsApp message sent",
+      "whatsAppFailed": "WhatsApp delivery failed; use the copied link fallback.",
+      "noPhone": "No phone",
+      "phonePrompt": "Staff WhatsApp phone",
+      "updatePhone": "Update phone",
       "makeStaff": "Make staff",
       "makeManager": "Make manager",
       "activate": "Activate",
@@ -460,12 +491,12 @@
     },
     "notifications": {
       "title": "WhatsApp notifications",
-      "subtitle": "Configure Meta WhatsApp Business delivery for Ready-stage customer messages.",
+      "subtitle": "Configure Meta WhatsApp Business delivery and quota for utility customer messages.",
       "saved": "Notification settings saved",
       "saveFailed": "Unable to save notification settings",
       "restricted": "WhatsApp notification settings are available to owners.",
       "lockedTitle": "WhatsApp requires Pro",
-      "lockedDescription": "Upgrade to Pro to enable WhatsApp tracking links and automatic Ready notifications.",
+      "lockedDescription": "Manual prepared WhatsApp links are available from work orders on Free. Upgrade to Pro to enable Meta provider delivery, delivery tracking, and monthly message quota.",
       "enabled": "Provider enabled",
       "enabledHint": "Allow this tenant to send automated Ready notifications through Meta.",
       "phoneNumberId": "Business phone number ID",
@@ -475,6 +506,9 @@
       "clearTokenHint": "Use this only when replacing or disabling the integration.",
       "templateName": "Ready template name",
       "templateLanguage": "Template language code",
+      "quotaUsed": "Used this month",
+      "quotaRemaining": "Remaining",
+      "quotaAddon": "Add-on allowance",
       "autoReady": "Automatic Ready message",
       "autoReadyHint": "Send the approved WhatsApp template when a work order enters Ready.",
       "activityTitle": "Delivery activity",
@@ -488,6 +522,18 @@
         "Delivered": "Delivered",
         "Read": "Read",
         "Failed": "Failed"
+      },
+      "eventTypes": {
+        "TrackingLink": "Tracking link",
+        "ReadyForPickup": "Ready for pickup",
+        "StaffInvite": "Staff invite",
+        "PasswordReset": "Password reset"
+      },
+      "eventHints": {
+        "TrackingLink": "Utility template for sending a customer tracking URL.",
+        "ReadyForPickup": "Utility template for pickup-ready messages with tracking and receipt links.",
+        "StaffInvite": "Utility template with one variable for the staff invite link.",
+        "PasswordReset": "Utility template with one variable for the password reset link."
       }
     }
   },
@@ -817,6 +863,9 @@
       "billingNotes": "Billing notes",
       "billingNotesPlaceholder": "Manual invoice status, renewal notes, or payment follow-up.",
       "saveNotes": "Save notes",
+      "whatsAppAddonMessages": "WhatsApp add-on messages/month",
+      "whatsAppAddonHint": "Extra provider-sent WhatsApp messages added to the tenant's current monthly allowance.",
+      "saveAddons": "Save add-ons",
       "disableTenant": "Disable tenant",
       "reactivateTenant": "Reactivate tenant",
       "supportAccess": "Support access",

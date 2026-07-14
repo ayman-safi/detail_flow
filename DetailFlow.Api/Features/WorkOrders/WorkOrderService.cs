@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using DetailFlow.Api.Data;
 using DetailFlow.Api.Features.Notifications;
+using DetailFlow.Api.Features.Plans;
 using DetailFlow.Api.Infrastructure;
 using DetailFlow.Api.Models;
 using DetailFlow.Api.Services;
@@ -17,6 +18,7 @@ public class WorkOrderService(
     BoardEventService events,
     ReceiptService receipts,
     WhatsAppNotificationService whatsappNotifications,
+    PlanEnforcementService planEnforcement,
     IMemoryCache cache)
 {
     private const int MissingTrackingTokenDbMissThreshold = 2;
@@ -135,6 +137,7 @@ public class WorkOrderService(
             ?? throw new ArgumentException("Invalid service type.");
 
         await using var tx = await db.Database.BeginTransactionAsync();
+        await planEnforcement.AssertCanBookAsync(tenantContext.TenantId);
         
         var customer = await db.Customers.FirstOrDefaultAsync(c => c.Phone == phone);
         var notes = input.Notes;
@@ -380,9 +383,9 @@ public class WorkOrderService(
         return new ReceiptFileResult(pdf, filename);
     }
 
-    public Task<object> CreateManualTrackingShareAsync(Guid id, string? locale)
+    public Task<object> CreateManualTrackingShareAsync(Guid id, NotificationEventType? eventType, string? locale)
     {
-        return whatsappNotifications.CreateManualTrackingShareAsync(id, locale);
+        return whatsappNotifications.CreateManualTrackingShareAsync(id, eventType, locale);
     }
 
     public async Task StreamBoardAsync(HttpContext context, CancellationToken cancellationToken)

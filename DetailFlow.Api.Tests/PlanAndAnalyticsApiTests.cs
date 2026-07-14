@@ -24,6 +24,59 @@ public class PlanAndAnalyticsApiTests
         Assert.Equal(1, root.GetProperty("staffUsed").GetInt32());
         Assert.Equal(2, root.GetProperty("staffLimit").GetInt32());
         Assert.False(root.GetProperty("analyticsEnabled").GetBoolean());
+        Assert.False(root.GetProperty("whatsAppProviderSendEnabled").GetBoolean());
+        Assert.Equal(0, root.GetProperty("whatsAppMessagesIncluded").GetInt32());
+        Assert.Equal(0, root.GetProperty("whatsAppMessagesAddon").GetInt32());
+        Assert.Equal(0, root.GetProperty("whatsAppMessagesUsed").GetInt32());
+        Assert.Equal(0, root.GetProperty("whatsAppMessagesLimit").GetInt32());
+        Assert.Equal(0, root.GetProperty("whatsAppMessagesRemaining").GetInt32());
+    }
+
+    [Fact]
+    public async Task Plan_status_reports_pro_whatsapp_quota_and_addons()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            var currentTenant = await db.Tenants.SingleAsync(t => t.Id == tenant.Id);
+            currentTenant.Plan = TenantPlan.Pro;
+            currentTenant.WhatsAppMonthlyAddonMessages = 200;
+            db.NotificationLogs.Add(new NotificationLog
+            {
+                TenantId = tenant.Id,
+                Channel = NotificationChannel.WhatsApp,
+                EventType = NotificationEventType.ReadyForPickup,
+                DispatchType = NotificationDispatchType.Automatic,
+                RecipientPhone = "15550102000",
+                ProviderMessageId = "wamid.used",
+                Status = NotificationStatus.Accepted
+            });
+            db.NotificationLogs.Add(new NotificationLog
+            {
+                TenantId = tenant.Id,
+                Channel = NotificationChannel.WhatsApp,
+                EventType = NotificationEventType.TrackingLink,
+                DispatchType = NotificationDispatchType.Manual,
+                RecipientPhone = "15550102000",
+                Status = NotificationStatus.Requested
+            });
+            await db.SaveChangesAsync();
+        });
+
+        var response = await client.GetAsync("/api/plan/status");
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+
+        using var json = await TestApi.ReadJsonAsync(response);
+        var root = json.RootElement;
+        Assert.True(root.GetProperty("whatsAppProviderSendEnabled").GetBoolean());
+        Assert.Equal(500, root.GetProperty("whatsAppMessagesIncluded").GetInt32());
+        Assert.Equal(200, root.GetProperty("whatsAppMessagesAddon").GetInt32());
+        Assert.Equal(1, root.GetProperty("whatsAppMessagesUsed").GetInt32());
+        Assert.Equal(700, root.GetProperty("whatsAppMessagesLimit").GetInt32());
+        Assert.Equal(699, root.GetProperty("whatsAppMessagesRemaining").GetInt32());
     }
 
     [Fact]

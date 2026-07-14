@@ -9,6 +9,7 @@ public class Tenant
     public TenantPlan Plan { get; set; } = TenantPlan.Free;
     public TenantBillingStatus BillingStatus { get; set; } = TenantBillingStatus.Trial;
     public string? BillingNotes { get; set; }
+    public int WhatsAppMonthlyAddonMessages { get; set; }
     public TenantSettings Settings { get; set; } = new();
     public bool IsActive { get; set; } = true;
     public bool SupportAccessEnabled { get; set; }

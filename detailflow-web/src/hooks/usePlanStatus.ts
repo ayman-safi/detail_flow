@@ -8,7 +8,7 @@ export function usePlanStatus() {
 
   return useQuery<PlanStatus>({
     queryKey: ['plan-status'],
-    enabled: !!user,
+    enabled: !!user && user.isPlatformAdmin !== true,
     queryFn: () => api.get<PlanStatus>('/plan/status').then((response) => response.data),
     staleTime: 60_000,
   });

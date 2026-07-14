@@ -1,3 +1,4 @@
+using DetailFlow.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -93,9 +94,12 @@ public class WorkOrdersController(WorkOrderService service) : ControllerBase
     [HttpPost("{id:guid}/share/whatsapp")]
     [Authorize]
     [EnableRateLimiting("api-mutations")]
-    public async Task<IActionResult> CreateManualTrackingShare(Guid id, [FromQuery] string? locale)
+    public async Task<IActionResult> CreateManualTrackingShare(
+        Guid id,
+        [FromQuery] NotificationEventType? eventType,
+        [FromQuery] string? locale)
     {
-        return Ok(await service.CreateManualTrackingShareAsync(id, locale));
+        return Ok(await service.CreateManualTrackingShareAsync(id, eventType, locale));
     }
 
     [HttpGet("board/stream")]

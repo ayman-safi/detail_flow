@@ -53,6 +53,14 @@ public class ServiceCatalogApiTests
             publicServicesJson.RootElement.EnumerateArray(),
             item => item.GetProperty("id").GetString() == createdId.ToString());
 
+        var managementServicesResponse = await client.GetAsync("/api/services?includeInactive=true");
+        await TestApi.AssertStatusAsync(managementServicesResponse, HttpStatusCode.OK);
+        using var managementServicesJson = await TestApi.ReadJsonAsync(managementServicesResponse);
+        Assert.Contains(
+            managementServicesJson.RootElement.EnumerateArray(),
+            item => item.GetProperty("id").GetString() == createdId.ToString() &&
+                    item.GetProperty("isActive").GetBoolean() == false);
+
         var reorderResponse = await client.PatchAsJsonAsync("/api/services/reorder", new
         {
             orderedIds = new[] { initialIds[1], initialIds[0] }
@@ -84,5 +92,8 @@ public class ServiceCatalogApiTests
         });
 
         await TestApi.AssertStatusAsync(response, HttpStatusCode.Forbidden);
+
+        var includeInactiveResponse = await client.GetAsync("/api/services?includeInactive=true");
+        await TestApi.AssertStatusAsync(includeInactiveResponse, HttpStatusCode.Forbidden);
     }
 }

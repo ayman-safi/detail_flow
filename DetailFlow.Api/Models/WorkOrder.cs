@@ -41,6 +41,14 @@ public class WorkOrder
     public static bool IsValidTrackingToken(string token) =>
         token.Length is >= MinTrackingTokenLength and <= MaxTrackingTokenLength &&
         token.All(TrackingTokenCharacters.Contains);
+
+    internal void SetTrackingTokenForSeed(string token)
+    {
+        if (!IsValidTrackingToken(token))
+            throw new ArgumentException("Invalid seeded tracking token.", nameof(token));
+
+        TrackingToken = token;
+    }
 }
 
 public enum WorkOrderStage

@@ -12,9 +12,9 @@ public class ServicesController(ServiceCatalogService service) : ControllerBase
 {
     [HttpGet]
     [EnableRateLimiting("api-reads")]
-    public async Task<IActionResult> GetServices()
+    public async Task<IActionResult> GetServices([FromQuery] bool? includeInactive)
     {
-        return Ok(await service.ListAsync());
+        return Ok(await service.ListAsync(includeInactive == true));
     }
 
     [HttpPost]

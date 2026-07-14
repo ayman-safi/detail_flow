@@ -10,11 +10,15 @@ import { getBookingStatusKey } from '@/i18n/domain';
 
 export function BookingRow({
   booking,
+  onEdit,
   onStatusChange,
+  onCancel,
   onViewWorkOrder,
 }: {
   booking: Booking;
+  onEdit: (id: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  onCancel: (booking: Booking) => void;
   onViewWorkOrder: (id: string) => void;
 }) {
   const { formatDate, t } = useI18n();
@@ -49,8 +53,9 @@ export function BookingRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {booking.status !== 'Cancelled' && <DropdownMenuItem onClick={() => onEdit(booking.id)}>{t('bookings.edit.action')}</DropdownMenuItem>}
             {booking.status === 'Pending' && <DropdownMenuItem onClick={() => onStatusChange(booking.id, 'Confirmed')}>{t('bookings.confirm')}</DropdownMenuItem>}
-            {booking.status !== 'Cancelled' && <DropdownMenuItem onClick={() => onStatusChange(booking.id, 'Cancelled')}>{t('bookings.cancel')}</DropdownMenuItem>}
+            {booking.status !== 'Cancelled' && <DropdownMenuItem onClick={() => onCancel(booking)}>{t('bookings.cancel')}</DropdownMenuItem>}
             <DropdownMenuItem disabled={!booking.workOrderId} onClick={() => booking.workOrderId && onViewWorkOrder(booking.workOrderId)}>{t('bookings.viewWorkOrder')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

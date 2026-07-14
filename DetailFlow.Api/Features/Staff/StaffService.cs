@@ -1,5 +1,6 @@
 using DetailFlow.Api.Data;
 using DetailFlow.Api.Features.Auth;
+using DetailFlow.Api.Features.Notifications;
 using DetailFlow.Api.Features.Plans;
 using DetailFlow.Api.Models;
 using DetailFlow.Api.Services;
@@ -11,7 +12,8 @@ public class StaffService(
     DetailFlowDbContext db,
     ITenantContext tenantContext,
     PlanEnforcementService planEnforcement,
-    AccountActionTokenService accountActionTokens)
+    AccountActionTokenService accountActionTokens,
+    WhatsAppNotificationService whatsAppNotifications)
 {
     public async Task<IReadOnlyList<object>> ListAsync()
     {
@@ -23,6 +25,7 @@ public class StaffService(
                 u.Id,
                 u.FullName,
                 u.Email,
+                u.Phone,
                 u.Role,
                 u.IsActive,
                 isInvitePending = u.PasswordSetAt == null,
@@ -43,6 +46,7 @@ public class StaffService(
 
         var email = RequireText(input.Email, "Email").Trim().ToLowerInvariant();
         var fullName = RequireText(input.FullName, "Full name").Trim();
+        var phone = RequireText(input.Phone, "Phone").Trim();
 
         if (await db.Users.AnyAsync(u => u.Email == email))
             throw new ArgumentException("Email already exists in this tenant.");
@@ -52,6 +56,7 @@ public class StaffService(
             TenantId = tenantContext.TenantId,
             FullName = fullName,
             Email = email,
+            Phone = phone,
             Role = input.Role,
             PasswordHash = "",
             PasswordSetAt = null
@@ -60,11 +65,17 @@ public class StaffService(
         await db.SaveChangesAsync();
 
         var invite = await accountActionTokens.CreateInviteLinkAsync(user);
+        var whatsAppDelivery = await whatsAppNotifications.SendAccountActionLinkAsync(
+            user,
+            NotificationEventType.StaffInvite,
+            invite.Link);
+
         return new
         {
             user = BuildStaffDto(user, 0),
             inviteLink = invite.Link,
-            inviteExpiresAt = invite.ExpiresAt
+            inviteExpiresAt = invite.ExpiresAt,
+            whatsAppDelivery
         };
     }
 
@@ -77,7 +88,12 @@ public class StaffService(
             throw new ArgumentException("Inactive users cannot receive invite links.");
 
         var invite = await accountActionTokens.CreateInviteLinkAsync(user);
-        return new { inviteLink = invite.Link, inviteExpiresAt = invite.ExpiresAt };
+        var whatsAppDelivery = await whatsAppNotifications.SendAccountActionLinkAsync(
+            user,
+            NotificationEventType.StaffInvite,
+            invite.Link);
+
+        return new { inviteLink = invite.Link, inviteExpiresAt = invite.ExpiresAt, whatsAppDelivery };
     }
 
     public async Task<object> CreateResetLinkAsync(Guid id)
@@ -89,7 +105,12 @@ public class StaffService(
             throw new ArgumentException("Inactive users cannot receive password reset links.");
 
         var reset = await accountActionTokens.CreateResetLinkAsync(user);
-        return new { resetLink = reset.Link, resetExpiresAt = reset.ExpiresAt };
+        var whatsAppDelivery = await whatsAppNotifications.SendAccountActionLinkAsync(
+            user,
+            NotificationEventType.PasswordReset,
+            reset.Link);
+
+        return new { resetLink = reset.Link, resetExpiresAt = reset.ExpiresAt, whatsAppDelivery };
     }
 
     public async Task<object> UpdateAsync(Guid id, StaffPatchRequest input)
@@ -111,6 +132,8 @@ public class StaffService(
 
         if (input.FullName is not null)
             user.FullName = RequireText(input.FullName, "Full name").Trim();
+        if (input.Phone is not null)
+            user.Phone = RequireText(input.Phone, "Phone").Trim();
         if (input.Role.HasValue)
             user.Role = input.Role.Value;
         if (input.IsActive.HasValue)
@@ -146,6 +169,7 @@ public class StaffService(
         user.Id,
         user.FullName,
         user.Email,
+        user.Phone,
         user.Role,
         user.IsActive,
         isInvitePending = user.PasswordSetAt == null,

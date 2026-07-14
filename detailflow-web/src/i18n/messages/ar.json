@@ -75,8 +75,10 @@
     "locales": {
       "en": "الإنجليزية",
       "ar": "العربية",
+      "tr": "التركية",
       "enShort": "EN",
       "arShort": "AR",
+      "trShort": "TR",
       "switcherLabel": "تبديل اللغة"
     },
     "filters": {
@@ -251,11 +253,26 @@
     "countOnDate": "{count} حجوزات في {date}",
     "emptyTitle": "لا توجد حجوزات لهذا اليوم.",
     "statusUpdated": "تم تحديث الحالة",
+    "statusUpdateFailed": "تعذر تحديث حالة الحجز",
+    "cancelled": "تم إلغاء الحجز",
+    "cancelFailed": "تعذر إلغاء الحجز",
     "customerSearchEmpty": "عميل جديد، سيتم إنشاء السجل",
     "actionsLabel": "إجراءات الحجز",
     "confirm": "تأكيد",
     "cancel": "إلغاء",
     "viewWorkOrder": "عرض أمر العمل",
+    "edit": {
+      "action": "تعديل الحجز",
+      "title": "تعديل الحجز",
+      "save": "حفظ الحجز",
+      "saved": "تم تحديث الحجز",
+      "failed": "تعذر تحديث الحجز"
+    },
+    "cancelDialog": {
+      "title": "إلغاء الحجز",
+      "description": "لا يمكن الإلغاء إلا قبل بدء العمل. سيتم حذف أمر العمل المرتبط وتصحيح عدد زيارات العميل.",
+      "confirm": "إلغاء الحجز"
+    },
     "success": {
       "title": "تم تأكيد الحجز!",
       "copy": "نسخ الرابط",
@@ -437,6 +454,7 @@
       "inviteTitle": "دعوة موظف",
       "fullNamePlaceholder": "الاسم الكامل",
       "emailPlaceholder": "البريد الإلكتروني",
+      "phonePlaceholder": "WhatsApp phone",
       "temporaryPasswordPlaceholder": "كلمة مرور مؤقتة",
       "createUser": "إنشاء مستخدم",
       "added": "تمت إضافة الموظف",
@@ -453,6 +471,11 @@
       "inviteLinkFailed": "تعذر إنشاء رابط الدعوة",
       "resetLinkFailed": "تعذر إنشاء رابط إعادة التعيين",
       "linkExpires": "ينتهي في {date}",
+      "whatsAppAccepted": "WhatsApp message sent",
+      "whatsAppFailed": "WhatsApp delivery failed; use the copied link fallback.",
+      "noPhone": "No phone",
+      "phonePrompt": "Staff WhatsApp phone",
+      "updatePhone": "Update phone",
       "makeStaff": "تعيين كموظف",
       "makeManager": "تعيين كمدير",
       "activate": "تفعيل",
@@ -488,6 +511,18 @@
         "Delivered": "تم التسليم",
         "Read": "مقروء",
         "Failed": "فشل"
+      },
+      "eventTypes": {
+        "TrackingLink": "Tracking link",
+        "ReadyForPickup": "Ready for pickup",
+        "StaffInvite": "Staff invite",
+        "PasswordReset": "Password reset"
+      },
+      "eventHints": {
+        "TrackingLink": "Utility template for sending a customer tracking URL.",
+        "ReadyForPickup": "Utility template for pickup-ready messages with tracking and receipt links.",
+        "StaffInvite": "Utility template with one variable for the staff invite link.",
+        "PasswordReset": "Utility template with one variable for the password reset link."
       }
     }
   },

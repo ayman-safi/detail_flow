@@ -29,7 +29,9 @@ public enum NotificationChannel
 public enum NotificationEventType
 {
     ReadyForPickup = 0,
-    TrackingLink = 1
+    TrackingLink = 1,
+    StaffInvite = 2,
+    PasswordReset = 3
 }
 
 public enum NotificationDispatchType

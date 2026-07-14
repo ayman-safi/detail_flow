@@ -1,164 +1,111 @@
-# DetailFlow API Local Testing Guide
+# DetailFlow Local and End-to-End Testing
 
 ## Prerequisites
 
-- Visual Studio 2026 or later with .NET 10 SDK support.
-- PostgreSQL running on `localhost:5432`.
-- Node/npm only if you want to run the frontend.
+- .NET 10 SDK and `dotnet-ef`.
+- Node.js/npm.
+- PostgreSQL reachable on `127.0.0.1:5432`.
+- A dedicated `detailflow_e2e` database owned by the configured PostgreSQL login.
 
-The local API uses:
+The repeatable runner refuses to reset a database unless its name contains `e2e` or `test`.
 
-```text
-Host=localhost;Port=5432;Database=detailflow;Username=detailflow;Password=detailflow
-```
+## One-command fresh database validation
 
-This connection string is already in `appsettings.Development.json`.
-
-## Create Local Database
-
-Run this once from PowerShell. This matches the connection string in `appsettings.Development.json`.
+From the repository root:
 
 ```powershell
-$psql = "C:\Program Files\PostgreSQL\15\bin\psql.exe"
-& $psql -h localhost -U postgres -d postgres -c "DO `$`$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'detailflow') THEN CREATE ROLE detailflow WITH LOGIN PASSWORD 'detailflow'; END IF; END `$`$;"
-$dbExists = & $psql -h localhost -U postgres -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='detailflow';"
-if (-not $dbExists) {
-  & $psql -h localhost -U postgres -d postgres -c "CREATE DATABASE detailflow OWNER detailflow;"
-}
-dotnet ef database update
+.\scripts\Run-E2E.ps1
 ```
 
-Current local verification on this machine:
+The database only needs to be provisioned once. For example, from an administrative PostgreSQL shell:
 
-```text
-Tenants: 1
-Users: 3
-ServiceTypes: 5
-Applied EF migrations: 2
+```sql
+CREATE DATABASE detailflow_e2e OWNER detailflow;
 ```
 
-## Start the API
+The script restores dependencies, rolls the dedicated database back to migration zero, applies every EF migration, builds both applications, runs the .NET tests, and runs the complete Playwright suite. To use another safe test database:
 
-Open `DetailFlow.Api.sln` in Visual Studio.
+```powershell
+.\scripts\Run-E2E.ps1 -ConnectionString "Host=127.0.0.1;Port=5432;Database=my_test_db;Username=detailflow;Password=detailflow"
+```
 
-1. Set `DetailFlow.Api` as the startup project.
-2. Select the `http` launch profile.
-3. Press F5.
-4. Swagger opens at `http://localhost:5000/swagger`.
+After dependencies and Chromium are already installed, use `-SkipInstall`.
 
-## Seed Demo Tenant, Roles, and Workflow Data
+## Manual development run
 
-The development-only seed endpoint is available only when `ASPNETCORE_ENVIRONMENT=Development`.
+Apply migrations and start the API:
 
-In Swagger, run:
+```powershell
+$env:DB_CONNECTION_STRING = "Host=127.0.0.1;Port=5432;Database=detailflow;Username=detailflow;Password=detailflow"
+dotnet ef database update --project .\DetailFlow.Api\DetailFlow.Api.csproj --startup-project .\DetailFlow.Api\DetailFlow.Api.csproj
+dotnet run --project .\DetailFlow.Api\DetailFlow.Api.csproj
+```
+
+In another shell:
+
+```powershell
+Set-Location .\detailflow-web
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000/login`. The API is at `http://localhost:5000/api`.
+
+## Deterministic development seed
+
+The seed endpoint exists only in the Development environment:
 
 ```http
 POST /api/dev/seed
 ```
 
-It idempotently creates tenant `demo`, the five default services, demo users, and resets/recreates operational test data for the board, bookings, customer history, tracking, analytics, assignment, photos, and availability flows.
+It is safe to call repeatedly. The five fixture tenants are reset transactionally, stable identifiers and tracking tokens are reused, and extra operational records in those tenants are removed. Twenty-five catalog tenants are also upserted for platform pagination and filtering, for 30 tenants total.
 
-| Role | Email | Password |
-|---|---|---|
-| Owner | owner@demo.local | Password123! |
-| Manager | manager@demo.local | Password123! |
-| Staff | staff@demo.local | Password123! |
-| Staff | jordan@demo.local | Password123! |
+All tenant users use `Password123!`.
 
-Seeded tracking tokens:
+| Tenant | Account | Role/state | Purpose |
+|---|---|---|---|
+| `demo` | `owner@demo.local` | Owner, active | Full operational access |
+| `demo` | `manager@demo.local` | Manager, active | Bounded configuration/staff access |
+| `demo` | `staff@demo.local` | Staff, active | Operational access |
+| `demo` | `jordan@demo.local` | Staff, active | Assignment and history fixtures |
+| `demo` | `inactive@demo.local` | Staff, inactive | Login rejection |
+| `demo` | `pending@demo.local` | Staff, pending invite | Invite lifecycle |
+| `starter` | `owner@starter.local` | Owner, active | Free-plan limits reached |
+| `empty` | `owner@empty.local` | Owner, active | Empty states and isolation |
+| `business` | `owner@business.local` | Owner, active | Business-plan fixture |
+| `business` | `manager@business.local` | Manager, active | Multi-role fixture |
+| `business` | `staff@business.local` | Staff, active | Multi-role fixture |
+| `suspended` | `owner@suspended.local` | Owner, tenant inactive | Suspended-tenant rejection |
 
-| Scenario | Token |
+The configuration-backed Super Admin is `admin@detailflow.local` / `AdminPassword123!`.
+
+Stable public tracking tokens:
+
+| Stage | Token |
 |---|---|
-| Booked | TRKBOOK1 |
-| Arrived | TRKARRV1 |
-| Washing | TRKWASH1 |
-| Detailing | TRKDTL1 |
-| Polishing | TRKPOL1 |
-| Ready | TRKREADY |
-| Delivered | TRKDELV1 |
+| Booked | `TRKBKED2` |
+| Arrived | `TRKRRVD2` |
+| Washing | `TRKWSH22` |
+| Detailing | `TRKDTL22` |
+| Polishing | `TRKPLSH2` |
+| Ready | `TRKREDY2` |
+| Delivered | `TRKDLVR2` |
 
-Availability full-slot scenario:
+The seed also provides 45 demo customers, active/inactive services, all booking/work-order/payment/notification statuses, historical analytics data, a full availability slot returned in the seed response, notification log outcomes, an empty tenant, an inactive tenant, and 30 current-month bookings at the Free-plan boundary. Invalid records are exercised through validation requests rather than persisted in the database.
 
-```text
-Tomorrow at 10:00 for Exterior Wash has 3 confirmed bookings, so it should be unavailable.
-```
-
-## Login Payload
-
-Use:
-
-```json
-{
-  "email": "owner@demo.local",
-  "tenantSlug": "demo",
-  "password": "Password123!"
-}
-```
-
-Endpoint:
-
-```http
-POST /api/auth/login
-```
-
-Copy the returned JWT and click Swagger's `Authorize` button:
-
-```text
-Bearer <token>
-```
-
-## Role Permissions
-
-- Owner: full access, tenant profile, staff, services, bookings, work orders.
-- Manager: staff/service/work-order management, but managers can only create Staff users.
-- Staff: bookings, board stage moves, photo uploads; cannot cancel bookings, manage staff, or edit tenant profile.
-
-## Seeding Behavior
-
-There are two seed paths:
-
-- Production-safe path: `POST /api/auth/register-tenant` creates a tenant, creates the owner, and seeds the five default services for that tenant.
-- Local development path: `POST /api/dev/seed` creates the `demo` tenant, Owner, Manager, Staff, and the same five default services. This endpoint is mapped only in Development.
-
-## Suggested Test Flow
-
-1. `POST /api/dev/seed`.
-2. Login as Owner.
-3. Open `/board` and confirm seeded cards exist across Booked, Arrived, Washing, Detailing, Polishing, Ready, and Delivered.
-4. Open `/bookings` and confirm today's/tomorrow's seeded bookings are listed.
-5. Check `/bookings/availability` for tomorrow at `10:00`; `Exterior Wash` should be full.
-6. Drag a card through stages with `PATCH /api/work-orders/{id}/stage` or the board UI.
-7. Open `/track/TRKREADY` without auth and confirm the public Ready state.
-8. Open a work-order sheet and test assignment, price/notes, receipt PDF, and seeded photo display/delete.
-9. Open `/customers` and expand a customer row to see recent work-order history.
-10. Login as Manager and create a Staff user with `POST /api/staff`.
-11. Login as Staff and confirm restricted endpoints return 401.
-
-## Frontend Local Run
-
-From `detailflow-web`:
+## Individual checks
 
 ```powershell
-npm install
-npm run dev
+dotnet test .\DetailFlow.sln
+Set-Location .\detailflow-web
+npm run build
+npm run lint
+npm run test:e2e
 ```
 
-The frontend has `.env.local`:
+Playwright starts the API and production frontend automatically. Set `E2E_DB_CONNECTION_STRING`, `E2E_API_URL`, or `E2E_WEB_URL` to override its defaults.
 
-```text
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-```
+## External integrations
 
-Open `http://localhost:3000/login` and use the demo accounts above.
-
-## R2 / S3 Notes
-
-Local appsettings contain placeholder R2 values so the API can start. Photo upload and tenant logo upload need real Cloudflare R2 credentials:
-
-- `R2_ACCOUNT_ID`
-- `R2_ACCESS_KEY_ID`
-- `R2_SECRET_ACCESS_KEY`
-- `R2_BUCKET_NAME`
-- `R2_PUBLIC_BASE_URL`
-
-Without real values, non-upload API flows still work.
+Photo and tenant-logo uploads need real R2/S3 credentials. The E2E suite validates the remaining browser workflows; API integration tests use isolated storage substitutes for upload behavior.

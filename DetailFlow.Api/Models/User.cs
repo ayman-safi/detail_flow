@@ -6,6 +6,7 @@ public class User
     public Guid TenantId { get; set; }
     public Tenant Tenant { get; set; } = null!;
     public string Email { get; set; } = "";
+    public string? Phone { get; set; }
     public string PasswordHash { get; set; } = "";
     public DateTimeOffset? PasswordSetAt { get; set; } = DateTimeOffset.UtcNow;
     public string FullName { get; set; } = "";
