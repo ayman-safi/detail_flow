@@ -5,23 +5,24 @@ const apiBaseUrl = process.env.E2E_API_URL ?? 'http://localhost:5000/api';
 const inheritedEnvironment = process.env as Record<string, string>;
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './tests',
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 2 : 0,
   timeout: 45_000,
   expect: { timeout: 10_000 },
-  outputDir: '../output/playwright/test-results',
+  outputDir: '../reports/test-results',
   reporter: [
     ['list'],
-    ['html', { outputFolder: '../output/playwright/report', open: 'never' }],
+    ['./reporters/evidence-reporter.ts'],
+    ['html', { outputFolder: '../reports/playwright-report', open: 'never' }],
   ],
   use: {
     baseURL: webBaseUrl,
     ...devices['Desktop Chrome'],
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: 'on',
+    screenshot: 'on',
+    video: 'on',
   },
   webServer: [
     {
@@ -40,7 +41,7 @@ export default defineConfig({
       },
     },
     {
-      command: 'npm run start -- --hostname 127.0.0.1',
+      command: 'node e2e-manual/start-web.mjs',
       cwd: __dirname,
       url: `${webBaseUrl}/login`,
       timeout: 120_000,
