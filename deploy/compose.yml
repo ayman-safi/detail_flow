@@ -1,0 +1,187 @@
+name: detailflow
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    init: true
+    shm_size: 128mb
+    mem_limit: 1g
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+    volumes:
+      - detailflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+
+  api:
+    image: "${IMAGE_REPOSITORY:?Set IMAGE_REPOSITORY in .env}-api:${IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    mem_limit: 1g
+    pids_limit: 256
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:5000
+      DATA_PROTECTION_KEYS_PATH: /var/lib/detailflow/data-protection-keys
+      TRUSTED_PROXY_CIDRS: 172.30.20.10/32
+    expose:
+      - "5000"
+    volumes:
+      - detailflow_dataprotection:/var/lib/detailflow/data-protection-keys
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:5000/api/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - backend
+      - frontend
+
+  web:
+    image: "${IMAGE_REPOSITORY:?Set IMAGE_REPOSITORY in .env}-web:${IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    mem_limit: 512m
+    pids_limit: 256
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    expose:
+      - "3000"
+    volumes:
+      - detailflow_next_cache:/app/.next/cache
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - frontend
+
+  migrator:
+    image: "${IMAGE_REPOSITORY:?Set IMAGE_REPOSITORY in .env}-api:${IMAGE_TAG:-latest}"
+    profiles: ["tools"]
+    init: true
+    read_only: true
+    mem_limit: 1g
+    env_file:
+      - path: ../.env
+        required: false
+    entrypoint: ["/app/efbundle"]
+    command: ["--connection", "${DB_CONNECTION_STRING:?Set DB_CONNECTION_STRING in .env}"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - backend
+
+  backup:
+    image: restic/restic:0.18.1
+    profiles: ["tools"]
+    init: true
+    read_only: true
+    mem_limit: 512m
+    pids_limit: 128
+    env_file:
+      - path: ../backup.env
+        required: false
+    environment:
+      RESTIC_CACHE_DIR: /cache
+    volumes:
+      - detailflow_restic_cache:/cache
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - frontend
+
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    init: true
+    read_only: true
+    mem_limit: 128m
+    pids_limit: 128
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=32m
+      - /config:rw,noexec,nosuid,size=16m
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      frontend:
+        ipv4_address: 172.30.20.10
+
+volumes:
+  detailflow_pgdata:
+  detailflow_dataprotection:
+  detailflow_next_cache:
+  detailflow_restic_cache:
+
+networks:
+  backend:
+    driver: bridge
+    internal: true
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.20.0/24

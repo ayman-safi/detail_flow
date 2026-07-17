@@ -5,6 +5,7 @@ using DetailFlow.Api.Features.Dev;
 using DetailFlow.Api.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -92,6 +93,8 @@ var dbConnectionString = config["DB_CONNECTION_STRING"]
     ?? throw new InvalidOperationException("DB_CONNECTION_STRING or ConnectionStrings:DefaultConnection is required.");
 builder.Services.AddDbContext<DetailFlowDbContext>(opts =>
     opts.UseNpgsql(dbConnectionString));
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<DetailFlowDbContext>("postgres", tags: ["ready"]);
 builder.Services.AddMemoryCache();
 var dataProtectionBuilder = builder.Services.AddDataProtection()
     .SetApplicationName("DetailFlow.Api");
@@ -105,6 +108,17 @@ builder.Services.AddDetailFlowApplicationServices();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    var configuredNetworks = config["TRUSTED_PROXY_CIDRS"]?
+        .Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        ?? [];
+    foreach (var configuredNetwork in configuredNetworks)
+    {
+        if (!System.Net.IPNetwork.TryParse(configuredNetwork, out var network))
+            throw new InvalidOperationException($"TRUSTED_PROXY_CIDRS contains an invalid CIDR: {configuredNetwork}");
+
+        options.KnownIPNetworks.Add(network);
+    }
 });
 builder.Services.AddDetailFlowRateLimiting();
 
@@ -151,6 +165,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.MapHealthChecks("/api/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/api/health/ready", new HealthCheckOptions
+{
+    Predicate = registration => registration.Tags.Contains("ready")
+});
 
 app.Run();
 

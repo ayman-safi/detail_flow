@@ -1,56 +1,95 @@
+name: detailflow-local
+
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17-alpine
     ports:
       - "5432:5432"
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     volumes:
       - detailflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
 
   api:
-    build: ./DetailFlow.Api
-    ports:
-      - "5000:5000"
-    env_file: .env
+    build:
+      context: .
+      dockerfile: DetailFlow.Api/Dockerfile
+    env_file:
+      - path: .env
+        required: false
     environment:
-      - ASPNETCORE_URLS=http://+:5000
-      - DATA_PROTECTION_KEYS_PATH=/var/lib/detailflow/data-protection-keys
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:5000
+      DATA_PROTECTION_KEYS_PATH: /var/lib/detailflow/data-protection-keys
+      TRUSTED_PROXY_CIDRS: 172.30.20.10/32
     volumes:
       - detailflow_dataprotection:/var/lib/detailflow/data-protection-keys
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+      - frontend
 
   web:
-    build: ./detailflow-web
-    environment:
-      - NEXT_PUBLIC_API_URL=/api
+    build:
+      context: ./detailflow-web
+      args:
+        NEXT_PUBLIC_API_URL: /api
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - frontend
 
   migrator:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
-    working_dir: /src
-    volumes:
-      - ./DetailFlow.Api:/src
-    env_file: .env
+    build:
+      context: .
+      dockerfile: DetailFlow.Api/Dockerfile
+    profiles: ["tools"]
+    env_file:
+      - path: .env
+        required: false
+    entrypoint: ["/app/efbundle"]
+    command: ["--connection", "${DB_CONNECTION_STRING:?Set DB_CONNECTION_STRING in .env}"]
     depends_on:
-      - postgres
-    entrypoint: >
-      sh -c "dotnet tool install --global dotnet-ef &&
-      export PATH=\"$$PATH:/root/.dotnet/tools\" &&
-      dotnet restore &&
-      dotnet ef database update"
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
 
-  nginx:
-    image: nginx:alpine
+  gateway:
+    image: caddy:2-alpine
     ports:
-      - "80:80"
+      - "80:8080"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
-      - api
-      - web
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks:
+      frontend:
+        ipv4_address: 172.30.20.10
 
 volumes:
   detailflow_pgdata:
   detailflow_dataprotection:
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.20.0/24

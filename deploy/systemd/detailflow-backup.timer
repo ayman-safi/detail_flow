@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the DetailFlow database backup every night
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+Unit=detailflow-backup.service
+
+[Install]
+WantedBy=timers.target

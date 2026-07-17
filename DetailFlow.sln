@@ -15,10 +15,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{F8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{C39E0B23-1593-4FE4-B7E6-9E34B8C52199}"
 	ProjectSection(SolutionItems) = preProject
+		backup.env.example = backup.env.example
+		DEPLOYMENT.md = DEPLOYMENT.md
 		.env.example = .env.example
-		docker-compose.yml = docker-compose.yml
-		nginx\nginx.conf = nginx\nginx.conf
-		deploy.sh = deploy.sh
+		deploy\backup.sh = deploy\backup.sh
+		deploy\Caddyfile = deploy\Caddyfile
+		deploy\compose.yml = deploy\compose.yml
+		deploy\init-backups.sh = deploy\init-backups.sh
+		deploy\restore.sh = deploy\restore.sh
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailFlow.Api.Tests", "DetailFlow.Api.Tests\DetailFlow.Api.Tests.csproj", "{DE26EECD-11AA-4A64-8550-BAF43C756C5D}"

@@ -116,6 +116,7 @@ public class ActiveUserMiddleware(
     }
 
     private static bool IsAnonymousApiPath(PathString path) =>
+        path.StartsWithSegments("/api/health") ||
         path.StartsWithSegments("/api/auth/register-tenant") ||
         path.StartsWithSegments("/api/auth/login") ||
         path.StartsWithSegments("/api/auth/accept-invite") ||
