@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0.301-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.301-noble AS build
 WORKDIR /src
 
 COPY NuGet.Config global.json DetailFlow.sln ./
@@ -34,7 +34,7 @@ RUN dotnet build DetailFlow.Api.csproj \
     --no-build \
     --output /app/efbundle
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.10-bookworm-slim AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.10-noble AS runtime
 WORKDIR /app
 
 ENV ASPNETCORE_URLS=http://+:5000 \
