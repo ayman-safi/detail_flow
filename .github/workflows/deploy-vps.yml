@@ -1,0 +1,199 @@
+name: Build and deploy VPS
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: detailflow-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  VPS_APP_DIR: ${{ vars.VPS_APP_DIR || '/opt/detailflow' }}
+  VPS_USER: ${{ vars.VPS_USER || 'ubuntu' }}
+  VPS_SSH_PORT: ${{ vars.VPS_SSH_PORT || '22' }}
+  APP_PORT: ${{ vars.APP_PORT || '8080' }}
+
+jobs:
+  build-images:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            context: .
+            dockerfile: DetailFlow.Api/Dockerfile
+          - service: web
+            context: detailflow-web
+            dockerfile: detailflow-web/Dockerfile
+
+    steps:
+      - name: Resolve source revision and image repository
+        id: release
+        shell: bash
+        run: |
+          SOURCE_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "image_repository=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.release.outputs.source_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish ${{ matrix.service }}
+        uses: docker/build-push-action@v7
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.release.outputs.image_repository }}-${{ matrix.service }}:sha-${{ steps.release.outputs.source_sha }}
+            ${{ steps.release.outputs.image_repository }}-${{ matrix.service }}:latest
+          cache-from: type=gha,scope=detailflow-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=detailflow-${{ matrix.service }}
+          provenance: true
+
+  deploy:
+    needs: build-images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Resolve source revision and image repository
+        id: release
+        shell: bash
+        run: |
+          SOURCE_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "image_repository=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out deployment files
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.release.outputs.source_sha }}
+
+      - name: Configure deployment SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Copy versioned deployment files
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" "sudo install -d -m 0755 '$VPS_APP_DIR'"
+          tar -czf - \
+            deploy/compose.yml \
+            deploy/Caddyfile \
+            deploy/backup.sh \
+            deploy/init-backups.sh \
+            deploy/restore.sh \
+            deploy/systemd \
+            .env.example \
+            backup.env.example \
+            | ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" "sudo tar -xzf - -C '$VPS_APP_DIR'"
+
+      - name: Sign the VPS in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" \
+            | ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" \
+                "sudo docker login ghcr.io -u '${{ github.actor }}' --password-stdin"
+
+      - name: Back up, migrate, and deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          IMAGE_REPOSITORY: ${{ steps.release.outputs.image_repository }}
+          IMAGE_TAG: sha-${{ steps.release.outputs.source_sha }}
+        run: |
+          ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" \
+            "sudo env VPS_APP_DIR='$VPS_APP_DIR' IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG' bash -s" <<'REMOTE_SCRIPT'
+          set -Eeuo pipefail
+          cd "$VPS_APP_DIR"
+
+          if [[ ! -f .env || ! -f backup.env ]]; then
+            echo "Missing $VPS_APP_DIR/.env or backup.env. Complete the one-time VPS setup first." >&2
+            exit 1
+          fi
+
+          chmod 600 .env backup.env
+          compose=(docker compose --env-file .env --env-file backup.env -f deploy/compose.yml)
+          previous_tag=$(cat .deployed-image-tag 2>/dev/null || true)
+
+          rollback() {
+            echo "Deployment failed; attempting application rollback."
+            if [[ -n "$previous_tag" && "$previous_tag" != "$IMAGE_TAG" ]]; then
+              export IMAGE_TAG="$previous_tag"
+              "${compose[@]}" pull api web || true
+              "${compose[@]}" up -d --wait api web gateway || true
+            else
+              echo "No earlier image tag is recorded; inspect the service logs before retrying."
+            fi
+          }
+          trap rollback ERR
+
+          export IMAGE_REPOSITORY IMAGE_TAG
+          "${compose[@]}" --profile tools pull postgres gateway backup api web
+          "${compose[@]}" up -d --wait postgres
+
+          bash deploy/backup.sh
+          "${compose[@]}" --profile tools run --rm migrator
+          "${compose[@]}" up -d --wait --remove-orphans api web gateway
+
+          curl --fail --silent --show-error --retry 10 --retry-all-errors \
+            http://127.0.0.1:8080/healthz >/dev/null
+          curl --fail --silent --show-error --retry 10 --retry-all-errors \
+            http://127.0.0.1:8080/api/health/ready >/dev/null
+
+          printf '%s\n' "$IMAGE_TAG" > .deployed-image-tag
+          install -m 0644 deploy/systemd/detailflow-backup.service /etc/systemd/system/
+          install -m 0644 deploy/systemd/detailflow-backup.timer /etc/systemd/system/
+          systemctl daemon-reload
+          systemctl enable --now detailflow-backup.timer
+          docker image prune -f
+          trap - ERR
+          REMOTE_SCRIPT
+
+      - name: Verify public test endpoint
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --connect-timeout 5 --max-time 20 \
+            "http://$VPS_HOST:$APP_PORT/healthz"
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --connect-timeout 5 --max-time 20 \
+            "http://$VPS_HOST:$APP_PORT/api/health/ready"

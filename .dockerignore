@@ -1,0 +1,6 @@
+**
+!NuGet.Config
+!global.json
+!DetailFlow.sln
+!DetailFlow.Api/
+!DetailFlow.Api/**

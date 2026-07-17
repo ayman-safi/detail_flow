@@ -5,6 +5,7 @@
 **/.env
 **/.env.*
 !**/.env.example
+backup.env
 appsettings.*.local.json
 
 # IDE and editor state

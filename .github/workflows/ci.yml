@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: detailflow-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET from global.json
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore API dependencies
+        run: dotnet restore DetailFlow.sln --configfile NuGet.Config
+
+      - name: Test API
+        run: dotnet test DetailFlow.sln --configuration Release --no-restore --verbosity normal
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: detailflow-web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: detailflow-web
+        run: npm ci
+
+      - name: Audit production web dependencies
+        working-directory: detailflow-web
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint web
+        working-directory: detailflow-web
+        run: npm run lint
+
+      - name: Build web
+        working-directory: detailflow-web
+        run: npm run build
+
+      - name: Validate production Compose configuration
+        run: docker compose --env-file .env.example -f deploy/compose.yml config --quiet

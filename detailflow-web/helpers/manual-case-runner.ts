@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import type { Evidence } from '../fixtures/evidence-test';
 import type { ManualCase } from '../tests/generated/manual-cases';
-import { ApplicationPage } from '../pages/application.page';
+import { ApplicationPage } from '../page-objects/application.page';
 import { accounts, apiBaseUrl } from './environment';
 import { loginPlatformAdmin, loginThroughApi, loginThroughUi } from './login';
 

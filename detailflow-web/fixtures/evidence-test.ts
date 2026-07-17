@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { expect, test as base, type Page, type TestInfo } from '@playwright/test';
+import { expect, test as base, type TestInfo } from '@playwright/test';
 import { apiBaseUrl } from '../helpers/environment';
 
 export type Evidence = {
@@ -20,13 +20,13 @@ function safeName(value: string) {
 }
 
 export const test = base.extend<{ evidence: Evidence }>({
-  evidence: async ({ page }, use, testInfo) => {
+  evidence: async ({ page }, provideEvidence, testInfo) => {
     const id = manualId(testInfo);
     let sequence = 0;
     const screenshotDir = path.resolve(__dirname, '..', '..', 'evidence', 'screenshots', id);
     await fs.mkdir(screenshotDir, { recursive: true });
 
-    await use({
+    await provideEvidence({
       id,
       checkpoint: async (name, options) => {
         sequence += 1;
