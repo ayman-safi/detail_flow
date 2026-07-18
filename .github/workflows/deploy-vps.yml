@@ -117,6 +117,7 @@ jobs:
             deploy/compose.yml \
             deploy/Caddyfile \
             deploy/backup.sh \
+            deploy/deploy.sh \
             deploy/init-backups.sh \
             deploy/restore.sh \
             deploy/systemd \
@@ -140,54 +141,7 @@ jobs:
           IMAGE_TAG: sha-${{ steps.release.outputs.source_sha }}
         run: |
           ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" \
-            "sudo env VPS_APP_DIR='$VPS_APP_DIR' IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG' bash -s" <<'REMOTE_SCRIPT'
-          set -Eeuo pipefail
-          cd "$VPS_APP_DIR"
-
-          if [[ ! -f .env || ! -f backup.env ]]; then
-            echo "Missing $VPS_APP_DIR/.env or backup.env. Complete the one-time VPS setup first." >&2
-            exit 1
-          fi
-
-          chmod 600 .env backup.env
-          compose=(docker compose --env-file .env --env-file backup.env -f deploy/compose.yml)
-          previous_tag=$(cat .deployed-image-tag 2>/dev/null || true)
-
-          rollback() {
-            echo "Deployment failed; attempting application rollback."
-            if [[ -n "$previous_tag" && "$previous_tag" != "$IMAGE_TAG" ]]; then
-              export IMAGE_TAG="$previous_tag"
-              "${compose[@]}" pull api web || true
-              "${compose[@]}" up -d --wait api web gateway || true
-            else
-              echo "No earlier image tag is recorded; inspect the service logs before retrying."
-            fi
-          }
-          trap rollback ERR
-
-          export IMAGE_REPOSITORY IMAGE_TAG
-          "${compose[@]}" --profile tools pull postgres gateway backup api web
-          "${compose[@]}" up -d --wait postgres
-
-          bash deploy/backup.sh
-          "${compose[@]}" --profile tools run --rm -T migrator
-          "${compose[@]}" up -d --wait --remove-orphans api web gateway
-
-          curl --fail --silent --show-error --retry 5 --retry-all-errors \
-            --retry-delay 2 --retry-max-time 30 --connect-timeout 3 --max-time 5 \
-            http://127.0.0.1:8080/healthz >/dev/null
-          curl --fail --silent --show-error --retry 5 --retry-all-errors \
-            --retry-delay 2 --retry-max-time 30 --connect-timeout 3 --max-time 5 \
-            http://127.0.0.1:8080/api/health/ready >/dev/null
-
-          printf '%s\n' "$IMAGE_TAG" > .deployed-image-tag
-          install -m 0644 deploy/systemd/detailflow-backup.service /etc/systemd/system/
-          install -m 0644 deploy/systemd/detailflow-backup.timer /etc/systemd/system/
-          systemctl daemon-reload
-          systemctl enable --now detailflow-backup.timer
-          docker image prune -f
-          trap - ERR
-          REMOTE_SCRIPT
+            "sudo env VPS_APP_DIR='$VPS_APP_DIR' IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG' APP_PORT='$APP_PORT' bash '$VPS_APP_DIR/deploy/deploy.sh'"
 
       - name: Verify public test endpoint
         env:
