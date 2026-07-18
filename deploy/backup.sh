@@ -23,7 +23,7 @@ compose() {
     "$@"
 }
 
-compose --profile tools run --rm -T backup cat config >/dev/null
+compose --profile tools run --rm --interactive=false backup cat config >/dev/null
 
 echo "Creating an encrypted PostgreSQL backup in Cloudflare R2..."
 compose exec -T postgres sh -c \
@@ -35,7 +35,7 @@ compose exec -T postgres sh -c \
       --tag postgres
 
 echo "Applying backup retention..."
-compose --profile tools run --rm -T backup forget \
+compose --profile tools run --rm --interactive=false backup forget \
   --tag detailflow \
   --keep-daily 7 \
   --keep-weekly 4 \
@@ -43,6 +43,6 @@ compose --profile tools run --rm -T backup forget \
   --prune
 
 echo "Checking repository metadata..."
-compose --profile tools run --rm -T backup check
+compose --profile tools run --rm --interactive=false backup check
 
 echo "Backup completed successfully."
