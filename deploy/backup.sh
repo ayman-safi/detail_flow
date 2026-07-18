@@ -37,6 +37,7 @@ compose exec -T postgres sh -c \
 echo "Applying backup retention..."
 compose --profile tools run --rm --interactive=false backup forget \
   --tag detailflow \
+  --group-by tags,paths \
   --keep-daily 7 \
   --keep-weekly 4 \
   --keep-monthly 6 \
