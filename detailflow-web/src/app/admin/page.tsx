@@ -201,8 +201,8 @@ function TenantFilters({
 
   return (
     <Card className="p-4">
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_140px_140px_160px]">
-        <div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="min-w-0 sm:col-span-3">
           <Label htmlFor="tenant-search">{t('platformAdmin.filters.search')}</Label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]" />
@@ -260,13 +260,13 @@ function SelectField({
   const { t } = useI18n();
 
   return (
-    <div>
+    <div className="min-w-0">
       <Label htmlFor={id}>{label}</Label>
       <select
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]"
+        className="h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]"
       >
         <option value="">{t('common.filters.all')}</option>
         {options.map((option) => {
