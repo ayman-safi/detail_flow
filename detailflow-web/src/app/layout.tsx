@@ -1,12 +1,19 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import './globals.css';
 import { Providers } from './providers';
-import { dictionaries, getLocale, localeCookieName, localeMeta } from '@/i18n/config';
+import { dictionaries, getLocale, isAppLocale, localeCookieName, localeMeta } from '@/i18n/config';
+
+async function getRequestLocale() {
+  const requestHeaders = await headers();
+  const routeLocale = requestHeaders.get('x-detailflow-route-locale');
+  if (isAppLocale(routeLocale)) return { locale: routeLocale, authoritative: true } as const;
+  const cookieStore = await cookies();
+  return { locale: getLocale(cookieStore.get(localeCookieName)?.value), authoritative: false } as const;
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-  const cookieStore = await cookies();
-  const locale = getLocale(cookieStore.get(localeCookieName)?.value);
+  const { locale } = await getRequestLocale();
   const messages = dictionaries[locale];
   return {
     title: messages.meta.title,
@@ -15,8 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const cookieStore = await cookies();
-  const locale = getLocale(cookieStore.get(localeCookieName)?.value);
+  const { locale, authoritative } = await getRequestLocale();
   return (
     <html lang={localeMeta[locale].tag} dir={localeMeta[locale].dir}>
       <head>
@@ -24,7 +30,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="font-[var(--font-body)]">
-        <Providers initialLocale={locale}>{children}</Providers>
+        <Providers initialLocale={locale} initialLocaleAuthoritative={authoritative}>{children}</Providers>
       </body>
     </html>
   );

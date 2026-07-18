@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Check, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import type { AuthUser } from '@/types';
@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher';
 import { Logo } from '@/components/shared/Logo';
 import { useI18n } from '@/i18n/I18nProvider';
+import { captureConsentedLandingEvent } from '@/lib/landingAnalytics';
 
 type FormData = {
   tenantName: string;
@@ -33,7 +34,11 @@ export default function RegisterPage() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, locale } = useI18n();
+
+  useEffect(() => {
+    void captureConsentedLandingEvent('registration_started', { locale });
+  }, [locale]);
   const schema = z.object({
     tenantName: z.string().min(2),
     slug: z.string().regex(/^[a-z0-9-]{3,30}$/),
@@ -55,6 +60,7 @@ export default function RegisterPage() {
     setError('');
     try {
       const { data } = await api.post<{ user: AuthUser }>('/auth/register-tenant', values);
+      await captureConsentedLandingEvent('registration_completed', { locale });
       setAuth(data.user);
       router.push('/board');
     } catch (error) {

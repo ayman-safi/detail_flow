@@ -73,9 +73,11 @@ function toDate(value: Date | string | number) {
 export function I18nProvider({
   children,
   initialLocale = defaultLocale,
+  initialLocaleAuthoritative = false,
 }: {
   children: React.ReactNode;
   initialLocale?: AppLocale;
+  initialLocaleAuthoritative?: boolean;
 }) {
   const [locale, setLocaleState] = useState<AppLocale>(initialLocale);
   const messages = dictionaries[locale];
@@ -83,11 +85,12 @@ export function I18nProvider({
   const isRtl = dir === 'rtl';
 
   useEffect(() => {
+    if (initialLocaleAuthoritative) return;
     const persisted = getLocale(window.localStorage.getItem(localeCookieName));
     if (persisted !== initialLocale) {
       setLocaleState(persisted);
     }
-  }, [initialLocale]);
+  }, [initialLocale, initialLocaleAuthoritative]);
 
   useEffect(() => {
     document.documentElement.lang = localeMeta[locale].tag;

@@ -27,12 +27,14 @@ function AppToaster() {
 export function Providers({
   children,
   initialLocale,
+  initialLocaleAuthoritative = false,
 }: {
   children: React.ReactNode;
   initialLocale: AppLocale;
+  initialLocaleAuthoritative?: boolean;
 }) {
   return (
-    <I18nProvider initialLocale={initialLocale}>
+    <I18nProvider initialLocale={initialLocale} initialLocaleAuthoritative={initialLocaleAuthoritative}>
       <QueryClientProvider client={queryClient}>
         {children}
         <PlanLimitDialog />
