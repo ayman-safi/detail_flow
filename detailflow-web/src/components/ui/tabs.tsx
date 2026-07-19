@@ -4,16 +4,17 @@ import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { useI18n } from '@/i18n/I18nProvider';
 import { cn } from '@/lib/utils';
 
-export const Tabs = TabsPrimitive.Root;
+export function Tabs({ dir: direction, ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const { dir } = useI18n();
+  return <TabsPrimitive.Root dir={direction ?? dir} {...props} />;
+}
 
 export function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
-  const { isRtl } = useI18n();
-  return <TabsPrimitive.List dir={isRtl ? 'rtl' : 'ltr'} className={cn('inline-flex max-w-full overflow-x-auto rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden', isRtl && 'flex-row-reverse', className)} {...props} />;
+  return <TabsPrimitive.List className={cn('inline-flex max-w-full overflow-x-auto rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden', className)} {...props} />;
 }
 
 export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  const { isRtl } = useI18n();
-  return <TabsPrimitive.Trigger className={cn('min-w-0 rounded-[var(--radius-sm)] px-4 py-2 text-center text-sm transition data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-white', isRtl ? 'text-right text-[var(--color-text-muted)]' : 'text-left text-[var(--color-text-muted)]', className)} {...props} />;
+  return <TabsPrimitive.Trigger className={cn('min-w-0 rounded-[var(--radius-sm)] px-4 py-2 text-center text-sm text-[var(--color-text-muted)] transition data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-white', className)} {...props} />;
 }
 
 export function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {

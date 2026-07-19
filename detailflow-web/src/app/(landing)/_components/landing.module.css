@@ -216,23 +216,71 @@
 .experienceCopy ul { margin: 35px 0 0; padding: 0; display: grid; gap: 14px; list-style: none; }
 .experienceCopy li { display: flex; gap: 10px; color: #c1ccd8; font-size: 14px; }
 .experienceCopy li svg { width: 17px; color: #3bdda2; flex: 0 0 auto; }
-.phoneStage { position: relative; min-height: 570px; display: grid; place-items: center; }
-.phoneShell { width: 300px; min-height: 530px; position: relative; z-index: 2; padding: 48px 22px 25px; border: 8px solid #152332; border-radius: 43px; background: #f7f9fa; color: #111a24; box-shadow: 0 40px 110px rgba(0,0,0,.65); transform: rotate(2deg); }
-.phoneShell > small { color: #607386; font-size: 10px; }
-.phoneShell h3 { margin: 6px 0 25px; font-size: 22px; }
-.phoneService { padding: 18px; display: flex; justify-content: space-between; border: 1px solid #dce3e9; background: white; }
-.phoneService span { font-size: 12px; }
-.phoneService strong { color: #087dff; }
-.phoneTrack { margin-top: 18px; padding: 16px; display: grid; grid-template-columns: 26px 1fr; gap: 4px; border-radius: 10px; background: #eaf5ff; }
-.phoneTrack svg { grid-row: 1/3; width: 18px; color: #087dff; }
-.phoneTrack span { font-size: 11px; }
-.phoneTrack b { color: #41708c; font-size: 10px; }
-.phoneShell > button { width: calc(50% - 5px); height: 42px; margin: 20px 3px 0; border: 1px solid #ccd8e2; border-radius: 5px; background: white; color: #253748; }
-.phoneShell > button:last-child { border-color: #1788ee; background: #1788ee; color: white; }
-.phoneCardBack { position: absolute; z-index: 1; width: 285px; min-height: 180px; inset-inline-end: -35px; top: 65px; padding: 24px; border: 1px solid rgba(70,231,150,.25); background: #0d2b24; color: #dff9eb; transform: rotate(7deg); box-shadow: 0 25px 70px rgba(0,0,0,.5); }
-.phoneCardBack svg { color: #44e49a; }
-.phoneCardBack span { margin-inline-start: 10px; font: 9px var(--font-mono); letter-spacing: .12em; }
-.phoneCardBack p { font-size: 13px; line-height: 1.5; }
+.trackingShowcase { position: relative; min-width: 0; min-height: 640px; display: grid; place-items: center; isolation: isolate; perspective: 1200px; }
+.trackingHalo { position: absolute; z-index: -1; width: 520px; height: 430px; border-radius: 50%; background: radial-gradient(circle, rgba(20,172,239,.2), rgba(20,101,214,.07) 50%, transparent 72%); filter: blur(20px); }
+.trackerPhone { width: 294px; height: 584px; position: relative; z-index: 3; padding: 8px; overflow: hidden; border: 1px solid rgba(131,173,212,.28); border-radius: 42px; background: linear-gradient(145deg, #1b2d40, #07111b 78%); color: #0d1724; box-shadow: 0 50px 110px rgba(0,0,0,.7), 0 0 0 1px rgba(67,194,255,.06); animation: trackerFloat 7s ease-in-out infinite; }
+.trackerNotch { width: 92px; height: 22px; position: absolute; z-index: 3; top: 15px; left: 50%; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #0a1420; }
+.trackerScreen { height: 100%; padding: 35px 13px 12px; overflow: hidden; border-radius: 34px; background: #f4f7fb; }
+.trackerTopline { height: 25px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e4eaf1; color: #111b27; }
+.trackerTopline > strong { font-size: 11px; letter-spacing: -.02em; }
+.trackerTopline > strong span { color: #139ddd; }
+.trackerTopline > small { display: flex; align-items: center; gap: 5px; color: #8190a1; font-size: 7px; }
+.trackerTopline > small i, .trackingMicroLabel > i { width: 5px; height: 5px; border-radius: 50%; background: #24c875; box-shadow: 0 0 0 3px rgba(36,200,117,.12); }
+.trackerVehicle { margin-top: 10px; padding: 11px 12px; border: 1px solid #dce4ed; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(53,78,103,.05); }
+.trackerVehicle > div { min-width: 0; }
+.trackerVehicle code { display: inline-block; padding: 3px 6px; border-radius: 3px; background: #eef3f8; color: #24384d; font: 8px var(--font-mono); letter-spacing: .08em; }
+.trackerVehicle h3 { margin: 7px 0 1px; display: flex; align-items: center; gap: 7px; color: #101923; font-size: 15px; }
+.trackerVehicle h3 i { width: 9px; height: 9px; border-radius: 50%; background: #c7cbd0; }
+.trackerVehicle p { margin: 0; color: #8490a0; font-size: 8px; }
+.trackerTimeline { margin: 10px 0 0; padding: 10px 10px 6px; display: grid; list-style: none; border: 1px solid #dce4ed; border-radius: 14px; background: #fff; }
+.trackerTimeline li { min-height: 43px; position: relative; display: grid; grid-template-columns: 26px 1fr; align-items: start; gap: 10px; color: #7b8ba0; }
+.trackerTimeline li:not(:last-child)::after { content: ''; width: 1px; position: absolute; top: 23px; bottom: -9px; inset-inline-start: 11px; background: #dce4ed; }
+.trackerTimeline li.stageDone:not(:last-child)::after { background: #24c875; }
+.trackerTimeline li > span { width: 23px; height: 23px; position: relative; z-index: 1; display: grid; place-items: center; border: 1px solid #dce4ed; border-radius: 50%; background: #fff; color: #9aa8ba; font: 9px var(--font-mono); }
+.trackerTimeline li > span svg { width: 12px; }
+.trackerTimeline li > div { min-width: 0; padding-top: 3px; display: grid; gap: 1px; }
+.trackerTimeline li b { color: #1a2735; font-size: 9px; }
+.trackerTimeline li small { color: #8a99aa; font-size: 7px; }
+.trackerTimeline li.stageDone > span { border-color: #24c875; background: #24c875; color: white; }
+.trackerTimeline li.stageActive > span { border-color: #3488f3; background: #3488f3; color: white; box-shadow: 0 0 0 5px rgba(52,136,243,.12); }
+.trackerEta { margin-top: 9px; padding: 9px 11px; display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 6px; border: 1px solid #dce4ed; border-radius: 12px; background: #fff; }
+.trackerEta svg { width: 14px; color: #7e90a5; }
+.trackerEta span { color: #8492a3; font-size: 7px; }
+.trackerEta strong { color: #111923; font-size: 17px; }
+.trackingSideCard { width: 250px; height: 410px; position: absolute; z-index: 1; top: 105px; padding: 28px 24px; overflow: hidden; border: 1px solid rgba(114,159,202,.2); border-radius: 28px; background: linear-gradient(155deg, rgba(15,30,48,.98), rgba(6,15,27,.98)); color: #e8f2fb; box-shadow: 0 40px 80px rgba(0,0,0,.46); }
+.trackingStatusCard { inset-inline-start: 0; transform: rotate(-7deg) translateY(14px); animation: trackerLeftFloat 8.5s ease-in-out infinite; }
+[dir='rtl'] .trackingStatusCard { transform: rotate(7deg) translateY(14px); animation-name: trackerLeftFloatRtl; }
+.trackingReceiptCard { inset-inline-end: 0; transform: rotate(7deg) translateY(18px); animation: trackerRightFloat 9s ease-in-out infinite; }
+[dir='rtl'] .trackingReceiptCard { transform: rotate(-7deg) translateY(18px); animation-name: trackerRightFloatRtl; }
+.trackingMicroLabel { display: flex; align-items: center; gap: 7px; color: #66819c; font: 8px var(--font-mono); letter-spacing: .11em; text-transform: uppercase; }
+.trackingMicroLabel svg { width: 14px; color: #36c9f5; }
+.statusVehicle { margin-top: 46px; }
+.statusVehicle small { padding: 5px 7px; border: 1px solid rgba(65,198,242,.22); color: #4fcff3; font: 8px var(--font-mono); }
+.statusVehicle h3 { margin: 15px 0 5px; font-size: 24px; }
+.statusVehicle p { margin: 0; color: #8598aa; font-size: 11px; }
+.statusProgress { margin-top: 76px; }
+.statusProgress > span { display: flex; justify-content: space-between; color: #89a0b4; font-size: 9px; }
+.statusProgress > span b { color: #eaf5ff; }
+.statusProgress > i { height: 5px; margin-top: 12px; display: block; overflow: hidden; border-radius: 20px; background: #182b3d; }
+.statusProgress > i b { width: 48%; height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #168eef, #3cdaf3); box-shadow: 0 0 18px rgba(54,208,244,.55); }
+.receiptSheet { margin-top: 37px; padding: 20px; display: grid; gap: 7px; border: 1px solid rgba(119,160,199,.18); border-radius: 16px; background: rgba(11,24,38,.75); }
+.receiptSheet > span { color: #5ccff2; font: 8px var(--font-mono); }
+.receiptSheet > strong { font-size: 17px; }
+.receiptSheet > p { margin: 0; color: #8397a9; font-size: 9px; }
+.receiptSheet > i { width: 45px; height: 45px; margin-top: 35px; display: grid; place-items: center; border: 2px solid #4ee1a3; border-radius: 14px; color: #4ee1a3; transform: rotate(5deg); }
+.receiptSheet > i svg { width: 23px; }
+.trackingReceiptCard > p { margin-top: 21px; color: #70869a; font-size: 9px; line-height: 1.6; }
+.trackingMessage { width: 285px; min-height: 78px; position: absolute; z-index: 4; inset-inline-start: 10px; bottom: 32px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid rgba(62,224,159,.24); border-radius: 17px; background: rgba(8,31,29,.92); color: #dff8ec; box-shadow: 0 22px 55px rgba(0,0,0,.48); backdrop-filter: blur(12px); }
+.trackingMessage > span { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: #29c982; color: #06261a; }
+.trackingMessage svg { width: 17px; }
+.trackingMessage div { min-width: 0; }
+.trackingMessage small { color: #56dba4; font: 7px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.trackingMessage p { margin: 3px 0 0; color: #b9d6ca; font-size: 9px; line-height: 1.4; }
+@keyframes trackerFloat { 0%, 100% { transform: translateY(0) rotate(.5deg); } 50% { transform: translateY(-8px) rotate(-.35deg); } }
+@keyframes trackerLeftFloat { 0%, 100% { transform: rotate(-7deg) translateY(14px); } 50% { transform: rotate(-6deg) translateY(7px); } }
+@keyframes trackerLeftFloatRtl { 0%, 100% { transform: rotate(7deg) translateY(14px); } 50% { transform: rotate(6deg) translateY(7px); } }
+@keyframes trackerRightFloat { 0%, 100% { transform: rotate(7deg) translateY(18px); } 50% { transform: rotate(6deg) translateY(10px); } }
+@keyframes trackerRightFloatRtl { 0%, 100% { transform: rotate(-7deg) translateY(18px); } 50% { transform: rotate(-6deg) translateY(10px); } }
 
 .photoStory { width: min(1380px, calc(100% - 64px)); margin: 0 auto; padding: 140px 0; display: grid; grid-template-columns: .76fr 1.4fr; gap: 80px; align-items: center; }
 .photoStoryCopy > p { margin-inline: 0; }
@@ -273,7 +321,7 @@
 .flowCanvas circle { stroke: #07111f; stroke-width: .12; filter: drop-shadow(0 0 3px rgba(56,189,248,.95)); }
 .flowCanvas ol { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
 .flowCanvas li { min-height: 45px; position: absolute; z-index: 2; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border: 1px solid rgba(105,156,204,.24); border-radius: 999px; background: rgba(7,15,29,.94); box-shadow: 0 12px 28px rgba(0,0,0,.28); white-space: nowrap; }
-[dir='rtl'] .flowCanvas li { transform: translate(50%, -50%); padding: 7px 8px 7px 14px; }
+[dir='rtl'] .flowCanvas li { padding: 7px 8px 7px 14px; }
 .flowCanvas li span { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #079fe0, #20c8ee); color: white; box-shadow: 0 0 18px rgba(32,200,238,.25); }
 .flowCanvas li svg { width: 15px; height: 15px; }
 .flowCanvas li b { font-size: 12px; letter-spacing: -.01em; }
@@ -394,6 +442,10 @@
   .workflow, .photoStory { grid-template-columns: 1fr; }
   .workflowIntro { position: static; }
   .experience { gap: 45px; }
+  .trackingSideCard { width: 225px; }
+  .trackingStatusCard { inset-inline-start: -25px; }
+  .trackingReceiptCard { inset-inline-end: -25px; }
+  .trackingMessage { inset-inline-start: -12px; }
   .photoStoryCopy { max-width: 720px; }
   .faq { grid-template-columns: 1fr; gap: 30px; }
   .footerMain { grid-template-columns: 1.5fr repeat(3, 1fr); gap: 35px; }
@@ -445,8 +497,13 @@
   .workflowStep { padding-inline-start: 54px; }
   [dir='rtl'] .workflowStep { padding-inline: 54px 0; }
   .experience { padding: 95px 18px; grid-template-columns: 1fr; }
-  .phoneStage { min-height: 560px; overflow: hidden; }
-  .phoneCardBack { inset-inline-end: -60px; }
+  .trackingShowcase { width: min(100%, 580px); min-height: 620px; margin: 0 auto; overflow: visible; }
+  .trackerPhone { width: 280px; height: 572px; }
+  .trackingSideCard { width: 205px; height: 385px; top: 105px; padding: 25px 20px; opacity: .72; }
+  .trackingStatusCard { inset-inline-start: -76px; }
+  .trackingReceiptCard { inset-inline-end: -76px; }
+  .trackingMessage { width: 248px; min-height: 70px; inset-inline-start: -15px; bottom: 18px; }
+  .trackingMessage p { font-size: 8px; }
   .photoStory { width: calc(100% - 36px); padding: 95px 0; gap: 45px; }
   .photoComparison { height: 480px; }
   .flowSection { padding: 95px 18px; }

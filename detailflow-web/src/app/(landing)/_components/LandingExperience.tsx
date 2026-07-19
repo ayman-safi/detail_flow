@@ -373,15 +373,66 @@ function Experience({ copy }: { copy: LandingCopy }) {
         <p>{copy.experience.body}</p>
         <ul>{copy.experience.points.map((point) => <li key={point}><Check />{point}</li>)}</ul>
       </Reveal>
-      <Reveal className={styles.phoneStage}>
-        <div className={styles.phoneCardBack}><MessageCircle /><span>WHATSAPP</span><p>{copy.experience.whatsapp}</p></div>
-        <div className={styles.phoneShell}>
-          <span className={styles.phoneNotch} />
-          <small>{copy.experience.phoneShop}</small>
-          <h3>{copy.experience.phoneTitle}</h3>
-          <div className={styles.phoneService}><span>{copy.experience.phoneService}</span><strong>{copy.experience.phonePrice}</strong></div>
-          <div className={styles.phoneTrack}><Globe2 /><span>{copy.experience.phoneTrack}</span><b>{copy.experience.phoneStatus}</b></div>
-          <button type="button">10:30</button><button type="button">12:00</button>
+      <Reveal className={styles.trackingShowcase}>
+        <div className={styles.trackingHalo} aria-hidden="true" />
+
+        <div className={`${styles.trackingSideCard} ${styles.trackingStatusCard}`} aria-hidden="true">
+          <span className={styles.trackingMicroLabel}><i />{copy.experience.live}</span>
+          <div className={styles.statusVehicle}>
+            <small>DF-3003</small>
+            <h3>{copy.experience.vehicle}</h3>
+            <p>{copy.experience.service}</p>
+          </div>
+          <div className={styles.statusProgress}>
+            <span><b>{copy.experience.stages[2]}</b><small>3 / 6</small></span>
+            <i><b /></i>
+          </div>
+        </div>
+
+        <div className={styles.trackerPhone} aria-label={copy.experience.trackerLabel}>
+          <span className={styles.trackerNotch} aria-hidden="true" />
+          <div className={styles.trackerScreen}>
+            <div className={styles.trackerTopline}>
+              <strong>Detail<span>Flow</span></strong>
+              <small><i />{copy.experience.live}</small>
+            </div>
+            <div className={styles.trackerVehicle}>
+              <div>
+                <code>DF-3003</code>
+                <h3>{copy.experience.vehicle}<i /></h3>
+                <p>{copy.experience.service}</p>
+              </div>
+            </div>
+            <ol className={styles.trackerTimeline}>
+              {copy.experience.stages.map((stage, index) => (
+                <li key={stage} className={index < 2 ? styles.stageDone : index === 2 ? styles.stageActive : ''}>
+                  <span>{index < 2 ? <Check /> : index + 1}</span>
+                  <div><b>{stage}</b>{index === 2 && <small>{copy.experience.currentStage}</small>}</div>
+                </li>
+              ))}
+            </ol>
+            <div className={styles.trackerEta}>
+              <Clock3 />
+              <span>{copy.experience.estimatedReady}</span>
+              <strong>{copy.experience.estimatedTime}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className={`${styles.trackingSideCard} ${styles.trackingReceiptCard}`} aria-hidden="true">
+          <span className={styles.trackingMicroLabel}><FileText />{copy.experience.receipt}</span>
+          <div className={styles.receiptSheet}>
+            <span>DF-3003</span>
+            <strong>{copy.experience.vehicle}</strong>
+            <p>{copy.experience.service}</p>
+            <i><Check /></i>
+          </div>
+          <p>{copy.experience.receiptNote}</p>
+        </div>
+
+        <div className={styles.trackingMessage} aria-hidden="true">
+          <span><MessageCircle /></span>
+          <div><small>{copy.experience.updateLabel}</small><p>{copy.experience.whatsapp}</p></div>
         </div>
       </Reveal>
     </section>

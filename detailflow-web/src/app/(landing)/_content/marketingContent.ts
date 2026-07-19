@@ -70,12 +70,17 @@ export type LandingCopy = {
     title: string;
     body: string;
     points: string[];
-    phoneTitle: string;
-    phoneShop: string;
-    phoneService: string;
-    phonePrice: string;
-    phoneTrack: string;
-    phoneStatus: string;
+    trackerLabel: string;
+    vehicle: string;
+    service: string;
+    stages: string[];
+    currentStage: string;
+    estimatedReady: string;
+    estimatedTime: string;
+    live: string;
+    receipt: string;
+    receiptNote: string;
+    updateLabel: string;
     whatsapp: string;
   };
   photos: {
@@ -185,10 +190,10 @@ const en: LandingCopy = {
     nodes: ['New booking', 'Vehicle arrives', 'Assign staff', 'Before photos', 'Live stages', 'WhatsApp update', 'Receipt PDF'],
   },
   experience: {
-    eyebrow: 'Made for Saudi shop reality', title: 'A mobile customer journey that speaks the way your customers do.',
-    body: 'Arabic-first RTL quality, English and Turkish parity, SAR pricing, mobile booking and WhatsApp-ready updates—without forcing customers to install an app.',
-    points: ['Public booking built around real shop capacity', 'Private tracking link for every work order', 'Prepared or automatic WhatsApp pickup updates', 'Receipt access from the same customer link'],
-    phoneTitle: 'Book a service', phoneShop: 'Riyadh Shine Detailing', phoneService: 'Full polish', phonePrice: '220 SAR', phoneTrack: 'Track your vehicle', phoneStatus: 'Detailing in progress', whatsapp: 'We will message you when your vehicle is ready.',
+    eyebrow: 'Built for customer confidence', title: 'Keep every customer informed from drop-off to pickup.',
+    body: 'Give customers a private link to follow their vehicle, check the expected ready time and know exactly when it is ready—without downloading an app.',
+    points: ['Private live progress for every work order', 'An expected ready time customers can check anytime', 'WhatsApp updates when the vehicle status changes', 'Receipt access from the same secure link'],
+    trackerLabel: 'Private customer tracking', vehicle: 'Porsche 911', service: 'Full Detail', stages: ['Booked', 'Arrived', 'Washing', 'Detailing', 'Polishing', 'Ready'], currentStage: 'Current stage', estimatedReady: 'Estimated ready by:', estimatedTime: '2:23 PM', live: 'Live status', receipt: 'Receipt access', receiptNote: 'Available from this same private link after delivery.', updateLabel: 'WhatsApp update', whatsapp: 'Your vehicle is ready for pickup.',
   },
   photos: {
     eyebrow: 'Vehicle history with evidence', title: 'The work is visible before the keys change hands.',
@@ -269,7 +274,7 @@ const ar: LandingCopy = {
     { number: '02', title: 'حرّك كل مركبة بوضوح', body: 'ينقل الفريق العمل عبر مراحل واضحة مع بقاء المسؤول والصور ووقت الجاهزية في مكان واحد.' },
     { number: '03', title: 'أغلق الحلقة تلقائيًا', body: 'يتابع العميل رابطًا خاصًا ويتلقى تحديث الاستلام ويصل إلى الإيصال دون الاتصال بالاستقبال.' },
   ], nodes: ['حجز جديد', 'وصول المركبة', 'إسناد الموظف', 'صور قبل العمل', 'مراحل مباشرة', 'تحديث واتساب', 'إيصال PDF'] },
-  experience: { eyebrow: 'مصمم لواقع الورش السعودية', title: 'رحلة جوال تتحدث بالطريقة التي يتحدث بها عملاؤك.', body: 'جودة عربية RTL أولًا، مع الإنجليزية والتركية، وأسعار بالريال وحجز من الجوال وتحديثات واتساب دون تطبيق للعميل.', points: ['حجز عام مرتبط بطاقة الورشة الفعلية', 'رابط تتبع خاص لكل أمر عمل', 'رسائل استلام واتساب جاهزة أو تلقائية', 'الوصول إلى الإيصال من نفس رابط العميل'], phoneTitle: 'احجز خدمة', phoneShop: 'لمعة الرياض للتلميع', phoneService: 'تلميع كامل', phonePrice: '220 ريال', phoneTrack: 'تتبع مركبتك', phoneStatus: 'التلميع قيد التنفيذ', whatsapp: 'سنرسل لك رسالة عندما تصبح مركبتك جاهزة.' },
+  experience: { eyebrow: 'تجربة عميل تليق بورشتك', title: 'طمّن عميلك على مركبته من الاستلام إلى التسليم.', body: 'امنح كل عميل رابطًا خاصًا يتابع منه حالة مركبته وموعد جاهزيتها، ويعرف فورًا متى يحين وقت الاستلام — دون تحميل أي تطبيق.', points: ['متابعة خاصة وواضحة لكل أمر عمل', 'وقت جاهزية متوقع يمكن الرجوع إليه في أي وقت', 'تحديث عبر واتساب عند تغيّر حالة المركبة', 'الإيصال متاح من نفس الرابط بعد التسليم'], trackerLabel: 'تتبع خاص للعميل', vehicle: 'Porsche 911', service: 'Full Detail', stages: ['محجوز', 'وصل', 'غسيل', 'تجهيز', 'تلميع', 'جاهز'], currentStage: 'المرحلة الحالية', estimatedReady: 'الوقت المتوقع للجاهزية:', estimatedTime: '2:23 م', live: 'حالة مباشرة', receipt: 'الوصول إلى الإيصال', receiptNote: 'يتوفر من نفس الرابط الخاص بعد تسليم المركبة.', updateLabel: 'تحديث واتساب', whatsapp: 'مركبتك جاهزة للاستلام.' },
   photos: { eyebrow: 'سجل مركبة مدعوم بالدليل', title: 'العمل واضح قبل أن تنتقل المفاتيح.', body: 'وثّق حالة الوصول والنتيجة النهائية واحتفظ بالقصة كاملة مع المركبة بدلًا من دفنها في محادثة الفريق.', demo: 'أمر عمل تجريبي', before: 'عند الوصول', after: 'جاهزة للاستلام', workOrder: 'DF-2048 · رنج روفر', assigned: 'مُسند إلى كريم', ready: 'جاهزة · 4:20 م', points: ['وثّق حالة الوصول من أي جوال', 'احتفظ بالصور مع أمر العمل', 'قارن النتيجة عند تسليم المركبة', 'أبقِ السجل المرئي مرتبطًا بالمركبة'], compareHint: 'اسحب للمقارنة بين صور الوصول والجاهزية للاستلام' },
   pricing: { eyebrow: 'أسعار سعودية واضحة', title: 'ابدأ باللوحة. وطوّر عندما تحتاج الورشة إلى الأتمتة.', body: 'بدون تبديل سنوي أو وعود مخفية أو بطاقة مطلوبة لمساحة Free.', badge: 'الأنسب', plans: [
     { name: 'Free', price: '0 ريال', cadence: 'دائمًا', note: 'لتجربة المسار مع فريقك.', features: ['30 حجزًا شهريًا', 'صفحة حجز عامة', 'لوحة تشغيل مباشرة', 'تتبع العميل', 'مستخدمان · 3 صور لكل أمر عمل'], cta: 'ابدأ مجانًا' },
@@ -313,7 +318,7 @@ const tr: LandingCopy = {
     { number: '02', title: 'Her aracı görünür ilerletin', body: 'Ekip araçları net aşamalardan geçirirken sorumlu kişi, fotoğraflar ve hazır zamanı birlikte kalır.' },
     { number: '03', title: 'Müşteri döngüsünü kapatın', body: 'Müşteri özel bağlantıdan durumu izler, teslimat mesajını alır ve fişe masayı aramadan ulaşır.' },
   ], nodes: ['Yeni randevu', 'Araç geldi', 'Personel ata', 'Önce fotoğrafları', 'Canlı aşamalar', 'WhatsApp güncellemesi', 'PDF fiş'] },
-  experience: { eyebrow: 'Suudi işletme gerçeği için', title: 'Müşterilerinizin dilinde konuşan mobil bir yolculuk.', body: 'Arapça RTL kalitesi, İngilizce ve Türkçe eşitliği, SAR fiyatları, mobil randevu ve WhatsApp güncellemeleri—müşteriye uygulama yükletmeden.', points: ['Gerçek işletme kapasitesine bağlı randevu', 'Her iş emri için özel takip bağlantısı', 'Hazır veya otomatik WhatsApp teslim mesajları', 'Aynı müşteri bağlantısından fiş erişimi'], phoneTitle: 'Hizmet randevusu', phoneShop: 'Riyadh Shine Detailing', phoneService: 'Tam cila', phonePrice: '220 SAR', phoneTrack: 'Aracını takip et', phoneStatus: 'Detay işlemi sürüyor', whatsapp: 'Aracınız hazır olduğunda mesaj göndereceğiz.' },
+  experience: { eyebrow: 'Müşteriye güven veren deneyim', title: 'Müşteriniz aracının durumunu teslimata kadar anlık takip etsin.', body: 'Her müşteriye aracın durumunu ve tahmini teslim saatini gösteren özel bir bağlantı verin; araç hazır olduğunda WhatsApp üzerinden haber verin — uygulama indirmeden.', points: ['Her iş emri için müşteriye özel takip bağlantısı', 'Her an görülebilen tahmini teslim saati', 'Durum değiştiğinde WhatsApp bilgilendirmesi', 'Teslimden sonra aynı bağlantıdan fiş erişimi'], trackerLabel: 'Özel müşteri takibi', vehicle: 'Porsche 911', service: 'Full Detail', stages: ['Rezerve', 'Geldi', 'Yıkama', 'Detay', 'Parlatma', 'Hazır'], currentStage: 'Mevcut aşama', estimatedReady: 'Tahmini hazır olma:', estimatedTime: '14:23', live: 'Canlı durum', receipt: 'Fiş erişimi', receiptNote: 'Teslimden sonra aynı özel bağlantıdan açılır.', updateLabel: 'WhatsApp güncellemesi', whatsapp: 'Aracınız teslimata hazır.' },
   photos: { eyebrow: 'Kanıtlı araç geçmişi', title: 'Anahtar tesliminden önce yapılan iş görünür.', body: 'Giriş durumunu ve bitmiş sonucu belgeleyin; bütün hikâyeyi ekip sohbetinde değil araçla birlikte saklayın.', demo: 'Demo iş emri', before: 'Giriş', after: 'Teslime hazır', workOrder: 'DF-2048 · Range Rover', assigned: 'Kareem’e atandı', ready: 'Hazır · 16:20', points: ['Giriş durumunu herhangi bir telefondan çekin', 'Fotoğrafları iş emrine bağlı tutun', 'Müşteri tesliminde sonucu karşılaştırın', 'Görsel kaydı araçla birlikte saklayın'], compareHint: 'Giriş ve teslim fotoğraflarını karşılaştırmak için sürükleyin' },
   pricing: { eyebrow: 'Net Suudi fiyatlandırma', title: 'Panoyla başlayın. Otomasyon gerektiğinde yükseltin.', body: 'Yıllık geçiş, gizli vaat veya Free çalışma alanı için kart zorunluluğu yok.', badge: 'En uygun', plans: [
     { name: 'Free', price: '0 SAR', cadence: 'süresiz', note: 'Akışı ekibinizle denemek için.', features: ['Ayda 30 randevu', 'Herkese açık randevu sayfası', 'Canlı operasyon panosu', 'Müşteri takibi', '2 ekip kullanıcısı · iş emri başına 3 fotoğraf'], cta: 'Ücretsiz başla' },
