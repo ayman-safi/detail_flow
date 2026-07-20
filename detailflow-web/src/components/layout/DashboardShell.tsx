@@ -22,7 +22,7 @@ export function DashboardShell({
   const { t } = useI18n();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)] supports-[height:100dvh]:h-dvh">
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header sseStatus={sseStatus ?? liveStatus} onNewBooking={() => setBookingOpen(true)} onMenu={() => setMenuOpen(true)} />

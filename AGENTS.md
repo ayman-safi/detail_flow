@@ -257,7 +257,7 @@ docker compose --env-file .env.example -f deploy/compose.yml config --quiet
 - React Query is the authoritative frontend server-state cache. New mutations must invalidate or update every affected query key, including plan usage and board/detail projections.
 - Zustand is used only where React Query is insufficient: persisted auth display state and live/optimistic board state.
 - Axios is the authenticated API boundary. Creating ad hoc Axios clients bypasses the plan-limit and 401 behaviors; public tracking intentionally uses `fetch`/`EventSource`.
-- `@dnd-kit` drives both board movement and service reordering. Its ref/listener patterns currently trigger warning-level React compiler lint rules.
+- `@dnd-kit` drives both board movement and service reordering. Its ref/listener patterns currently trigger warning-level React compiler lint rules. On the mobile board, preserve native touch handling on the horizontal scroller and `touch-action: manipulation` on the dedicated drag handles; the delayed `TouchSensor` then permits normal page/board panning before long-press activation and suppresses native motion only during an active drag.
 - Radix UI provides dialog, sheet, menu, select, tabs, switch, avatar, label, and separator behavior behind local wrappers.
 - Zod + React Hook Form provides client validation for principal forms, but the server remains authoritative.
 - QuestPDF plus embedded Amiri fonts implements the only document export in the product: work-order receipts.

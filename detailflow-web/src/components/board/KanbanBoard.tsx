@@ -202,7 +202,7 @@ export function KanbanBoard({ onOpenDetail }: { onOpenDetail: (id: string) => vo
         <div
           ref={scrollerRef}
           dir="ltr"
-          className="min-w-0 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-24 pt-4 touch-pan-x sm:pb-6"
+          className="min-w-0 overflow-x-auto overscroll-x-contain scroll-smooth px-4 pb-24 pt-4 sm:pb-6"
           onScroll={updateScrollState}
           style={{ scrollSnapType: 'x proximity', scrollbarGutter: 'stable' }}
         >

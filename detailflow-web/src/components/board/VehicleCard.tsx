@@ -72,7 +72,7 @@ export function VehicleCard({
             type="button"
             aria-label={t('board.help.dragVehicle', { plate: workOrder.vehicle.plateNumber })}
             title={t('board.help.dragToMove')}
-            className={cn('grid touch-none place-items-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-text)] active:cursor-grabbing', compact ? 'h-10 w-10 rounded-full' : 'h-8 w-8', isRtl ? 'mr-1' : 'ml-1')}
+            className={cn('grid touch-manipulation place-items-center rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-text)] active:cursor-grabbing', compact ? 'h-10 w-10 rounded-full' : 'h-8 w-8', isRtl ? 'mr-1' : 'ml-1')}
             onClick={(event) => event.stopPropagation()}
             {...dragHandleProps}
           >
