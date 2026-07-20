@@ -19,6 +19,16 @@ try {
   await desktop.getByRole('button', { name: 'Only necessary' }).click();
   await desktop.getByRole('tab', { name: 'Booking' }).click();
   await check(await desktop.getByText('Confirm booking').isVisible(), 'Booking product preview did not switch');
+  await desktop.getByRole('tab', { name: 'Analytics' }).click();
+  const analyticsShowcase = desktop.getByAltText('Today at a glance');
+  await analyticsShowcase.scrollIntoViewIfNeeded();
+  await desktop.waitForFunction(() => {
+    const image = document.querySelector('img[alt="Today at a glance"]');
+    return image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0;
+  });
+  const analyticsSource = await analyticsShowcase.evaluate((image) => image.currentSrc);
+  await check(decodeURIComponent(analyticsSource).includes('/_next/static/media/analytics-dashboard-showcase.'), 'Analytics showcase is not using a cache-safe hashed asset');
+  await desktop.locator('#product').screenshot({ path: 'output/analytics-showcase-en.png' });
   await desktop.getByRole('button', { name: /45-second tour/i }).click();
   await check(await desktop.getByRole('dialog', { name: /One shop day/i }).isVisible(), 'Product tour did not open');
   await desktop.getByRole('button', { name: 'Close tour' }).click();
@@ -74,6 +84,17 @@ try {
   await check(await mobile.getByRole('button', { name: 'Open navigation' }).isVisible(), 'Mobile menu button is missing');
   await mobile.getByRole('button', { name: 'Open navigation' }).click();
   await check(await mobile.getByRole('banner').getByRole('link', { name: 'How it flows' }).isVisible(), 'Mobile navigation did not open');
+  await mobile.getByRole('button', { name: 'Close navigation' }).click();
+  await mobile.getByRole('tab', { name: 'Analytics' }).click();
+  const mobileAnalyticsShowcase = mobile.getByAltText('Today at a glance');
+  await mobileAnalyticsShowcase.scrollIntoViewIfNeeded();
+  const mobileAnalyticsScale = await mobileAnalyticsShowcase.evaluate((image) => {
+    const screen = image.parentElement?.getBoundingClientRect();
+    const stage = image.parentElement?.parentElement?.getBoundingClientRect();
+    return screen && stage ? screen.width / stage.width : 1;
+  });
+  await check(mobileAnalyticsScale <= .84, 'Mobile analytics screenshot is too large for its preview stage');
+  await mobile.locator('#product').screenshot({ path: 'output/analytics-showcase-mobile.png' });
   const mobileTracker = mobile.getByLabel('Private customer tracking');
   await check(await mobileTracker.isVisible(), 'Mobile customer tracking preview is missing');
   const mobileTrackerFits = await mobileTracker.evaluate((element) => {

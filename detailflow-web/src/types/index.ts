@@ -136,6 +136,8 @@ export interface NotificationLogEntry {
 }
 export interface DashboardData {
   today: { totalBookings: number; completedJobs: number; activeVehicles: number; walkIns: number };
+  range: { from: string; to: string; days: number };
+  summary: { totalBookings: number; completedJobs: number; activeVehicles: number; totalWorkOrders: number; walkIns: number };
   topServices: { serviceName: string; count: number }[];
   repeatCustomers: number;
   jobsByDay: { date: string; count: number }[];

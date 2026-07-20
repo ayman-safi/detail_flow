@@ -124,13 +124,24 @@
   },
   "auth": {
     "login": {
+      "eyebrow": "Studio access",
+      "title": "Welcome back.",
       "subtitle": "Sign in to your workspace",
       "shopId": "Shop ID",
       "submit": "Sign in",
       "switch": "New shop? Create an account",
-      "errorFallback": "Unable to sign in."
+      "errorFallback": "Unable to sign in.",
+      "heroTitle": "Your shop, in perfect motion.",
+      "heroBody": "Step back into the live workspace that keeps every vehicle, team member, and customer update moving together.",
+      "heroPoints": [
+        "Live operations board",
+        "Real-time customer updates",
+        "One connected workspace"
+      ]
     },
     "password": {
+      "show": "Show password",
+      "hide": "Hide password",
       "newPassword": "New password",
       "confirmPassword": "Confirm password",
       "validationMin": "Password must be at least 8 characters.",
@@ -153,6 +164,8 @@
       "missingToken": "Reset link is missing or incomplete."
     },
     "register": {
+      "eyebrow": "Build your workspace",
+      "title": "Start with clarity.",
       "subtitle": "Create your DetailFlow workspace",
       "shopName": "Shop name",
       "shopSlug": "Shop ID / Slug",
@@ -164,6 +177,7 @@
       "switch": "Already have an account?",
       "errorFallback": "Unable to create account.",
       "heroTitle": "Join 500+ detailing shops",
+      "heroBody": "Bring bookings, vehicles, workflow, customer updates, photos, and payments into one beautifully focused operation.",
       "heroPoints": [
         "Live operations board",
         "Customer-ready tracking links",
@@ -379,14 +393,38 @@
   "analytics": {
     "stats": {
       "bookingsToday": "Bookings today",
+      "bookings": "Bookings",
       "activeVehicles": "Active vehicles",
       "completedToday": "Completed today",
-      "repeatCustomers": "Repeat customers"
+      "completed": "Completed jobs",
+      "repeatCustomers": "Repeat customers",
+      "walkIns": "{count} walk-ins",
+      "liveSnapshot": "Current live count"
     },
     "jobsThisWeek": "Jobs this week",
+    "completedTrend": "Completed jobs over time",
+    "completedTrendDescription": "Daily completed work across the selected period.",
     "topServices": "Top services",
+    "topServicesDescription": "Services ranked by work orders created in this period.",
     "recentActivity": "Recent activity",
+    "recentActivityDescription": "Latest stage changes within the selected period.",
     "noActivity": "No recent activity",
+    "noData": "No data for this period",
+    "refresh": "Refresh analytics",
+    "range": {
+      "title": "Reporting period",
+      "description": "Choose a date range to compare bookings, completed work, services, and customer activity.",
+      "days": "{count} days",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days",
+      "last90": "Last 90 days",
+      "custom": "Custom range",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply range",
+      "invalid": "Choose a valid start and end date.",
+      "tooLong": "Choose a range of 90 days or less."
+    },
     "lockedTitle": "Analytics require Pro",
     "lockedDescription": "Upgrade to Pro to unlock service trends, repeat-customer metrics, and recent activity reporting.",
     "activityItem": "by {name} on {plate} {time}",

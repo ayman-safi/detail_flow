@@ -1,11 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -13,8 +12,7 @@ import type { AuthUser } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher';
-import { Logo } from '@/components/shared/Logo';
+import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import { useI18n } from '@/i18n/I18nProvider';
 import { captureConsentedLandingEvent } from '@/lib/landingAnalytics';
 
@@ -69,81 +67,70 @@ export default function RegisterPage() {
   };
 
   return (
-    <main data-theme="light" className="grid min-h-screen bg-white text-slate-950 md:grid-cols-[minmax(0,1fr)_440px]">
-      <section className="flex items-center justify-center px-6 py-10">
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-[440px]">
-          <div className="mb-8 flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="[&_.text-white]:text-slate-950">
-                <Logo />
-              </div>
-              <p className="mt-2 text-sm text-slate-500">{t('auth.register.subtitle')}</p>
-            </div>
-            <LocaleSwitcher compact />
-          </div>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="register-shop-name">{t('auth.register.shopName')}</Label>
-              <Input id="register-shop-name" className="bg-white text-slate-950" autoComplete="organization" aria-invalid={!!errors.tenantName} {...register('tenantName', { onChange: (event) => setValue('slug', slugify(event.target.value), { shouldValidate: true }) })} />
-            </div>
-            <div>
-              <Label htmlFor="register-shop-slug">{t('auth.register.shopSlug')}</Label>
-              <Input id="register-shop-slug" className="bg-white text-slate-950" autoComplete="organization" aria-invalid={!!errors.slug} aria-describedby={errors.slug ? 'register-shop-slug-error' : 'register-shop-slug-hint'} {...register('slug')} />
-              <p id="register-shop-slug-hint" className="mt-1 text-xs text-slate-500">
-                {t('auth.register.shopSlugHint', { slug: slug || t('auth.register.shopSlugFallback') })}
-              </p>
-              {errors.slug && <p id="register-shop-slug-error" className="text-xs text-red-600">{t('auth.register.shopSlugError')}</p>}
-            </div>
-            <div>
-              <Label htmlFor="register-owner-name">{t('auth.register.ownerName')}</Label>
-              <Input id="register-owner-name" className="bg-white text-slate-950" autoComplete="name" aria-invalid={!!errors.ownerFullName} {...register('ownerFullName')} />
-            </div>
-            <div>
-              <Label htmlFor="register-owner-email">{t('common.labels.email')}</Label>
-              <Input id="register-owner-email" className="bg-white text-slate-950" type="email" autoComplete="email" aria-invalid={!!errors.ownerEmail} {...register('ownerEmail')} />
-            </div>
-            <div>
-              <Label htmlFor="register-owner-password">{t('common.labels.password')}</Label>
-              <div className="relative">
-                <Input
-                  id="register-owner-password"
-                  className={`bg-white text-slate-950 ${isRtl ? 'pl-10' : 'pr-10'}`}
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  aria-invalid={!!errors.ownerPassword}
-                  {...register('ownerPassword')}
-                />
-                <button
-                  type="button"
-                  className={`absolute top-0 grid h-10 w-10 place-items-center text-slate-500 hover:text-slate-900 ${isRtl ? 'left-0' : 'right-0'}`}
-                  onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  aria-pressed={showPassword}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-          </div>
-          {error && <p role="alert" className="mt-4 text-sm text-red-600">{error}</p>}
-          <Button className="mt-6 w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t('auth.register.submit')}
-          </Button>
-          <Link href="/login" className="mt-5 block text-center text-sm text-blue-600">
-            {t('auth.register.switch')}
-          </Link>
-        </form>
-      </section>
-      <aside className="hidden bg-[linear-gradient(135deg,#0f1117,#1d4ed8)] p-10 text-white md:flex md:flex-col md:justify-center">
-        <h2 className="font-[var(--font-display)] text-4xl font-bold">{t('auth.register.heroTitle')}</h2>
-        {['0', '1', '2'].map((index) => (
-          <p key={index} className="mt-6 flex items-center gap-3">
-            <Check className="text-[var(--color-success)]" />
-            {t(`auth.register.heroPoints.${index}`)}
+    <AuthPageShell
+      eyebrow={t('auth.register.eyebrow')}
+      title={t('auth.register.title')}
+      subtitle={t('auth.register.subtitle')}
+      heroTitle={t('auth.register.heroTitle')}
+      heroBody={t('auth.register.heroBody')}
+      heroPoints={['0', '1', '2'].map((index) => t(`auth.register.heroPoints.${index}`))}
+      switchHref="/login"
+      switchLabel={t('auth.register.switch')}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div>
+          <Label htmlFor="register-shop-name">{t('auth.register.shopName')}</Label>
+          <Input id="register-shop-name" autoComplete="organization" aria-invalid={!!errors.tenantName} aria-describedby={errors.tenantName ? 'register-shop-name-error' : undefined} {...register('tenantName', { onChange: (event) => setValue('slug', slugify(event.target.value), { shouldValidate: true }) })} />
+          {errors.tenantName && <p id="register-shop-name-error" className="mt-1.5 text-xs text-[var(--color-destructive)]">{errors.tenantName.message}</p>}
+        </div>
+        <div>
+          <Label htmlFor="register-shop-slug">{t('auth.register.shopSlug')}</Label>
+          <Input id="register-shop-slug" autoComplete="organization" aria-invalid={!!errors.slug} aria-describedby={errors.slug ? 'register-shop-slug-error' : 'register-shop-slug-hint'} {...register('slug')} />
+          <p id="register-shop-slug-hint" className="mt-1.5 text-xs text-[#91a0b2]">
+            {t('auth.register.shopSlugHint', { slug: slug || t('auth.register.shopSlugFallback') })}
           </p>
-        ))}
-      </aside>
-    </main>
+          {errors.slug && <p id="register-shop-slug-error" className="mt-1 text-xs text-[var(--color-destructive)]">{t('auth.register.shopSlugError')}</p>}
+        </div>
+        <div>
+          <Label htmlFor="register-owner-name">{t('auth.register.ownerName')}</Label>
+          <Input id="register-owner-name" autoComplete="name" aria-invalid={!!errors.ownerFullName} aria-describedby={errors.ownerFullName ? 'register-owner-name-error' : undefined} {...register('ownerFullName')} />
+          {errors.ownerFullName && <p id="register-owner-name-error" className="mt-1.5 text-xs text-[var(--color-destructive)]">{errors.ownerFullName.message}</p>}
+        </div>
+        <div>
+          <Label htmlFor="register-owner-email">{t('common.labels.email')}</Label>
+          <Input id="register-owner-email" type="email" autoComplete="email" aria-invalid={!!errors.ownerEmail} aria-describedby={errors.ownerEmail ? 'register-owner-email-error' : undefined} {...register('ownerEmail')} />
+          {errors.ownerEmail && <p id="register-owner-email-error" className="mt-1.5 text-xs text-[var(--color-destructive)]">{errors.ownerEmail.message}</p>}
+        </div>
+        <div>
+          <Label htmlFor="register-owner-password">{t('common.labels.password')}</Label>
+          <div className="relative">
+            <Input
+              id="register-owner-password"
+              className={isRtl ? 'pl-12' : 'pr-12'}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              aria-invalid={!!errors.ownerPassword}
+              aria-describedby={errors.ownerPassword ? 'register-owner-password-error' : undefined}
+              {...register('ownerPassword')}
+            />
+            <button
+              type="button"
+              className={`absolute top-0 grid h-[49px] w-12 place-items-center text-[#91a0b2] transition hover:text-white ${isRtl ? 'left-0' : 'right-0'}`}
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? t('auth.password.hide') : t('auth.password.show')}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {errors.ownerPassword && <p id="register-owner-password-error" className="mt-1.5 text-xs text-[var(--color-destructive)]">{errors.ownerPassword.message}</p>}
+        </div>
+        {error && <p role="alert" className="text-sm text-[var(--color-destructive)]">{error}</p>}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {t('auth.register.submit')}
+        </Button>
+      </form>
+    </AuthPageShell>
   );
 }

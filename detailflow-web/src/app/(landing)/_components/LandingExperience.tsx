@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import {
@@ -9,6 +10,8 @@ import {
 } from 'lucide-react';
 import type { LandingCopy, MarketingLocale } from '../_content/marketingContent';
 import { MarketingAnalyticsProvider, useLandingAnalytics } from '@/lib/landingAnalytics';
+import analyticsDashboardDesktop from '../../../../public/analytics-dashboard-showcase.png';
+import analyticsDashboardMobile from '../../../../public/analytics-dashboard-showcase-mobile.png';
 import styles from './landing.module.css';
 
 const localeLabels: Record<MarketingLocale, string> = { en: 'EN', ar: 'ع', tr: 'TR' };
@@ -268,12 +271,16 @@ function PhotosPreview({ copy }: { copy: LandingCopy }) {
 }
 
 function AnalyticsPreview({ copy }: { copy: LandingCopy }) {
-  const items = [[copy.product.analytics.bookings, '42'], [copy.product.analytics.completed, '31'], [copy.product.analytics.returning, '38%']];
   return (
     <div className={styles.analyticsPreview}>
-      <p className={styles.previewLabel}>{copy.product.analytics.title}</p>
-      <div className={styles.analyticsStats}>{items.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div>
-      <div className={styles.chartArea}><span>{copy.product.analytics.chart}</span><div>{[45, 63, 48, 78, 67, 92, 75].map((height, index) => <i key={index} style={{ height: `${height}%` }} />)}</div></div>
+      <picture className={styles.analyticsScreen}>
+        <source media="(max-width: 760px)" srcSet={analyticsDashboardMobile.src} />
+        <Image
+          src={analyticsDashboardDesktop}
+          alt={copy.product.analytics.title}
+          sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1200px) calc(100vw - 120px), 1080px"
+        />
+      </picture>
     </div>
   );
 }

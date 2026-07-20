@@ -124,13 +124,24 @@
   },
   "auth": {
     "login": {
+      "eyebrow": "Stüdyo erişimi",
+      "title": "Tekrar hoş geldiniz.",
       "subtitle": "Çalışma alanınıza giriş yapın",
       "shopId": "Dükkan Kimliği",
       "submit": "Giriş yap",
       "switch": "Yeni dükkan mı? Hesap oluşturun",
-      "errorFallback": "Giriş yapılamadı."
+      "errorFallback": "Giriş yapılamadı.",
+      "heroTitle": "Dükkanınız kusursuz bir akışta.",
+      "heroBody": "Her aracı, ekip üyesini ve müşteri güncellemesini birlikte hareket ettiren canlı çalışma alanınıza dönün.",
+      "heroPoints": [
+        "Canlı operasyon panosu",
+        "Anlık müşteri güncellemeleri",
+        "Tek bağlantılı çalışma alanı"
+      ]
     },
     "password": {
+      "show": "Şifreyi göster",
+      "hide": "Şifreyi gizle",
       "newPassword": "Yeni şifre",
       "confirmPassword": "Şifreyi onayla",
       "validationMin": "Şifre en az 8 karakter olmalıdır.",
@@ -153,6 +164,8 @@
       "missingToken": "Sıfırlama bağlantısı eksik veya hatalı."
     },
     "register": {
+      "eyebrow": "Çalışma alanınızı kurun",
+      "title": "Netlikle başlayın.",
       "subtitle": "DetailFlow çalışma alanınızı oluşturun",
       "shopName": "Dükkan adı",
       "shopSlug": "Dükkan Kimliği / Slug",
@@ -164,6 +177,7 @@
       "switch": "Zaten bir hesabınız var mı?",
       "errorFallback": "Hesap oluşturulamadı.",
       "heroTitle": "500'den fazla detaylı temizlik dükkanına katılın",
+      "heroBody": "Rezervasyonları, araçları, iş akışını, müşteri güncellemelerini, fotoğrafları ve ödemeleri tek bir odaklı operasyonda birleştirin.",
       "heroPoints": [
         "Canlı operasyon panosu",
         "Müşteriye hazır takip bağlantıları",
@@ -371,14 +385,38 @@
   "analytics": {
     "stats": {
       "bookingsToday": "Bugünkü randevular",
+      "bookings": "Randevular",
       "activeVehicles": "Aktif araçlar",
       "completedToday": "Bugün tamamlanan",
-      "repeatCustomers": "Tekrarlayan müşteriler"
+      "completed": "Tamamlanan işler",
+      "repeatCustomers": "Tekrarlayan müşteriler",
+      "walkIns": "{count} randevusuz giriş",
+      "liveSnapshot": "Güncel canlı sayı"
     },
     "jobsThisWeek": "Bu haftaki işler",
+    "completedTrend": "Zamana göre tamamlanan işler",
+    "completedTrendDescription": "Seçilen dönemde günlük tamamlanan işler.",
     "topServices": "En çok tercih edilen hizmetler",
+    "topServicesDescription": "Bu dönemde oluşturulan iş emirlerine göre hizmet sıralaması.",
     "recentActivity": "Son etkinlikler",
+    "recentActivityDescription": "Seçilen dönemdeki en son aşama değişiklikleri.",
     "noActivity": "Son etkinlik yok",
+    "noData": "Bu dönem için veri yok",
+    "refresh": "Analizleri yenile",
+    "range": {
+      "title": "Raporlama dönemi",
+      "description": "Randevuları, tamamlanan işleri, hizmetleri ve müşteri etkinliğini karşılaştırmak için bir tarih aralığı seçin.",
+      "days": "{count} gün",
+      "last7": "Son 7 gün",
+      "last30": "Son 30 gün",
+      "last90": "Son 90 gün",
+      "custom": "Özel aralık",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "apply": "Aralığı uygula",
+      "invalid": "Geçerli bir başlangıç ve bitiş tarihi seçin.",
+      "tooLong": "90 gün veya daha kısa bir aralık seçin."
+    },
     "lockedTitle": "Analiz için Pro gerekir",
     "lockedDescription": "Hizmet trendlerini, tekrarlayan müşteri metriklerini ve son etkinlik raporlamasını açmak için Pro'ya yükseltin.",
     "activityItem": "{name} tarafından {plate} üzerinde {time}",

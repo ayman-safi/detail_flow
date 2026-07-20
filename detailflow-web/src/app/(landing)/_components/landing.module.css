@@ -184,15 +184,13 @@
 .photosPreview > p { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; margin: 0; padding: 10px 15px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: rgba(5,10,17,.88); color: #b5c3d1; font-size: 11px; }
 .photosPreview > p svg { width: 15px; color: var(--cyan); }
 
-.analyticsPreview { min-height: 510px; padding: 48px; }
-.analyticsStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.analyticsStats div { padding: 20px; border: 1px solid var(--line); background: #0e1824; }
-.analyticsStats span { display: block; color: var(--muted); font-size: 11px; }
-.analyticsStats strong { display: block; margin-top: 8px; font: 32px var(--font-display); }
-.chartArea { margin-top: 24px; padding: 24px; border: 1px solid var(--line); background: #0d1622; }
-.chartArea > span { color: var(--muted); font-size: 11px; }
-.chartArea > div { height: 245px; margin-top: 20px; display: flex; align-items: flex-end; gap: clamp(10px, 5vw, 54px); border-bottom: 1px solid var(--line); background-image: linear-gradient(var(--line) 1px, transparent 1px); background-size: 100% 25%; }
-.chartArea i { flex: 1; max-width: 58px; background: linear-gradient(var(--cyan), var(--blue)); box-shadow: 0 0 20px rgba(31,140,255,.18); }
+.analyticsPreview { min-height: 510px; position: relative; isolation: isolate; display: grid; place-items: center; overflow: hidden; padding: 26px; background: radial-gradient(circle at 50% 105%, rgba(31,140,255,.2), transparent 48%), linear-gradient(145deg, #07101a, #0b1520); }
+.analyticsPreview::before { content: ''; position: absolute; z-index: -1; inset: 0; background-image: linear-gradient(rgba(73,138,195,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(73,138,195,.07) 1px, transparent 1px); background-size: 38px 38px; mask-image: linear-gradient(black, transparent 88%); }
+.analyticsScreen { width: min(1080px, 100%); height: 456px; position: relative; display: block; overflow: hidden; border: 1px solid rgba(109,176,230,.3); background: #0d1018; box-shadow: 0 34px 75px rgba(0,0,0,.55), 0 0 50px rgba(31,140,255,.1); transform: translateY(7px); transition: transform .55s cubic-bezier(.22,1,.36,1), box-shadow .55s ease; }
+.analyticsScreen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 25%, rgba(255,255,255,.055) 43%, transparent 60%); transform: translateX(-110%); transition: transform .8s cubic-bezier(.22,1,.36,1); }
+.analyticsPreview:hover .analyticsScreen { transform: translateY(0) scale(1.006); box-shadow: 0 42px 90px rgba(0,0,0,.62), 0 0 65px rgba(31,140,255,.15); }
+.analyticsPreview:hover .analyticsScreen::after { transform: translateX(110%); }
+.analyticsScreen img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: top center; }
 
 .workflow { width: min(1380px, calc(100% - 64px)); margin: 0 auto; padding: 130px 0; display: grid; grid-template-columns: .8fr 1.7fr; gap: 80px; border-top: 1px solid var(--line); }
 .workflowIntro { position: sticky; top: 120px; align-self: start; }
@@ -407,6 +405,7 @@
 .tourVisual .boardColumn { min-height: 260px; }
 .tourVisual .boardColumn article { min-height: 105px; }
 .tourVisual .bookingPreview, .tourVisual .trackingPreview, .tourVisual .photosPreview, .tourVisual .analyticsPreview { min-height: 400px; }
+.tourVisual .analyticsScreen { height: 350px; }
 .tourCopy { padding: 75px 42px 42px; border-inline-start: 1px solid var(--line); }
 .tourCopy h2 { margin: 0; font-size: 37px; line-height: 1.06; }
 .tourProgress { margin: 31px 0 19px; display: flex; gap: 6px; }
@@ -489,10 +488,9 @@
   .bookingPreview { min-height: 570px; grid-template-columns: 1fr; }
   .formPreview { padding: 35px 20px; }
   .bookingAmbient { min-height: 220px; border-inline-start: 0; border-top: 1px solid var(--line); }
-  .analyticsPreview { min-height: 570px; padding: 24px 16px; }
-  .analyticsStats { grid-template-columns: 1fr; }
-  .analyticsStats div { padding: 13px; display: flex; justify-content: space-between; }
-  .analyticsStats strong { margin: 0; }
+  .analyticsPreview { min-height: 570px; padding: 14px; }
+  .analyticsScreen { width: min(82%, 360px); height: min(460px, calc(100vw * 1.2)); min-height: 400px; transform: none; }
+  .analyticsPreview:hover .analyticsScreen { transform: none; }
   .workflow { width: calc(100% - 36px); padding: 95px 0; gap: 55px; }
   .workflowStep { padding-inline-start: 54px; }
   [dir='rtl'] .workflowStep { padding-inline: 54px 0; }

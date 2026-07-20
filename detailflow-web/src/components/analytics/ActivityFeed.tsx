@@ -11,9 +11,9 @@ export function ActivityFeed({ activity }: { activity: DashboardData['recentActi
   }
 
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-[var(--color-border-subtle)]">
       {activity.map((item, index) => (
-        <div key={index} className="rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)]/45 p-3">
+        <div key={index} className="py-4 first:pt-0 last:pb-0">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <StageBadge stage={item.fromStage} />
             <ArrowRight size={14} />
