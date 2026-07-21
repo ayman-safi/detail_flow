@@ -191,14 +191,8 @@ public class PublicBookingService(
         if (phone.Length < 7)
             throw new ArgumentException("Customer phone must include at least 7 digits.");
 
-        var customerName = string.IsNullOrWhiteSpace(input.CustomerName) ? null : input.CustomerName.Trim();
-        var legacyVehicleValues = new[] { input.VehiclePlate, input.VehicleMake, input.VehicleModel, input.VehicleColor };
-        var hasAnyLegacyVehicle = legacyVehicleValues.Any(value => !string.IsNullOrWhiteSpace(value)) || input.VehicleType.HasValue;
-        var hasCompleteLegacyVehicle = legacyVehicleValues.All(value => !string.IsNullOrWhiteSpace(value)) && input.VehicleType.HasValue;
-        if (hasAnyLegacyVehicle && !hasCompleteLegacyVehicle)
-            throw new ArgumentException("Vehicle details must be supplied together.");
-        if (hasCompleteLegacyVehicle && input.ExistingVehicleId.HasValue)
-            throw new ArgumentException("Choose an existing vehicle or supply vehicle details, not both.");
+        if (input.ExistingVehicleId.HasValue && input.Vehicle is not null)
+            throw new ArgumentException("Choose an existing vehicle or add a new vehicle, not both.");
         var service = await GetActiveServiceAsync(tenant.Id, input.ServiceTypeId);
 
         var localDay = DateOnly.FromDateTime(localScheduledAt.DateTime);
@@ -232,15 +226,9 @@ public class PublicBookingService(
             customer = new Customer
             {
                 TenantId = tenant.Id,
-                FullName = customerName,
                 Phone = phone
             };
             db.Customers.Add(customer);
-        }
-        else
-        {
-            if (customerName is not null)
-                customer.FullName = customerName;
         }
 
         Vehicle? vehicle = null;
@@ -251,9 +239,9 @@ public class PublicBookingService(
                 .FirstOrDefaultAsync(v => v.TenantId == tenant.Id && v.Id == input.ExistingVehicleId && v.CustomerId == customer.Id)
                 ?? throw new ArgumentException("Selected vehicle is not available for this phone number.");
         }
-        else if (hasCompleteLegacyVehicle)
+        else if (input.Vehicle is not null)
         {
-            var plate = input.VehiclePlate!.Trim().ToUpperInvariant();
+            var plate = RequireText(input.Vehicle.PlateNumber, "Vehicle plate").Trim().ToUpperInvariant();
             vehicle = await db.Vehicles
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(v => v.TenantId == tenant.Id && v.PlateNumber == plate);
@@ -262,11 +250,15 @@ public class PublicBookingService(
                 vehicle = new Vehicle { TenantId = tenant.Id, Customer = customer, PlateNumber = plate };
                 db.Vehicles.Add(vehicle);
             }
+            else if (vehicle.CustomerId != customer.Id)
+            {
+                throw new ConflictException("This vehicle is already registered to another phone number.");
+            }
             vehicle.Customer = customer;
-            vehicle.Make = input.VehicleMake!.Trim();
-            vehicle.Model = input.VehicleModel!.Trim();
-            vehicle.Color = input.VehicleColor!.Trim();
-            vehicle.VehicleType = input.VehicleType!.Value;
+            vehicle.Make = RequireText(input.Vehicle.Make, "Vehicle make").Trim();
+            vehicle.Model = RequireText(input.Vehicle.Model, "Vehicle model").Trim();
+            vehicle.Color = RequireText(input.Vehicle.Color, "Vehicle color").Trim();
+            vehicle.VehicleType = input.Vehicle.VehicleType;
         }
 
         var booking = new Booking

@@ -361,13 +361,15 @@ public class BookingApiTests
             $"/api/public/shops/{tenant.Slug}/bookings",
             new
             {
-                customerName = "Public Customer",
                 customerPhone = "+1 555 010 6060",
-                vehiclePlate = "PUB-CLR",
-                vehicleMake = "Toyota",
-                vehicleModel = "RAV4",
-                vehicleColor = "Pearl White",
-                vehicleType = "SUV",
+                vehicle = new
+                {
+                    plateNumber = "PUB-CLR",
+                    make = "Toyota",
+                    model = "RAV4",
+                    color = "Pearl White",
+                    vehicleType = "SUV"
+                },
                 serviceTypeId = serviceId,
                 scheduledAt = slot,
                 notes = "Public vehicle details"

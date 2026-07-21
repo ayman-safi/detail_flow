@@ -117,13 +117,15 @@ internal static class TestApi
 
     public static object BuildPublicBookingPayload(Guid serviceId, DateTimeOffset scheduledAt, string plate = "TEST-101") => new
     {
-        customerName = "Maya Ortiz",
         customerPhone = "+1 (555) 010-2000",
-        vehiclePlate = plate,
-        vehicleMake = "Honda",
-        vehicleModel = "Civic",
-        vehicleColor = "Blue",
-        vehicleType = "Sedan",
+        vehicle = new
+        {
+            plateNumber = plate,
+            make = "Honda",
+            model = "Civic",
+            color = "Blue",
+            vehicleType = "Sedan"
+        },
         serviceTypeId = serviceId,
         scheduledAt,
         notes = "Launch smoke test"

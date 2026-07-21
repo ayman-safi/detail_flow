@@ -33,7 +33,7 @@ public class WorkflowApiTests
         using var trackingJson = await ReadJsonAsync(trackingResponse);
         var tracking = trackingJson.RootElement;
         Assert.Equal("Booked", tracking.GetProperty("stage").GetString());
-        Assert.Equal("Maya Ortiz", tracking.GetProperty("customerName").GetString());
+        Assert.Equal(JsonValueKind.Null, tracking.GetProperty("customerName").ValueKind);
         Assert.Equal("Civic", tracking.GetProperty("vehicleModel").GetString());
         Assert.Equal("Exterior Wash", tracking.GetProperty("serviceName").GetString());
 
@@ -172,13 +172,15 @@ public class WorkflowApiTests
 
     private static object BuildPublicBookingPayload(Guid serviceId, DateTimeOffset scheduledAt, string plate = "TEST-101") => new
     {
-        customerName = "Maya Ortiz",
         customerPhone = "+1 (555) 010-2000",
-        vehiclePlate = plate,
-        vehicleMake = "Honda",
-        vehicleModel = "Civic",
-        vehicleColor = "Blue",
-        vehicleType = "Sedan",
+        vehicle = new
+        {
+            plateNumber = plate,
+            make = "Honda",
+            model = "Civic",
+            color = "Blue",
+            vehicleType = "Sedan"
+        },
         serviceTypeId = serviceId,
         scheduledAt,
         notes = "Launch smoke test"

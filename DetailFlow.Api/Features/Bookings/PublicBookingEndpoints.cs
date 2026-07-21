@@ -67,12 +67,14 @@ public record PublicBookingCreateRequest(
     Guid ServiceTypeId,
     DateTimeOffset ScheduledAt,
     Guid? ExistingVehicleId,
-    string? CustomerName,
-    string? VehiclePlate,
-    string? VehicleMake,
-    string? VehicleModel,
-    string? VehicleColor,
-    VehicleType? VehicleType,
+    PublicBookingVehicleRequest? Vehicle,
     string? Notes);
+
+public record PublicBookingVehicleRequest(
+    [Required, MinLength(2)] string PlateNumber,
+    [Required, MinLength(1)] string Make,
+    [Required, MinLength(1)] string Model,
+    [Required, MinLength(1)] string Color,
+    VehicleType VehicleType);
 
 public record PublicVehicleLookupRequest([Required, MinLength(7)] string CustomerPhone);

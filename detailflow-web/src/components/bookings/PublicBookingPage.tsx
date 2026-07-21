@@ -41,6 +41,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher';
 import { useI18n } from '@/i18n/I18nProvider';
+import { getVehicleTypeKey, vehicleTypes } from '@/i18n/domain';
 
 type PublicShop = { name: string; slug: string; logoUrl?: string; currency?: TenantCurrency };
 type MonthDay = { date: string; status: 'available' | 'full' | 'closed' | 'past' };
@@ -52,7 +53,11 @@ type LookupVehicle = {
   color: string;
   vehicleType: VehicleType;
 };
+type VehicleChoice = 'later' | 'existing' | 'new';
+type NewVehicleDraft = { plateNumber: string; make: string; model: string; color: string; vehicleType: VehicleType };
 type ApiErrorBody = { error?: string; message?: string; title?: string; upgrade?: boolean };
+
+const emptyVehicleDraft = (): NewVehicleDraft => ({ plateNumber: '', make: '', model: '', color: '', vehicleType: 'Sedan' });
 
 const browserTimezoneOffset = (date: string) => new Date(`${date}T00:00:00`).getTimezoneOffset();
 const toLocalDateTimeOffset = (date: string, time: string) => {
@@ -92,6 +97,8 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
   const [phone, setPhone] = useState('');
   const [debouncedPhone, setDebouncedPhone] = useState('');
   const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [vehicleChoice, setVehicleChoice] = useState<VehicleChoice>('later');
+  const [newVehicle, setNewVehicle] = useState<NewVehicleDraft>(emptyVehicleDraft);
   const [success, setSuccess] = useState<BookingCreateResult | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,9 +157,16 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
     retry: false,
   });
   const vehicles = lookupQuery.data?.vehicles ?? [];
-  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === vehicleId);
+  const selectedVehicle = vehicleChoice === 'existing'
+    ? vehicles.find((vehicle) => vehicle.id === vehicleId)
+    : vehicleChoice === 'new'
+      ? { id: 'new', maskedPlate: newVehicle.plateNumber, ...newVehicle }
+      : undefined;
 
   const hasValidTime = Boolean(selectedTime && slots.some((slot) => slot.time === selectedTime));
+  const hasCompleteNewVehicle = Object.entries(newVehicle)
+    .filter(([key]) => key !== 'vehicleType')
+    .every(([, value]) => value.trim().length > 0);
 
   const selectService = (id: string) => {
     if (id !== serviceId) {
@@ -167,6 +181,14 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
   const updatePhone = (value: string) => {
     setPhone(value);
     setVehicleId(null);
+    setVehicleChoice('later');
+    setNewVehicle(emptyVehicleDraft());
+    setFormError(null);
+  };
+
+  const chooseVehicle = (choice: VehicleChoice, id: string | null = null) => {
+    setVehicleChoice(choice);
+    setVehicleId(choice === 'existing' ? id : null);
     setFormError(null);
   };
 
@@ -179,6 +201,7 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
 
   const submit = async () => {
     if (phone.replace(/\D/g, '').length < 7) return setFormError(t('publicBooking.validation.phone'));
+    if (vehicleChoice === 'new' && !hasCompleteNewVehicle) return setFormError(t('publicBooking.validation.vehicleDetails'));
     setIsSubmitting(true);
     setFormError(null);
     try {
@@ -188,7 +211,8 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
           customerPhone: phone,
           serviceTypeId: serviceId,
           scheduledAt: toLocalDateTimeOffset(selectedDate, selectedTime),
-          existingVehicleId: vehicleId,
+          existingVehicleId: vehicleChoice === 'existing' ? vehicleId : null,
+          vehicle: vehicleChoice === 'new' ? newVehicle : null,
         }),
       });
       setSuccess(result);
@@ -205,7 +229,11 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
 
   const shop = shopQuery.data;
   const currency = shop.currency ?? 'SAR';
-  const canContinue = step === 1 ? Boolean(serviceId) : step === 2 ? Boolean(selectedDate && hasValidTime) : phone.replace(/\D/g, '').length >= 7;
+  const canContinue = step === 1
+    ? Boolean(serviceId)
+    : step === 2
+      ? Boolean(selectedDate && hasValidTime)
+      : phone.replace(/\D/g, '').length >= 7 && (vehicleChoice !== 'new' || hasCompleteNewVehicle);
 
   return (
     <main data-theme="light" className="min-h-[100svh] overflow-x-clip bg-[#f5f8fd] text-[#0f1d3a]">
@@ -216,7 +244,7 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
 
           {success ? (
             <SuccessPanel result={success} onReset={() => {
-              setStep(1); setServiceId(''); setSelectedDate(''); setSelectedTime(''); setPhone(''); setVehicleId(null); setSuccess(null);
+              setStep(1); setServiceId(''); setSelectedDate(''); setSelectedTime(''); setPhone(''); setVehicleId(null); setVehicleChoice('later'); setNewVehicle(emptyVehicleDraft()); setSuccess(null);
             }} />
           ) : (
             <div className="mt-7 grid gap-7 lg:grid-cols-[268px_minmax(0,1fr)] lg:items-start">
@@ -256,7 +284,10 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
                         lookupError={lookupQuery.isError}
                         vehicles={vehicles}
                         selectedVehicleId={vehicleId}
-                        onVehicleChange={setVehicleId}
+                        vehicleChoice={vehicleChoice}
+                        newVehicle={newVehicle}
+                        onVehicleChoice={chooseVehicle}
+                        onNewVehicleChange={(field, value) => setNewVehicle((current) => ({ ...current, [field]: value } as NewVehicleDraft))}
                         service={selectedService}
                         date={selectedDate}
                         time={selectedTime}
@@ -427,7 +458,9 @@ function ScheduleStep(props: {
 
 function ConfirmStep(props: {
   phone: string; onPhoneChange: (value: string) => void; lookupLoading: boolean; lookupDone: boolean; lookupError: boolean;
-  vehicles: LookupVehicle[]; selectedVehicleId: string | null; onVehicleChange: (id: string | null) => void;
+  vehicles: LookupVehicle[]; selectedVehicleId: string | null; vehicleChoice: VehicleChoice; newVehicle: NewVehicleDraft;
+  onVehicleChoice: (choice: VehicleChoice, id?: string | null) => void;
+  onNewVehicleChange: (field: keyof NewVehicleDraft, value: string) => void;
   service?: ServiceType; date: string; time: string; currency: TenantCurrency;
 }) {
   const { formatCurrency, formatDate, t } = useI18n();
@@ -446,11 +479,30 @@ function ConfirmStep(props: {
         <h3 className="flex items-center gap-2 font-bold"><Car size={18} className="text-[#1268ee]" />{t('publicBooking.confirm.vehicleTitle')} <span className="text-xs font-normal text-[#8a97ad]">{t('publicBooking.confirm.optional')}</span></h3>
         <p className="mt-1 text-xs text-[#71809c]">{t('publicBooking.confirm.vehicleHelp')}</p>
         <div className="mt-4 space-y-2">
-          {props.vehicles.map((vehicle) => <button key={vehicle.id} type="button" aria-pressed={props.selectedVehicleId === vehicle.id} onClick={() => props.onVehicleChange(props.selectedVehicleId === vehicle.id ? null : vehicle.id)} className={cn('flex w-full items-center gap-3 rounded-xl border p-3 text-start transition', props.selectedVehicleId === vehicle.id ? 'border-[#1268ee] bg-[#f0f6ff]' : 'border-[#e1e8f3] hover:border-[#9bbff5]')}><span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-[#1268ee]"><Car size={20} /></span><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{vehicle.make} {vehicle.model}</strong><span className="text-xs text-[#71809c]">{vehicle.maskedPlate} · {vehicle.color}</span></span>{props.selectedVehicleId === vehicle.id && <CheckCircle2 size={20} className="text-[#1268ee]" />}</button>)}
-          {props.vehicles.length > 0 && <button type="button" className={cn('w-full rounded-xl border p-3 text-start text-sm', props.selectedVehicleId === null ? 'border-[#1268ee] bg-[#f0f6ff] text-[#1268ee]' : 'border-[#e1e8f3] text-[#71809c]')} onClick={() => props.onVehicleChange(null)}>{t('publicBooking.confirm.addLater')}</button>}
+          {props.vehicles.map((vehicle) => {
+            const selected = props.vehicleChoice === 'existing' && props.selectedVehicleId === vehicle.id;
+            return <button key={vehicle.id} type="button" aria-pressed={selected} onClick={() => props.onVehicleChoice(selected ? 'later' : 'existing', selected ? null : vehicle.id)} className={cn('flex w-full items-center gap-3 rounded-xl border p-3 text-start transition', selected ? 'border-[#1268ee] bg-[#f0f6ff]' : 'border-[#e1e8f3] hover:border-[#9bbff5]')}><span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-[#1268ee]"><Car size={20} /></span><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{vehicle.make} {vehicle.model}</strong><span className="text-xs text-[#71809c]">{vehicle.maskedPlate} · {vehicle.color}</span></span>{selected && <CheckCircle2 size={20} className="text-[#1268ee]" />}</button>;
+          })}
+          <button type="button" aria-pressed={props.vehicleChoice === 'new'} className={cn('flex w-full items-center gap-3 rounded-xl border p-3 text-start text-sm transition', props.vehicleChoice === 'new' ? 'border-[#1268ee] bg-[#f0f6ff] text-[#1268ee]' : 'border-[#e1e8f3] text-[#40516e] hover:border-[#9bbff5]')} onClick={() => props.onVehicleChoice('new')}><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#1268ee]"><Car size={18} /></span><span className="flex-1"><strong className="block">{t('publicBooking.confirm.addNew')}</strong><small className="mt-0.5 block font-normal text-[#71809c]">{t('publicBooking.confirm.addNewHelp')}</small></span>{props.vehicleChoice === 'new' && <CheckCircle2 size={19} />}</button>
+          <button type="button" aria-pressed={props.vehicleChoice === 'later'} className={cn('w-full rounded-xl border p-3 text-start text-sm transition', props.vehicleChoice === 'later' ? 'border-[#1268ee] bg-[#f0f6ff] text-[#1268ee]' : 'border-[#e1e8f3] text-[#71809c] hover:border-[#9bbff5]')} onClick={() => props.onVehicleChoice('later')}>{t('publicBooking.confirm.addLater')}</button>
         </div>
       </section>
     </div>
+    <AnimatePresence initial={false}>
+      {props.vehicleChoice === 'new' && <motion.section key="new-vehicle" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
+        <div className="mt-4 rounded-2xl border border-[#b9d3f8] bg-[#f8fbff] p-5">
+          <h3 className="flex items-center gap-2 font-bold"><Car size={18} className="text-[#1268ee]" />{t('publicBooking.confirm.newVehicleTitle')}</h3>
+          <p className="mt-1 text-xs text-[#71809c]">{t('publicBooking.confirm.newVehicleHelp')}</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <VehicleField label={t('common.labels.plate')}><Input className="h-11 uppercase" value={props.newVehicle.plateNumber} onChange={(event) => props.onNewVehicleChange('plateNumber', event.target.value)} autoComplete="off" /></VehicleField>
+            <VehicleField label={t('common.labels.make')}><Input className="h-11" value={props.newVehicle.make} onChange={(event) => props.onNewVehicleChange('make', event.target.value)} autoComplete="off" /></VehicleField>
+            <VehicleField label={t('common.labels.model')}><Input className="h-11" value={props.newVehicle.model} onChange={(event) => props.onNewVehicleChange('model', event.target.value)} autoComplete="off" /></VehicleField>
+            <VehicleField label={t('common.labels.color')}><Input className="h-11" value={props.newVehicle.color} onChange={(event) => props.onNewVehicleChange('color', event.target.value)} autoComplete="off" /></VehicleField>
+            <VehicleField label={t('common.labels.type')}><select className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1268ee]" value={props.newVehicle.vehicleType} onChange={(event) => props.onNewVehicleChange('vehicleType', event.target.value)}>{vehicleTypes.map((type) => <option key={type} value={type}>{t(getVehicleTypeKey(type))}</option>)}</select></VehicleField>
+          </div>
+        </div>
+      </motion.section>}
+    </AnimatePresence>
     <section className="mt-4 rounded-2xl border border-[#dfe7f3] bg-[#fbfdff] p-5">
       <h3 className="font-bold">{t('publicBooking.confirm.review')}</h3>
       <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3"><ReviewItem label={t('common.labels.service')} value={props.service?.name ?? '—'} /><ReviewItem label={t('common.labels.date')} value={props.date ? formatDate(new Date(`${props.date}T12:00:00`), { weekday: 'short', month: 'long', day: 'numeric' }) : '—'} /><ReviewItem label={t('common.labels.time')} value={props.time || '—'} /></div>
@@ -507,6 +559,7 @@ function SuccessPanel({ result, onReset }: { result: BookingCreateResult; onRese
 function StepHeading({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle: string }) { return <div><h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl"><span className="text-[#1268ee]">{icon}</span>{title}</h2><p className="mt-2 text-sm text-[#71809c]">{subtitle}</p></div>; }
 function SummaryRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) { return <div className="flex items-center gap-3 py-3"><span className="text-[#7f96b6] [&>svg]:h-[17px] [&>svg]:w-[17px]">{icon}</span><span className="min-w-0 flex-1"><small className="block text-[10px] text-[#8a97ad]">{label}</small><strong className="block truncate text-xs font-medium text-[#263858]">{value}</strong></span></div>; }
 function ReviewItem({ label, value }: { label: string; value: string }) { return <div><span className="text-xs text-[#8a97ad]">{label}</span><strong className="mt-1 block text-[#263858]">{value}</strong></div>; }
+function VehicleField({ label, children }: { label: string; children: React.ReactNode }) { return <label className="text-xs font-medium text-[#52627e]"><span className="mb-2 block">{label}</span>{children}</label>; }
 function Legend({ color, text }: { color: string; text: string }) { return <span className="flex items-center gap-1.5"><i className={cn('h-2 w-2 rounded-full', color)} />{text}</span>; }
 function EmptyMessage({ text }: { text: string }) { return <p className="mt-6 rounded-2xl border border-dashed border-[#ccd9eb] p-8 text-center text-sm text-[#71809c]">{text}</p>; }
 function BookingLoading() { return <main data-theme="light" className="min-h-screen bg-[#f5f8fd] p-4"><div className="mx-auto max-w-[1180px] space-y-4"><div className="skeleton h-20" /><div className="skeleton h-[620px]" /></div></main>; }
