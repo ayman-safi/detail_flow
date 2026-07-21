@@ -3,7 +3,6 @@
 import { Menu, Plus } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher';
 import { SSEStatusDot } from '@/components/shared/SSEStatusDot';
 import { useI18n } from '@/i18n/I18nProvider';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -40,7 +39,6 @@ export function Header({
       </div>
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <ThemeToggle />
-        <LocaleSwitcher compact />
         <SSEStatusDot status={sseStatus} />
         <span className="hidden text-sm text-[var(--color-text-muted)] sm:inline">
           {formatDate(new Date(), { weekday: 'short', day: '2-digit', month: 'short' })}

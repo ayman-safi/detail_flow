@@ -59,6 +59,8 @@ public class WorkOrderService(
             ?? throw new KeyNotFoundException("Work order not found.");
         var fromStage = workOrder.Stage;
         WorkOrderMappings.ValidateTransition(fromStage, input.NewStage, workOrder.PaymentStatus);
+        if (workOrder.Vehicle is null && input.NewStage != WorkOrderStage.Booked)
+            throw new ConflictException("Vehicle details are required before work can start.");
 
         var updatedAt = DateTimeOffset.UtcNow;
         var readyAt = input.NewStage == WorkOrderStage.Ready ? updatedAt.AddMinutes(30) : (DateTimeOffset?)null;
@@ -318,10 +320,10 @@ public class WorkOrderService(
         return new
         {
             customerName = workOrder.Customer.FullName,
-            vehicleMake = workOrder.Vehicle.Make,
-            vehicleModel = workOrder.Vehicle.Model,
-            vehicleColor = workOrder.Vehicle.Color,
-            vehiclePlate = workOrder.Vehicle.PlateNumber,
+            vehicleMake = workOrder.Vehicle?.Make,
+            vehicleModel = workOrder.Vehicle?.Model,
+            vehicleColor = workOrder.Vehicle?.Color,
+            vehiclePlate = workOrder.Vehicle?.PlateNumber,
             stage = workOrder.Stage,
             stageName = WorkOrderMappings.Humanize(workOrder.Stage),
             serviceName = workOrder.ServiceType.Name,
@@ -352,6 +354,9 @@ public class WorkOrderService(
             .FirstOrDefaultAsync(w => w.Id == id)
             ?? throw new KeyNotFoundException("Work order not found.");
 
+        if (workOrder.Vehicle is null)
+            throw new ConflictException("Vehicle details are required before generating a receipt.");
+
         var pdf = await receipts.GenerateReceiptAsync(workOrder, locale);
         var filename = $"receipt-{workOrder.Vehicle.PlateNumber}-{DateTime.UtcNow:yyyyMMdd}.pdf";
         return new ReceiptFileResult(pdf, filename);
@@ -377,6 +382,9 @@ public class WorkOrderService(
         }
 
         ForgetMissingTrackingToken(token);
+
+        if (workOrder.Vehicle is null)
+            throw new ConflictException("Vehicle details are required before generating a receipt.");
 
         var pdf = await receipts.GenerateReceiptAsync(workOrder, locale);
         var filename = $"receipt-{workOrder.Vehicle.PlateNumber}-{DateTime.UtcNow:yyyyMMdd}.pdf";

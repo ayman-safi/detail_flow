@@ -96,8 +96,8 @@ export default function BookingsPage() {
           </DialogHeader>
           {cancelBooking && (
             <div className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 text-sm">
-              <p className="font-semibold">{cancelBooking.customer.fullName}</p>
-              <p className="text-[var(--color-text-muted)]">{cancelBooking.vehicle.plateNumber} - {cancelBooking.serviceName}</p>
+              <p className="font-semibold">{cancelBooking.customer.fullName ?? cancelBooking.customer.phone}</p>
+              <p className="text-[var(--color-text-muted)]">{cancelBooking.vehicle?.plateNumber ?? t('common.states.vehiclePending')} - {cancelBooking.serviceName}</p>
             </div>
           )}
           <div className="mt-4 flex justify-end gap-2">

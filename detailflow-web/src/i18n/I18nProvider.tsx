@@ -27,6 +27,7 @@ type I18nContextValue = {
   dir: 'ltr' | 'rtl';
   isRtl: boolean;
   setLocale: (locale: AppLocale) => void;
+  setLocaleOverride: (locale: AppLocale | null) => void;
   t: (key: string, values?: TranslationValues) => string;
   formatDate: (value: Date | string | number, options?: Intl.DateTimeFormatOptions) => string;
   formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string;
@@ -79,7 +80,9 @@ export function I18nProvider({
   initialLocale?: AppLocale;
   initialLocaleAuthoritative?: boolean;
 }) {
-  const [locale, setLocaleState] = useState<AppLocale>(initialLocale);
+  const [preferredLocale, setPreferredLocale] = useState<AppLocale>(initialLocale);
+  const [localeOverride, setLocaleOverrideState] = useState<AppLocale | null>(null);
+  const locale = localeOverride ?? preferredLocale;
   const messages = dictionaries[locale];
   const dir = localeMeta[locale].dir;
   const isRtl = dir === 'rtl';
@@ -88,19 +91,26 @@ export function I18nProvider({
     if (initialLocaleAuthoritative) return;
     const persisted = getLocale(window.localStorage.getItem(localeCookieName));
     if (persisted !== initialLocale) {
-      setLocaleState(persisted);
+      setPreferredLocale(persisted);
     }
   }, [initialLocale, initialLocaleAuthoritative]);
 
   useEffect(() => {
+    document.cookie = `${localeCookieName}=${preferredLocale}; path=/; max-age=31536000; samesite=lax`;
+    window.localStorage.setItem(localeCookieName, preferredLocale);
+  }, [preferredLocale]);
+
+  useEffect(() => {
     document.documentElement.lang = localeMeta[locale].tag;
     document.documentElement.dir = dir;
-    document.cookie = `${localeCookieName}=${locale}; path=/; max-age=31536000; samesite=lax`;
-    window.localStorage.setItem(localeCookieName, locale);
   }, [dir, locale]);
 
   const setLocale = useCallback((nextLocale: AppLocale) => {
-    setLocaleState(nextLocale);
+    setPreferredLocale(nextLocale);
+  }, []);
+
+  const setLocaleOverride = useCallback((nextLocale: AppLocale | null) => {
+    setLocaleOverrideState(nextLocale);
   }, []);
 
   const t = useCallback((key: string, values?: TranslationValues) => {
@@ -140,12 +150,13 @@ export function I18nProvider({
     dir,
     isRtl,
     setLocale,
+    setLocaleOverride,
     t,
     formatDate,
     formatNumber,
     formatCurrency,
     formatRelativeTime,
-  }), [dir, formatCurrency, formatDate, formatNumber, formatRelativeTime, isRtl, locale, setLocale, t]);
+  }), [dir, formatCurrency, formatDate, formatNumber, formatRelativeTime, isRtl, locale, setLocale, setLocaleOverride, t]);
 
   return <I18nContext.Provider value={contextValue}>{children}</I18nContext.Provider>;
 }

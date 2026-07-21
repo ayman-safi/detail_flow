@@ -1,11 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
+using DetailFlow.Api.Infrastructure;
 using DetailFlow.Api.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DetailFlow.Api.Tests;
 
 public class ServiceCatalogApiTests
 {
+    private static readonly byte[] PngBytes = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/az8PqkAAAAASUVORK5CYII=");
+
     [Fact]
     public async Task Owner_can_create_update_and_reorder_services()
     {
@@ -97,5 +102,42 @@ public class ServiceCatalogApiTests
 
         var includeInactiveResponse = await client.GetAsync("/api/services?includeInactive=true");
         await TestApi.AssertStatusAsync(includeInactiveResponse, HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Manager_can_upload_replace_and_remove_service_image()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+
+        using var first = new MultipartFormDataContent();
+        first.Add(new ByteArrayContent(PngBytes), "file", "wash.png");
+        var upload = await client.PostAsync($"/api/services/{serviceId}/image", first);
+        await TestApi.AssertStatusAsync(upload, HttpStatusCode.OK);
+
+        var publicResponse = await client.GetAsync($"/api/public/shops/{tenant.Slug}/services");
+        await TestApi.AssertStatusAsync(publicResponse, HttpStatusCode.OK);
+        using (var json = await TestApi.ReadJsonAsync(publicResponse))
+        {
+            var service = json.RootElement.EnumerateArray().Single(item => item.GetProperty("id").GetString() == serviceId.ToString());
+            Assert.Contains("service-images", service.GetProperty("imageUrl").GetString());
+            Assert.False(service.TryGetProperty("imageR2Key", out _));
+        }
+
+        using var second = new MultipartFormDataContent();
+        second.Add(new ByteArrayContent(PngBytes), "file", "wash-new.png");
+        var replace = await client.PostAsync($"/api/services/{serviceId}/image", second);
+        await TestApi.AssertStatusAsync(replace, HttpStatusCode.OK);
+
+        var storage = app.Services.GetRequiredService<IR2StorageService>() as FakeR2StorageService;
+        Assert.NotNull(storage);
+        Assert.Equal(2, storage.UploadedKeys.Count);
+        Assert.Single(storage.DeletedKeys);
+
+        var remove = await client.DeleteAsync($"/api/services/{serviceId}/image");
+        await TestApi.AssertStatusAsync(remove, HttpStatusCode.OK);
+        Assert.Equal(2, storage.DeletedKeys.Count);
     }
 }

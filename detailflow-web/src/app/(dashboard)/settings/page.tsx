@@ -6,14 +6,14 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { AlertCircle, BadgeDollarSign, Building2, CalendarX, Check, Clock, Copy, GripVertical, ImagePlus, MessageCircle, MoreVertical, Pencil, Plus, ReceiptText, RefreshCw, Trash2, Users, X } from 'lucide-react';
+import { AlertCircle, BadgeDollarSign, Building2, CalendarX, Check, Clock, Copy, GripVertical, ImagePlus, Languages, MessageCircle, MoreVertical, Pencil, Plus, ReceiptText, RefreshCw, Trash2, Users, Wrench, X } from 'lucide-react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { fallbackReceiptSettings, useReceiptSettings, useTenantCurrency } from '@/hooks/useTenantCurrency';
 import { isUnlimitedLimit } from '@/lib/planLimits';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
-import type { DayOfWeek, NotificationEventType, NotificationLogEntry, ReceiptSettings, ServiceType, StaffMember, TenantCurrency, TenantSettings, WhatsAppSettings, WhatsAppTemplateSettings, WorkingDay } from '@/types';
+import type { AuthUser, DashboardLanguageSettings, DayOfWeek, NotificationEventType, NotificationLogEntry, ReceiptSettings, ServiceType, StaffMember, TenantCurrency, TenantSettings, WhatsAppSettings, WhatsAppTemplateSettings, WorkingDay } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PlanUpgradePanel } from '@/components/plans/PlanUpgradePanel';
@@ -21,10 +21,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useI18n } from '@/i18n/I18nProvider';
 import { getRoleKey } from '@/i18n/domain';
+import { supportedLocales, type AppLocale } from '@/i18n/config';
 
 type TenantProfile = { name?: string; logoUrl?: string };
 type LogoUploadResponse = { logoUrl: string };
@@ -158,6 +160,8 @@ function serializeAvailabilitySettings(settings: TenantSettings): TenantSettings
 
 export default function SettingsPage() {
   const { t } = useI18n();
+  const user = useAuthStore((state) => state.user);
+  const canManageDashboardLanguage = user?.role === 'Owner' || user?.role === 'Manager';
   const [activeTab, setActiveTab] = useState('profile');
   const tabsRef = useRef<HTMLDivElement>(null);
 
@@ -175,6 +179,7 @@ export default function SettingsPage() {
         <div ref={tabsRef} className="-mx-4 overflow-hidden px-4 sm:mx-0 sm:px-0">
           <TabsList aria-label={t('navigation.settings')} className="flex w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-[var(--radius-md)] p-1 sm:w-fit">
             <TabsTrigger className="h-11 shrink-0 px-4" value="profile">{t('settings.tabs.profile')}</TabsTrigger>
+            {canManageDashboardLanguage && <TabsTrigger className="h-11 shrink-0 px-4" value="language">{t('settings.tabs.language')}</TabsTrigger>}
             <TabsTrigger className="h-11 shrink-0 px-4" value="services">{t('settings.tabs.services')}</TabsTrigger>
             <TabsTrigger className="h-11 shrink-0 px-4" value="availability">{t('settings.tabs.availability')}</TabsTrigger>
             <TabsTrigger className="h-11 shrink-0 px-4" value="receipts">{t('settings.tabs.receipts')}</TabsTrigger>
@@ -183,6 +188,7 @@ export default function SettingsPage() {
           </TabsList>
         </div>
         <TabsContent value="profile"><ProfileTab /></TabsContent>
+        {canManageDashboardLanguage && <TabsContent value="language"><DashboardLanguageTab /></TabsContent>}
         <TabsContent value="services"><ServicesTab /></TabsContent>
         <TabsContent value="availability"><AvailabilityTab /></TabsContent>
         <TabsContent value="receipts"><ReceiptTab /></TabsContent>
@@ -190,6 +196,78 @@ export default function SettingsPage() {
         <TabsContent value="notifications"><NotificationsTab /></TabsContent>
       </Tabs>
     </main>
+  );
+}
+
+function DashboardLanguageTab() {
+  const user = useAuthStore((state) => state.user);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const qc = useQueryClient();
+  const { isRtl, t } = useI18n();
+  const allowed = user?.role === 'Owner' || user?.role === 'Manager';
+  const [draftLocale, setDraftLocale] = useState<AppLocale | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { data, isLoading, isError, refetch } = useQuery<DashboardLanguageSettings>({
+    queryKey: ['dashboard-language'],
+    enabled: allowed,
+    queryFn: () => api.get<DashboardLanguageSettings>('/settings/dashboard-language').then((response) => response.data),
+  });
+  const dashboardLocale = draftLocale ?? data?.dashboardLocale ?? user?.dashboardLocale ?? 'en';
+  const locales = data?.supportedLocales ?? supportedLocales;
+  const selectClassName = cn(
+    'h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]',
+    isRtl ? 'text-right' : 'text-left',
+  );
+
+  if (!allowed) return null;
+
+  const save = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      const { data: saved } = await api.patch<DashboardLanguageSettings>('/settings/dashboard-language', { dashboardLocale });
+      qc.setQueryData(['dashboard-language'], saved);
+      setDraftLocale(null);
+      if (user) {
+        const updatedUser = { ...user, dashboardLocale: saved.dashboardLocale };
+        setAuth(updatedUser);
+        qc.setQueryData<AuthUser>(['auth', 'me', user.id], (current) => current ? { ...current, dashboardLocale: saved.dashboardLocale } : updatedUser);
+      }
+      toast.success(t('settings.language.saved'));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('settings.language.saveFailed')));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) return <Card className="p-4 sm:p-6" aria-busy="true"><SettingsState message={t('common.states.loading')} /></Card>;
+  if (isError) return <Card className="p-4 sm:p-6"><SettingsState message={t('settings.language.loadFailed')} onRetry={() => void refetch()} /></Card>;
+
+  return (
+    <Card className="max-w-[760px] overflow-hidden">
+      <SettingsSectionHeader icon={Languages} title={t('settings.language.title')} description={t('settings.language.subtitle')} />
+      <div className="px-4 py-5 sm:px-6">
+        <div className="max-w-sm">
+          <Label htmlFor="dashboard-language">{t('settings.language.label')}</Label>
+          <select
+            id="dashboard-language"
+            className={selectClassName}
+            value={dashboardLocale}
+            disabled={isSaving}
+            onChange={(event) => setDraftLocale(event.target.value as AppLocale)}
+          >
+            {locales.map((locale) => <option key={locale} value={locale}>{t(`common.locales.${locale}`)}</option>)}
+          </select>
+          <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)]">{t('settings.language.hint')}</p>
+        </div>
+      </div>
+      <SettingsFormActions>
+        <Button className="w-full sm:w-auto" onClick={save} disabled={isSaving || dashboardLocale === data?.dashboardLocale} aria-busy={isSaving}>
+          {t('common.actions.save')}
+        </Button>
+      </SettingsFormActions>
+    </Card>
   );
 }
 
@@ -702,6 +780,40 @@ function ServiceItem({
   const isEditing = editing === service || editing?.id === service.id;
   const style = { transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition };
   const { t } = useI18n();
+  const qc = useQueryClient();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imageBusy, setImageBusy] = useState(false);
+
+  const uploadImage = async (file?: File) => {
+    if (!file || !service.id) return;
+    setImageBusy(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      await api.post(`/services/${service.id}/image`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await qc.invalidateQueries({ queryKey: ['services'] });
+      toast.success(t('settings.services.imageSaved'));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('settings.services.imageFailed')));
+    } finally {
+      setImageBusy(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = async () => {
+    if (!service.id) return;
+    setImageBusy(true);
+    try {
+      await api.delete(`/services/${service.id}/image`);
+      await qc.invalidateQueries({ queryKey: ['services'] });
+      toast.success(t('settings.services.imageRemoved'));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('settings.services.imageFailed')));
+    } finally {
+      setImageBusy(false);
+    }
+  };
 
   return (
     <div ref={sortable.setNodeRef} style={style} className={cn('rounded-[var(--radius-md)] border bg-[var(--color-surface)] p-4 transition-colors hover:bg-[var(--color-surface-elevated)]/35 focus-within:border-[var(--color-primary)]', isEditing ? 'border-[var(--color-primary)] shadow-[var(--shadow-sm)]' : 'border-[var(--color-border)]')}>
@@ -723,16 +835,34 @@ function ServiceItem({
             <Button className="w-full sm:w-auto" variant="secondary" onClick={() => setEditing(null)} disabled={isSaving}><X size={16} />{t('common.actions.cancel')}</Button>
             <Button className="w-full sm:w-auto" onClick={() => void save()} disabled={isSaving} aria-busy={isSaving}><Check size={16} />{t('common.actions.save')}</Button>
           </div>
+          <div className="md:col-span-full">
+            <Label htmlFor={`service-description-${service.id ?? 'new'}`}>{t('settings.services.descriptionLabel')}</Label>
+            <Textarea id={`service-description-${service.id ?? 'new'}`} value={editing?.description ?? ''} onChange={(event) => setEditing((current) => ({ ...current, description: event.target.value }))} disabled={isSaving} placeholder={t('settings.services.descriptionPlaceholder')} />
+          </div>
+          <div className="flex flex-col gap-3 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-border)] p-3 md:col-span-full sm:flex-row sm:items-center">
+            <div className="grid h-20 w-full shrink-0 place-items-center overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-surface-elevated)] sm:w-28">
+              {service.imageUrl ? <img src={service.imageUrl} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="text-[var(--color-text-muted)]" size={24} />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{t('settings.services.imageLabel')}</p>
+              <p className="mt-1 text-xs text-[var(--color-text-muted)]">{service.id ? t('settings.services.imageHelp') : t('settings.services.imageAfterSave')}</p>
+              {service.id && <><input ref={imageInputRef} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void uploadImage(event.target.files?.[0])} /><div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => imageInputRef.current?.click()} disabled={imageBusy || isSaving}><ImagePlus size={15} />{service.imageUrl ? t('settings.services.replaceImage') : t('settings.services.uploadImage')}</Button>{service.imageUrl && <Button size="sm" variant="ghost" onClick={() => void removeImage()} disabled={imageBusy || isSaving}><Trash2 size={15} />{t('settings.services.removeImage')}</Button>}</div></>}
+            </div>
+          </div>
         </div>
       ) : (
         <div className={cn('grid gap-4 md:gap-3 md:items-center', serviceDesktopGrid)}>
           <div className="flex items-start justify-between gap-3 md:contents">
             <button type="button" className="grid h-11 w-11 shrink-0 cursor-grab touch-manipulation place-items-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] active:cursor-grabbing md:h-10 md:w-10" aria-label={t('board.help.dragToMove')} {...sortable.attributes} {...sortable.listeners}><GripVertical size={18} /></button>
-            <div className="min-w-0 flex-1 md:col-start-2">
+            <div className="flex min-w-0 flex-1 items-center gap-3 md:col-start-2">
+              <span className="grid h-11 w-14 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-surface-elevated)]">{service.imageUrl ? <img src={service.imageUrl} alt="" className="h-full w-full object-cover" /> : <Wrench size={18} className="text-[var(--color-text-muted)]" />}</span>
+              <div className="min-w-0">
               <p className="font-medium leading-6">{service.name}</p>
+              {service.description && <p className="line-clamp-1 text-xs text-[var(--color-text-muted)]">{service.description}</p>}
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--color-text-muted)] md:hidden">
                 <span className="tabular-nums">{t('common.units.minutesShort', { value: service.durationMinutes })}</span>
                 <span className="tabular-nums" dir="ltr">{formatCurrency(service.basePrice)}</span>
+              </div>
               </div>
             </div>
           </div>

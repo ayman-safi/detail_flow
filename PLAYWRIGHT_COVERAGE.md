@@ -40,7 +40,7 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | ADM-004 | Tenant search | tests/admin/adm.spec.ts | Yes | ✅ |
 | ADM-005 | Tenant filters and combinations | tests/admin/adm.spec.ts | Yes | ✅ |
 | ADM-006 | View tenant detail | tests/admin/adm.spec.ts | Yes | ✅ |
-| ADM-007 | Update plan and billing status | tests/admin/adm.spec.ts | Yes | ✅ |
+| ADM-007 | Update plan, billing, and dashboard language | tests/admin/adm.spec.ts | Yes | ✅ |
 | ADM-008 | Update billing notes validation | tests/admin/adm.spec.ts | Yes | ✅ |
 | ADM-009 | Update WhatsApp add-on count | tests/admin/adm.spec.ts | Yes | ✅ |
 | ADM-010 | Deactivate and reactivate tenant | tests/admin/adm.spec.ts | Yes | ✅ |
@@ -77,6 +77,7 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | SVC-007 | Reorder services | tests/services/svc.spec.ts | Yes | ✅ |
 | SVC-008 | Reorder invalid payload | tests/services/svc.spec.ts | Yes | ✅ |
 | SVC-009 | Staff service mutation denial | tests/services/svc.spec.ts | Yes | ✅ |
+| SVC-010 | Service image management | tests/services/svc.spec.ts | Yes | ✅ |
 | BKG-001 | Daily booking list and calendar | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-002 | Empty booking date | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-003 | Availability slot generation | tests/bookings/bkg.spec.ts | Yes | ✅ |
@@ -100,6 +101,8 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | BKG-021 | Invalid booking status transitions | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-022 | Booking race for last slot | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-023 | Booking UI failure recovery | tests/bookings/bkg.spec.ts | Yes | ✅ |
+| BKG-024 | Three-step phone-only public booking | tests/bookings/bkg.spec.ts | Yes | ✅ |
+| BKG-025 | Masked vehicle lookup and staff completion | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | CUS-001 | Customer list default sorting and metrics | tests/customers/cus.spec.ts | Yes | ✅ |
 | CUS-002 | Search by name and phone | tests/customers/cus.spec.ts | Yes | ✅ |
 | CUS-003 | Customer pagination boundaries | tests/customers/cus.spec.ts | Yes | ✅ |
@@ -164,8 +167,8 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | SET-006 | Availability settings read/update | tests/settings/set.spec.ts | Yes | ✅ |
 | SET-007 | Availability settings Staff denial | tests/settings/set.spec.ts | Yes | ✅ |
 | SET-008 | Availability validation edge cases | tests/settings/set.spec.ts | Yes | ✅ |
-| SET-009 | Localization settings update | tests/settings/set.spec.ts | Yes | ✅ |
-| SET-010 | Localization validation and Staff denial | tests/settings/set.spec.ts | Yes | ✅ |
+| SET-009 | Public and dashboard localization settings update | tests/settings/set.spec.ts | Yes | ✅ |
+| SET-010 | Dashboard localization validation and Staff denial | tests/settings/set.spec.ts | Yes | ✅ |
 | SET-011 | Receipt settings read by all tenant roles | tests/settings/set.spec.ts | Yes | ✅ |
 | SET-012 | Receipt currency update authorization | tests/settings/set.spec.ts | Yes | ✅ |
 | SET-013 | Unsupported receipt currency | tests/settings/set.spec.ts | Yes | ✅ |

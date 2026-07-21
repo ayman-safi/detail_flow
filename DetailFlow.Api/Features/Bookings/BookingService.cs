@@ -37,7 +37,7 @@ public class BookingService(
                 serviceName = b.ServiceType.Name,
                 b.ServiceType.DurationMinutes,
                 customer = new { b.Customer.Id, b.Customer.FullName, b.Customer.Phone },
-                vehicle = new
+                vehicle = b.Vehicle == null ? null : new
                 {
                     b.Vehicle.Id,
                     b.Vehicle.PlateNumber,
@@ -281,6 +281,41 @@ public class BookingService(
         return await GetByIdAsync(id);
     }
 
+    public async Task<object> CompleteVehicleAsync(Guid id, BookingVehicleRequest input)
+    {
+        var booking = await db.Bookings
+            .Include(b => b.Customer)
+            .Include(b => b.Vehicle)
+            .FirstOrDefaultAsync(b => b.Id == id)
+            ?? throw new KeyNotFoundException("Booking not found.");
+        var workOrder = await GetLinkedWorkOrderAsync(id)
+            ?? throw new KeyNotFoundException("Linked work order not found.");
+        EnsureBookingCanBeEdited(booking, workOrder);
+
+        var plate = RequireText(input.VehiclePlate, "Vehicle plate").Trim().ToUpperInvariant();
+        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate);
+        if (vehicle is null)
+        {
+            vehicle = new Vehicle { TenantId = tenantContext.TenantId, PlateNumber = plate };
+            db.Vehicles.Add(vehicle);
+        }
+
+        vehicle.Customer = booking.Customer;
+        vehicle.CustomerId = booking.CustomerId;
+        vehicle.Make = RequireText(input.VehicleMake, "Vehicle make").Trim();
+        vehicle.Model = RequireText(input.VehicleModel, "Vehicle model").Trim();
+        vehicle.Color = RequireText(input.VehicleColor, "Vehicle color").Trim();
+        vehicle.VehicleType = input.VehicleType;
+        booking.Vehicle = vehicle;
+        workOrder.Vehicle = vehicle;
+        workOrder.UpdatedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
+
+        var card = WorkOrderMappings.ToCard(workOrder);
+        await events.BroadcastToTenantAsync(tenantContext.TenantId, new BoardEvent("work_order_updated", new { workOrder = card }));
+        return card;
+    }
+
     public async Task<object> UpdateStatusAsync(Guid id, BookingStatusRequest input)
     {
         var booking = await db.Bookings
@@ -390,7 +425,7 @@ public class BookingService(
             booking.Status,
             booking.Notes,
             customer = new { booking.Customer.Id, booking.Customer.FullName, booking.Customer.Phone },
-            vehicle = new
+            vehicle = booking.Vehicle is null ? null : new
             {
                 booking.Vehicle.Id,
                 booking.Vehicle.PlateNumber,
@@ -427,7 +462,7 @@ public class BookingService(
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = $"%{search.Trim()}%";
-            query = query.Where(c => EF.Functions.ILike(c.FullName, term) || EF.Functions.ILike(c.Phone, term));
+            query = query.Where(c => (c.FullName != null && EF.Functions.ILike(c.FullName, term)) || EF.Functions.ILike(c.Phone, term));
         }
 
         var total = await query.CountAsync();
@@ -447,7 +482,7 @@ public class BookingService(
                 w.Stage,
                 w.CreatedAt,
                 serviceName = w.ServiceType.Name,
-                vehiclePlate = w.Vehicle.PlateNumber
+                vehiclePlate = w.Vehicle == null ? null : w.Vehicle.PlateNumber
             })
             .ToListAsync();
 
@@ -569,14 +604,16 @@ public class BookingService(
         return customer;
     }
 
-    private async Task<Vehicle> ResolveVehicleAsync(BookingUpdateRequest input, Customer customer, Vehicle currentVehicle)
+    private async Task<Vehicle> ResolveVehicleAsync(BookingUpdateRequest input, Customer customer, Vehicle? currentVehicle)
     {
         var plate = RequireText(input.VehiclePlate, "Vehicle plate").Trim().ToUpperInvariant();
         var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.PlateNumber == plate);
         if (vehicle is null)
         {
-            currentVehicle.PlateNumber = plate;
-            vehicle = currentVehicle;
+            vehicle = currentVehicle ?? new Vehicle { TenantId = tenantContext.TenantId };
+            vehicle.PlateNumber = plate;
+            if (currentVehicle is null)
+                db.Vehicles.Add(vehicle);
         }
 
         vehicle.Customer = customer;

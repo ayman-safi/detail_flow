@@ -12,6 +12,7 @@ export type AppLocale = keyof typeof dictionaries;
 export type TranslationDictionary = (typeof dictionaries)[AppLocale];
 
 export const defaultLocale: AppLocale = 'en';
+export const supportedLocales: AppLocale[] = ['en', 'ar', 'tr'];
 export const localeCookieName = 'detailflow-locale';
 
 export const localeMeta: Record<AppLocale, { dir: 'ltr' | 'rtl'; tag: string }> = {

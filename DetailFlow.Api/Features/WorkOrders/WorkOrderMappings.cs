@@ -21,7 +21,7 @@ internal static class WorkOrderMappings
         workOrder.Stage,
         workOrder.TrackingToken,
         new CustomerMini(workOrder.Customer.Id, workOrder.Customer.FullName, workOrder.Customer.Phone),
-        new VehicleMini(
+        workOrder.Vehicle is null ? null : new VehicleMini(
             workOrder.Vehicle.PlateNumber,
             workOrder.Vehicle.Make,
             workOrder.Vehicle.Model,
@@ -36,7 +36,8 @@ internal static class WorkOrderMappings
         workOrder.PaymentStatus,
         workOrder.Photos.Select(photo => photo.Id).Distinct().Count(),
         workOrder.CreatedAt,
-        workOrder.UpdatedAt);
+        workOrder.UpdatedAt,
+        workOrder.BookingId);
 
     public static void ValidateTransition(WorkOrderStage from, WorkOrderStage to, PaymentStatus paymentStatus)
     {
@@ -67,7 +68,7 @@ public record WalkInCreateRequest(
 public record AssignRequest(Guid? StaffUserId);
 public record PriceRequest([Range(0, 999999)] decimal ActualPrice, string? Notes);
 public record PaymentStatusRequest([Required] PaymentStatus Status);
-public record CustomerMini(Guid Id, string FullName, string Phone);
+public record CustomerMini(Guid Id, string? FullName, string Phone);
 public record VehicleMini(string PlateNumber, string Make, string Model, string Color, VehicleType VehicleType);
 public record StaffMini(Guid Id, string FullName);
 public record WorkOrderCardDto(
@@ -75,7 +76,7 @@ public record WorkOrderCardDto(
     WorkOrderStage Stage,
     string TrackingToken,
     CustomerMini Customer,
-    VehicleMini Vehicle,
+    VehicleMini? Vehicle,
     string ServiceName,
     decimal ServiceBasePrice,
     StaffMini? AssignedStaff,
@@ -85,7 +86,8 @@ public record WorkOrderCardDto(
     PaymentStatus PaymentStatus,
     int PhotoCount,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    Guid? BookingId);
 public record PhotoDto(Guid Id, string PhotoUrl, PhotoType Type, DateTimeOffset UploadedAt)
 {
     public static PhotoDto From(WorkOrderPhoto photo) => new(photo.Id, photo.PhotoUrl, photo.Type, photo.UploadedAt);

@@ -133,6 +133,7 @@ public class PlatformAdminService(
             tenant.BillingStatus,
             tenant.BillingNotes,
             tenant.WhatsAppMonthlyAddonMessages,
+            DashboardLanguages.Normalize(tenant.DashboardLocale),
             tenant.IsActive,
             tenant.SupportAccessEnabled,
             tenant.SupportAccessExpiresAt,
@@ -161,6 +162,8 @@ public class PlatformAdminService(
             tenant.BillingNotes = NormalizeOptionalText(input.BillingNotes, 2_000);
         if (input.WhatsAppMonthlyAddonMessages.HasValue)
             tenant.WhatsAppMonthlyAddonMessages = Math.Max(input.WhatsAppMonthlyAddonMessages.Value, 0);
+        if (input.DashboardLocale is not null)
+            tenant.DashboardLocale = DashboardLanguages.Validate(input.DashboardLocale);
         if (input.SupportAccessEnabled.HasValue)
             tenant.SupportAccessEnabled = input.SupportAccessEnabled.Value;
         if (input.SupportAccessExpiresAt.HasValue)
@@ -301,6 +304,7 @@ public sealed record PlatformTenantDetailDto(
     TenantBillingStatus BillingStatus,
     string? BillingNotes,
     int WhatsAppMonthlyAddonMessages,
+    string DashboardLocale,
     bool IsActive,
     bool SupportAccessEnabled,
     DateTimeOffset? SupportAccessExpiresAt,
@@ -336,6 +340,7 @@ public sealed record PlatformTenantUpdateRequest(
     bool? IsActive,
     string? BillingNotes,
     int? WhatsAppMonthlyAddonMessages,
+    string? DashboardLocale,
     bool? SupportAccessEnabled,
     DateTimeOffset? SupportAccessExpiresAt);
 

@@ -34,12 +34,12 @@ export function BookingRow({
         {formatDate(booking.scheduledAt, { hour: 'numeric', minute: '2-digit' })}
       </span>
       <div>
-        <p className="text-sm font-bold">{booking.customer.fullName}</p>
+        <p className="text-sm font-bold">{booking.customer.fullName ?? booking.customer.phone}</p>
         <p className="text-xs text-[var(--color-text-muted)]">{booking.customer.phone}</p>
       </div>
       <div className="col-start-2 md:col-start-auto">
-        <p className="plate text-sm">{booking.vehicle.plateNumber}</p>
-        <p className="text-xs text-[var(--color-text-muted)]">{booking.vehicle.make} {booking.vehicle.model}</p>
+        <p className="plate text-sm">{booking.vehicle?.plateNumber ?? t('common.states.vehiclePending')}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">{booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : t('bookings.vehiclePendingHelp')}</p>
       </div>
       <span className="col-start-2 w-fit rounded-full bg-[var(--color-accent-muted)] px-2 py-1 text-xs text-[var(--color-accent)] md:col-start-auto">
         {booking.serviceName}

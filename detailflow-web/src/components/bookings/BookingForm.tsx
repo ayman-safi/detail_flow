@@ -158,7 +158,7 @@ export function BookingForm({ initialDate }: { initialDate?: Date | string } = {
           onChange={(value) => setValue('customerPhone', value, { shouldValidate: true })}
           onSelect={(customer) => {
             setValue('customerPhone', customer.phone, { shouldValidate: true });
-            setValue('customerName', customer.fullName, { shouldValidate: true });
+            setValue('customerName', customer.fullName ?? '', { shouldValidate: true });
           }}
         />
         {errors.customerPhone && <p id={`${formId}-customer-phone-error`} className="mt-1 text-xs text-[var(--color-destructive)]">{errors.customerPhone.message}</p>}

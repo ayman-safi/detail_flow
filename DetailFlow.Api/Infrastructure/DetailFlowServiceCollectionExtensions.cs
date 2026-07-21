@@ -131,6 +131,15 @@ public static class DetailFlowServiceCollectionExtensions
                     AutoReplenishment = true
                 }));
 
+            options.AddPolicy("public-booking-lookup", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(GetPublicShopPartition(httpContext), _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 12,
+                    Window = TimeSpan.FromMinutes(15),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                }));
+
             options.AddPolicy("webhook", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(GetAnonymousPartition(httpContext), _ => new FixedWindowRateLimiterOptions
                 {

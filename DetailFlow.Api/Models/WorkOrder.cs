@@ -16,8 +16,8 @@ public class WorkOrder
     public Booking? Booking { get; set; }
     public Guid CustomerId { get; set; }
     public Customer Customer { get; set; } = null!;
-    public Guid VehicleId { get; set; }
-    public Vehicle Vehicle { get; set; } = null!;
+    public Guid? VehicleId { get; set; }
+    public Vehicle? Vehicle { get; set; }
     public Guid ServiceTypeId { get; set; }
     public ServiceType ServiceType { get; set; } = null!;
     public WorkOrderStage Stage { get; set; } = WorkOrderStage.Booked;

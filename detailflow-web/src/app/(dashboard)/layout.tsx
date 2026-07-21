@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { useAuthStore } from '@/store/authStore';
+import { getLocale } from '@/i18n/config';
+import { useI18n } from '@/i18n/I18nProvider';
 import type { AuthUser } from '@/types';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const setAuth = useAuthStore((s) => s.setAuth);
   const logout = useAuthStore((s) => s.logout);
   const userId = user?.id;
+  const { locale, setLocaleOverride } = useI18n();
   const router = useRouter();
   const authCheck = useQuery({
     queryKey: ['auth', 'me', userId],
@@ -22,6 +25,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     retry: false,
     queryFn: () => api.get<{ user: AuthUser }>('/auth/me').then((response) => response.data.user),
   });
+  const dashboardLocale = authCheck.isSuccess ? getLocale(authCheck.data.dashboardLocale) : null;
+
+  useLayoutEffect(() => {
+    if (!dashboardLocale) return;
+    setLocaleOverride(dashboardLocale);
+    return () => setLocaleOverride(null);
+  }, [dashboardLocale, setLocaleOverride]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -42,6 +52,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [authCheck.data, authCheck.isError, authCheck.isSuccess, hydrated, logout, router, setAuth, userId]);
 
-  if (!hydrated || !user || !authCheck.isSuccess) return null;
+  if (!hydrated || !user || !authCheck.isSuccess || locale !== dashboardLocale) return null;
   return <DashboardShell><ErrorBoundary>{children}</ErrorBoundary></DashboardShell>;
 }

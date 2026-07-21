@@ -1,3 +1,5 @@
+import type { AppLocale } from '@/i18n/config';
+
 export type Stage = 'Booked'|'Arrived'|'Washing'|'Detailing'|'Polishing'|'Ready'|'Delivered';
 export type PaymentStatus = 'Pending'|'Paid'|'Refunded';
 export type VehicleType = 'Sedan'|'SUV'|'Truck'|'Van'|'Motorcycle'|'Other';
@@ -7,7 +9,7 @@ export type TenantCurrency = 'SAR'|'USD'|'TRY'|'EUR'|'SYP';
 
 export interface Customer {
   id: string;
-  fullName: string;
+  fullName: string | null;
   phone: string;
   totalVisits: number;
   createdAt: string;
@@ -15,16 +17,17 @@ export interface Customer {
   recentWorkOrders?: { id: string; stage: Stage; createdAt: string; serviceName: string; vehiclePlate: string }[];
 }
 export interface Vehicle { id: string; plateNumber: string; make: string; model: string; color: string; vehicleType: VehicleType; }
-export interface ServiceType { id: string; name: string; description?: string; basePrice: number; durationMinutes: number; isActive: boolean; sortOrder: number; }
+export interface ServiceType { id: string; name: string; description?: string; basePrice: number; durationMinutes: number; isActive: boolean; sortOrder: number; imageUrl?: string | null; }
 export interface WorkOrderCard {
   id: string; stage: Stage; trackingToken: string;
   customer: Pick<Customer, 'id'|'fullName'|'phone'>;
-  vehicle: Pick<Vehicle, 'plateNumber'|'make'|'model'|'color'|'vehicleType'>;
+  vehicle: Pick<Vehicle, 'plateNumber'|'make'|'model'|'color'|'vehicleType'> | null;
   serviceName: string; serviceBasePrice: number;
   assignedStaff?: { id: string; fullName: string } | null;
   estimatedReadyAt?: string; actualPrice?: number; notes?: string;
   paymentStatus: PaymentStatus; photoCount: number;
   createdAt: string; updatedAt: string;
+  bookingId?: string | null;
 }
 export interface BoardData { booked: WorkOrderCard[]; arrived: WorkOrderCard[]; washing: WorkOrderCard[]; detailing: WorkOrderCard[]; polishing: WorkOrderCard[]; ready: WorkOrderCard[]; delivered: WorkOrderCard[]; }
 export interface WorkOrderPhoto { id: string; photoUrl: string; type: 'Before'|'After'; uploadedAt: string; }
@@ -50,7 +53,7 @@ export interface Booking {
   id: string; scheduledAt: string; status: 'Pending'|'Confirmed'|'Cancelled';
   serviceName: string; durationMinutes: number;
   customer: Pick<Customer, 'id'|'fullName'|'phone'>;
-  vehicle: Pick<Vehicle, 'id'|'plateNumber'|'make'|'model'|'color'|'vehicleType'>;
+  vehicle: Pick<Vehicle, 'id'|'plateNumber'|'make'|'model'|'color'|'vehicleType'> | null;
   workOrderId?: string; trackingToken?: string;
 }
 export interface BookingDetail {
@@ -59,7 +62,7 @@ export interface BookingDetail {
   status: Booking['status'];
   notes?: string | null;
   customer: Pick<Customer, 'id'|'fullName'|'phone'>;
-  vehicle: Vehicle;
+  vehicle: Vehicle | null;
   serviceType: ServiceType;
   workOrder?: { id: string; stage: Stage; photosCount: number } | null;
 }
@@ -97,11 +100,11 @@ export interface BookingCreateResult {
   trackingToken: string;
   trackingUrl: string;
   customer: Pick<Customer, 'id'|'fullName'|'phone'>;
-  vehicle: Vehicle;
+  vehicle: Vehicle | null;
   scheduledAt: string;
   serviceName: string;
 }
-export interface TrackingInfo { customerName: string; vehicleMake: string; vehicleModel: string; vehicleColor: string; vehiclePlate: string; stage: Stage; stageName: string; serviceName: string; estimatedReadyAt?: string; shopName: string; shopLogoUrl?: string; lastUpdatedAt: string; }
+export interface TrackingInfo { customerName?: string | null; vehicleMake?: string | null; vehicleModel?: string | null; vehicleColor?: string | null; vehiclePlate?: string | null; stage: Stage; stageName: string; serviceName: string; estimatedReadyAt?: string; shopName: string; shopLogoUrl?: string; lastUpdatedAt: string; }
 export interface StaffMember { id: string; fullName: string; email: string; phone?: string | null; role: 'Owner'|'Manager'|'Staff'; isActive: boolean; isInvitePending: boolean; completedJobsToday: number; }
 export type NotificationEventType = 'ReadyForPickup'|'TrackingLink'|'StaffInvite'|'PasswordReset';
 export interface WhatsAppShare { eventType: NotificationEventType; customerPhone: string; trackingUrl: string; receiptUrl: string; whatsAppText: string; }
@@ -170,6 +173,7 @@ export interface AuthUser {
   role: AuthRole;
   tenantId?: string | null;
   tenantSlug?: string | null;
+  dashboardLocale?: AppLocale;
   isPlatformAdmin?: boolean;
   isSupportSession?: boolean;
   supportTenantName?: string;
@@ -225,12 +229,18 @@ export interface PlatformTenantDetail {
   billingStatus: TenantBillingStatus;
   billingNotes?: string | null;
   whatsAppMonthlyAddonMessages: number;
+  dashboardLocale: AppLocale;
   isActive: boolean;
   supportAccessEnabled: boolean;
   supportAccessExpiresAt?: string | null;
   createdAt: string;
   stats: PlatformTenantStats;
   users: PlatformTenantUser[];
+}
+
+export interface DashboardLanguageSettings {
+  dashboardLocale: AppLocale;
+  supportedLocales: AppLocale[];
 }
 
 export interface PlatformTenantList {

@@ -45,7 +45,8 @@ public class PlatformAdminApiTests
                 plan = "Business",
                 billingStatus = "Active",
                 billingNotes = "Manual invoice paid through launch package.",
-                whatsAppMonthlyAddonMessages = 250
+                whatsAppMonthlyAddonMessages = 250,
+                dashboardLocale = "tr"
             });
         await TestApi.AssertStatusAsync(updateResponse, HttpStatusCode.OK);
         using (var updateJson = await TestApi.ReadJsonAsync(updateResponse))
@@ -54,6 +55,7 @@ public class PlatformAdminApiTests
             Assert.Equal("Active", updateJson.RootElement.GetProperty("billingStatus").GetString());
             Assert.Equal("Manual invoice paid through launch package.", updateJson.RootElement.GetProperty("billingNotes").GetString());
             Assert.Equal(250, updateJson.RootElement.GetProperty("whatsAppMonthlyAddonMessages").GetInt32());
+            Assert.Equal("tr", updateJson.RootElement.GetProperty("dashboardLocale").GetString());
         }
 
         await app.ExecuteDbContextAsync(async db =>
@@ -62,7 +64,13 @@ public class PlatformAdminApiTests
             Assert.Equal(TenantPlan.Business, updatedTenant.Plan);
             Assert.Equal(TenantBillingStatus.Active, updatedTenant.BillingStatus);
             Assert.Equal(250, updatedTenant.WhatsAppMonthlyAddonMessages);
+            Assert.Equal("tr", updatedTenant.DashboardLocale);
         });
+
+        var invalidLanguageResponse = await platformClient.PatchAsJsonAsync(
+            $"/api/platform/admin/tenants/{tenant.Id}",
+            new { dashboardLocale = "unsupported" });
+        await TestApi.AssertStatusAsync(invalidLanguageResponse, HttpStatusCode.BadRequest);
 
         var supportResponse = await platformClient.PostAsJsonAsync(
             $"/api/platform/admin/tenants/{tenant.Id}/support-session",
@@ -77,6 +85,7 @@ public class PlatformAdminApiTests
         Assert.Equal("Owner", user.GetProperty("role").GetString());
         Assert.Equal(tenant.Id.ToString(), user.GetProperty("tenantId").GetString());
         Assert.Equal(tenant.Slug, user.GetProperty("tenantSlug").GetString());
+        Assert.Equal("tr", user.GetProperty("dashboardLocale").GetString());
         Assert.True(user.GetProperty("isSupportSession").GetBoolean());
     }
 

@@ -20,6 +20,7 @@
       "retry": "Retry",
       "next": "Next",
       "previous": "Previous",
+      "back": "Back",
       "copyLink": "Copy link",
       "newBooking": "New booking",
       "confirmBooking": "Confirm booking",
@@ -61,14 +62,16 @@
       "shopName": "Shop name",
       "actualPrice": "Actual price",
       "assignedStaff": "Assigned staff",
-      "search": "Search"
+      "search": "Search",
+      "total": "Total"
     },
     "states": {
       "active": "Active",
       "inactive": "Inactive",
       "unassigned": "Unassigned",
       "loading": "Loading",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "vehiclePending": "Vehicle pending"
     },
     "units": {
       "minutesShort": "{value} min",
@@ -287,6 +290,8 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "viewWorkOrder": "View work order",
+    "vehiclePendingHelp": "Staff will add vehicle details before work starts.",
+    "completeVehicle": { "title": "Complete vehicle details", "description": "Vehicle details are required before this work order can move to Arrived.", "action": "Save vehicle", "required": "Enter all vehicle details.", "saved": "Vehicle details saved", "failed": "Unable to save vehicle details." },
     "edit": {
       "action": "Edit booking",
       "title": "Edit booking",
@@ -326,16 +331,29 @@
   },
   "publicBooking": {
     "eyebrow": "Book a service",
+    "header": { "subtitle": "Vehicle care and detailing", "secure": "Secure, trusted booking", "guarantee": "Service and product guarantee", "languages": "Choose language" },
+    "steps": { "label": "Booking progress", "service": "Choose service", "schedule": "Choose time", "confirm": "Confirm booking" },
+    "actions": { "continue": "Continue" },
     "notFound": {
       "title": "Booking page not found",
       "description": "Check the shop link and try again."
     },
     "service": {
       "choose": "Choose a service",
+      "title": "Choose your service",
+      "subtitle": "Select the care your vehicle needs.",
       "empty": "No services are available right now."
     },
     "schedule": {
       "title": "Date and time",
+      "chooseTitle": "Choose a time",
+      "chooseSubtitle": "Pick an available date and start time.",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "selected": "Selected",
+      "chooseDate": "Choose an available date to see times.",
       "availableSlots": "Available 30 min slots",
       "noSlots": "No slots available for this date.",
       "chooseServiceFirst": "Choose a service to see times.",
@@ -345,6 +363,41 @@
     },
     "customer": {
       "phone": "Phone number"
+    },
+    "confirm": {
+      "title": "Review and confirm",
+      "subtitle": "One phone number is all we need to reserve your visit.",
+      "phoneTitle": "Your phone number",
+      "phoneHelp": "We use this to find your booking and send updates.",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "lookingUp": "Looking for your vehicles…",
+      "lookupFailed": "Vehicle lookup is unavailable. You can still book.",
+      "noVehicles": "No saved vehicle found. Staff can add it when you arrive.",
+      "vehicleTitle": "Saved vehicle",
+      "optional": "Optional",
+      "vehicleHelp": "Select a recognized vehicle or leave it for staff to add later.",
+      "addLater": "Add vehicle details at the shop",
+      "review": "Booking details"
+    },
+    "summary": {
+      "title": "Booking summary",
+      "noService": "No service selected",
+      "vehicleLater": "Add later",
+      "location": "Location",
+      "guarantee": "Your selected time is checked again when you confirm, so availability stays accurate.",
+      "professional": "Service by trained professionals",
+      "safe": "Trusted products and quality guarantee"
+    },
+    "trust": {
+      "label": "Why book with us",
+      "easyTitle": "Easy experience",
+      "easyBody": "Quick booking in three simple steps",
+      "teamTitle": "Professional team",
+      "teamBody": "Experienced vehicle-care specialists",
+      "flexibleTitle": "Flexible times",
+      "flexibleBody": "Choose a time that fits your day",
+      "qualityTitle": "Quality guaranteed",
+      "qualityBody": "Trusted service and products"
     },
     "notes": {
       "placeholder": "Please focus on interior"
@@ -441,6 +494,7 @@
     "description": "Manage the shop details, services, scheduling, receipts, team, and notifications used across DetailFlow.",
     "tabs": {
       "profile": "Profile",
+      "language": "Language",
       "services": "Services",
       "availability": "Availability",
       "receipts": "Receipts",
@@ -465,6 +519,15 @@
       "saved": "Profile saved",
       "uploaded": "Logo uploaded"
     },
+    "language": {
+      "title": "Dashboard language",
+      "subtitle": "Choose the language used by every signed-in user in this tenant's dashboard.",
+      "label": "Dashboard language",
+      "hint": "This setting follows the tenant across users, devices, and sessions. Public customer pages keep their own language preference.",
+      "saved": "Dashboard language saved",
+      "saveFailed": "Unable to save the dashboard language.",
+      "loadFailed": "Unable to load the dashboard language."
+    },
     "services": {
       "title": "Services",
       "subtitle": "Manage the services customers and staff can book, including duration, price, and display order.",
@@ -480,6 +543,17 @@
       "restricted": "Service settings are available to managers and owners.",
       "saved": "Service saved",
       "reordered": "Service order updated",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What is included in this service?",
+      "imageLabel": "Service image",
+      "imageHelp": "JPEG, PNG, or WEBP up to 5 MB. This appears on the public booking card.",
+      "imageAfterSave": "Save the service first, then add its image.",
+      "uploadImage": "Upload image",
+      "replaceImage": "Replace image",
+      "removeImage": "Remove image",
+      "imageSaved": "Service image saved",
+      "imageRemoved": "Service image removed",
+      "imageFailed": "Unable to update the service image.",
       "toggleAria": "Toggle {name}"
     },
     "availability": {
@@ -938,6 +1012,8 @@
       "createdHeader": "Created",
       "owner": "Owner: {name} ? {email}",
       "accountControls": "Account controls",
+      "dashboardLanguage": "Dashboard language",
+      "dashboardLanguageHint": "Applies to every authenticated dashboard user in this tenant.",
       "billingStatus": "Billing status",
       "billingNotes": "Billing notes",
       "billingNotesPlaceholder": "Manual invoice status, renewal notes, or payment follow-up.",

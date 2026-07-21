@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useI18n } from '@/i18n/I18nProvider';
 import { getRoleKey } from '@/i18n/domain';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { supportedLocales, type AppLocale } from '@/i18n/config';
 
 const plans: TenantPlan[] = ['Free', 'Pro', 'Business'];
 const billingStatuses: TenantBillingStatus[] = ['Trial', 'Active', 'PastDue', 'Suspended', 'Manual'];
@@ -39,6 +40,7 @@ type TenantPatch = {
   isActive?: boolean;
   billingNotes?: string;
   whatsAppMonthlyAddonMessages?: number;
+  dashboardLocale?: AppLocale;
   supportAccessEnabled?: boolean;
 };
 
@@ -435,6 +437,20 @@ function TenantDetailPanel({
               options={billingStatuses.map((status) => ({ value: status, label: t(getBillingStatusKey(status)) }))}
               onChange={(billingStatus) => onPatch({ billingStatus: billingStatus as TenantBillingStatus })}
             />
+            <div className="min-w-0">
+              <Label htmlFor="detail-dashboard-language">{t('platformAdmin.detail.dashboardLanguage')}</Label>
+              <select
+                id="detail-dashboard-language"
+                value={tenant.dashboardLocale}
+                onChange={(event) => onPatch({ dashboardLocale: event.target.value as AppLocale })}
+                className="h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]"
+              >
+                {supportedLocales.map((locale) => (
+                  <option key={locale} value={locale}>{t(`common.locales.${locale}`)}</option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-[var(--color-text-muted)]">{t('platformAdmin.detail.dashboardLanguageHint')}</p>
+            </div>
           </div>
 
           <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/40 p-4">

@@ -73,15 +73,15 @@ export default function CustomersPage() {
                 key={customer.id}
                 type="button"
                 onClick={() => setSelected(customer)}
-                aria-label={`${t('board.help.open')} ${customer.fullName}`}
+                aria-label={`${t('board.help.open')} ${customer.fullName ?? customer.phone}`}
                 className={`grid w-full grid-cols-1 gap-3 px-4 py-4 transition hover:bg-[var(--color-surface-hover)] md:grid-cols-[minmax(220px,1fr)_180px_140px_170px_32px] md:items-center ${isRtl ? 'text-right' : 'text-left'}`}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--color-primary-muted)] font-[var(--font-display)] text-sm font-bold text-[var(--color-primary)]">
-                    {initials(customer.fullName)}
+                    {initials(customer.fullName ?? customer.phone)}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{customer.fullName}</p>
+                    <p className="truncate font-medium">{customer.fullName ?? customer.phone}</p>
                     <p className="mt-1 flex items-center gap-1 text-xs text-[var(--color-text-muted)]"><Phone size={12} />{customer.phone}</p>
                   </div>
                 </div>
@@ -151,9 +151,9 @@ function CustomerDrawer({ customer, onClose }: { customer: Customer | null; onCl
       <SheetContent className={cn('w-full max-w-[520px] overflow-y-auto p-5', isRtl ? 'text-right' : 'text-left')}>
         <div className="mb-6 flex items-start gap-4 pe-10">
           <div className="flex min-w-0 gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--color-primary-muted)] font-[var(--font-display)] font-bold text-[var(--color-primary)]">{initials(customer.fullName)}</div>
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--color-primary-muted)] font-[var(--font-display)] font-bold text-[var(--color-primary)]">{initials(customer.fullName ?? customer.phone)}</div>
             <div className="min-w-0">
-              <SheetTitle className="truncate font-[var(--font-display)] text-2xl font-semibold">{customer.fullName}</SheetTitle>
+              <SheetTitle className="truncate font-[var(--font-display)] text-2xl font-semibold">{customer.fullName ?? customer.phone}</SheetTitle>
               <a href={`tel:${customer.phone}`} className="mt-1 inline-flex items-center gap-1 text-sm text-[var(--color-primary)]"><Phone size={13} />{customer.phone}</a>
             </div>
           </div>

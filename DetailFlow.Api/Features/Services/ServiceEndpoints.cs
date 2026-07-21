@@ -37,6 +37,21 @@ public class ServicesController(ServiceCatalogService service) : ControllerBase
     {
         return Ok(await service.ReorderAsync(input));
     }
+
+    [HttpPost("{id:guid}/image")]
+    [Consumes("multipart/form-data")]
+    [EnableRateLimiting("uploads")]
+    public async Task<IActionResult> UploadImage(Guid id, [FromForm] ServiceImageUploadRequest input)
+    {
+        return Ok(await service.UploadImageAsync(id, input.File));
+    }
+
+    [HttpDelete("{id:guid}/image")]
+    [EnableRateLimiting("api-mutations")]
+    public async Task<IActionResult> DeleteImage(Guid id)
+    {
+        return Ok(await service.DeleteImageAsync(id));
+    }
 }
 
 public record ServiceRequest(
@@ -48,3 +63,9 @@ public record ServiceRequest(
     [Range(0, 10000)] int? SortOrder);
 
 public record ServiceReorderRequest([Required, MinLength(1)] IReadOnlyList<Guid> OrderedIds);
+
+public class ServiceImageUploadRequest
+{
+    [Required]
+    public IFormFile File { get; set; } = null!;
+}

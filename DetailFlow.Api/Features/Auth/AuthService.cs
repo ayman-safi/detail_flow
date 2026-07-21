@@ -163,7 +163,8 @@ public class AuthService(
         user.Email,
         role = user.Role,
         tenantId = tenant.Id,
-        tenantSlug = tenant.Slug
+        tenantSlug = tenant.Slug,
+        dashboardLocale = DashboardLanguages.Normalize(tenant.DashboardLocale)
     };
 
     private async Task<object> BuildSupportSessionMeAsync()
@@ -192,6 +193,7 @@ public class AuthService(
                 role = "Owner",
                 tenantId = tenant.Id,
                 tenantSlug = tenant.Slug,
+                dashboardLocale = DashboardLanguages.Normalize(tenant.DashboardLocale),
                 isSupportSession = true,
                 supportTenantName = tenant.Name,
                 supportExpiresAt = tenant.SupportAccessExpiresAt

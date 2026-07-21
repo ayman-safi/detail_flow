@@ -113,15 +113,15 @@ export function BookingEditDialog({
     if (!booking) return;
     reset({
       customerPhone: booking.customer.phone,
-      customerName: booking.customer.fullName,
+      customerName: booking.customer.fullName ?? '',
       serviceTypeId: booking.serviceType.id,
       scheduledDate: dateInputValue(booking.scheduledAt),
       scheduledTime: timeInputValue(booking.scheduledAt),
-      vehiclePlate: booking.vehicle.plateNumber,
-      vehicleMake: booking.vehicle.make,
-      vehicleModel: booking.vehicle.model,
-      vehicleColor: booking.vehicle.color,
-      vehicleType: booking.vehicle.vehicleType,
+      vehiclePlate: booking.vehicle?.plateNumber ?? '',
+      vehicleMake: booking.vehicle?.make ?? '',
+      vehicleModel: booking.vehicle?.model ?? '',
+      vehicleColor: booking.vehicle?.color ?? '',
+      vehicleType: booking.vehicle?.vehicleType ?? 'Sedan',
       notes: booking.notes ?? '',
     });
   }, [booking, reset]);
@@ -181,7 +181,7 @@ export function BookingEditDialog({
                   onChange={(value) => setValue('customerPhone', value, { shouldValidate: true })}
                   onSelect={(customer) => {
                     setValue('customerPhone', customer.phone, { shouldValidate: true });
-                    setValue('customerName', customer.fullName, { shouldValidate: true });
+                    setValue('customerName', customer.fullName ?? '', { shouldValidate: true });
                   }}
                 />
                 {errors.customerPhone && <p className="mt-1 text-xs text-[var(--color-destructive)]">{errors.customerPhone.message}</p>}

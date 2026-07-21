@@ -36,6 +36,24 @@ public class PublicBookingsController(PublicBookingService service) : Controller
         return Ok(await service.GetAvailabilityAsync(tenantSlug, date, serviceTypeId, timezoneOffsetMinutes));
     }
 
+    [HttpGet("availability/month")]
+    [EnableRateLimiting("public-booking-read")]
+    public async Task<IActionResult> GetMonthAvailability(
+        string tenantSlug,
+        [FromQuery] DateTime month,
+        [FromQuery] Guid serviceTypeId,
+        [FromQuery] int? timezoneOffsetMinutes)
+    {
+        return Ok(await service.GetMonthAvailabilityAsync(tenantSlug, month, serviceTypeId, timezoneOffsetMinutes));
+    }
+
+    [HttpPost("vehicle-lookup")]
+    [EnableRateLimiting("public-booking-lookup")]
+    public async Task<IActionResult> LookupVehicles(string tenantSlug, [FromBody] PublicVehicleLookupRequest input)
+    {
+        return Ok(await service.LookupVehiclesAsync(tenantSlug, input.CustomerPhone));
+    }
+
     [HttpPost("bookings")]
     [EnableRateLimiting("public-booking-create")]
     public async Task<IActionResult> CreateBooking(string tenantSlug, [FromBody] PublicBookingCreateRequest input)
@@ -45,13 +63,16 @@ public class PublicBookingsController(PublicBookingService service) : Controller
 }
 
 public record PublicBookingCreateRequest(
-    [Required, MinLength(2)] string CustomerName,
     [Required, MinLength(7)] string CustomerPhone,
-    [Required, MinLength(2)] string VehiclePlate,
-    [Required] string VehicleMake,
-    [Required] string VehicleModel,
-    [Required] string VehicleColor,
-    [Required] VehicleType? VehicleType,
     Guid ServiceTypeId,
     DateTimeOffset ScheduledAt,
+    Guid? ExistingVehicleId,
+    string? CustomerName,
+    string? VehiclePlate,
+    string? VehicleMake,
+    string? VehicleModel,
+    string? VehicleColor,
+    VehicleType? VehicleType,
     string? Notes);
+
+public record PublicVehicleLookupRequest([Required, MinLength(7)] string CustomerPhone);

@@ -42,9 +42,96 @@ public class PublicBookingService(
                 s.BasePrice,
                 s.DurationMinutes,
                 s.SortOrder,
-                s.IsActive
+                s.IsActive,
+                s.ImageUrl
             })
             .ToListAsync();
+    }
+
+    public async Task<object> LookupVehiclesAsync(string tenantSlug, string customerPhone)
+    {
+        var tenant = await GetTenantAsync(tenantSlug, asNoTracking: true);
+        var phone = NormalizePhone(customerPhone);
+        if (phone.Length < 7)
+            throw new ArgumentException("Customer phone must include at least 7 digits.");
+
+        var customerId = await db.Customers
+            .IgnoreQueryFilters()
+            .Where(c => c.TenantId == tenant.Id && c.Phone == phone)
+            .Select(c => (Guid?)c.Id)
+            .FirstOrDefaultAsync();
+
+        if (!customerId.HasValue)
+            return new { vehicles = Array.Empty<object>() };
+
+        var vehicles = await db.Vehicles
+            .IgnoreQueryFilters()
+            .Where(v => v.TenantId == tenant.Id && v.CustomerId == customerId.Value)
+            .OrderBy(v => v.Make)
+            .ThenBy(v => v.Model)
+            .Select(v => new
+            {
+                v.Id,
+                maskedPlate = MaskPlate(v.PlateNumber),
+                v.Make,
+                v.Model,
+                v.Color,
+                v.VehicleType
+            })
+            .ToListAsync();
+
+        return new { vehicles };
+    }
+
+    public async Task<IReadOnlyList<object>> GetMonthAvailabilityAsync(
+        string tenantSlug,
+        DateTime month,
+        Guid serviceTypeId,
+        int? timezoneOffsetMinutes)
+    {
+        var tenant = await GetTenantAsync(tenantSlug, asNoTracking: true);
+        var service = await GetActiveServiceAsync(tenant.Id, serviceTypeId);
+        var settings = await tenantSettings.GetAsync(tenant.Id);
+        var localOffset = TimeSpan.FromMinutes(-(timezoneOffsetMinutes ?? 0));
+        var firstDay = new DateOnly(month.Year, month.Month, 1);
+        var nextMonth = firstDay.AddMonths(1);
+        var utcStart = new DateTimeOffset(firstDay.ToDateTime(TimeOnly.MinValue), localOffset).ToUniversalTime();
+        var utcEnd = new DateTimeOffset(nextMonth.ToDateTime(TimeOnly.MinValue), localOffset).ToUniversalTime();
+        var confirmed = await db.Bookings
+            .IgnoreQueryFilters()
+            .Include(b => b.ServiceType)
+            .Where(b => b.TenantId == tenant.Id && b.Status == BookingStatus.Confirmed && b.ScheduledAt >= utcStart && b.ScheduledAt < utcEnd)
+            .ToListAsync();
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.ToOffset(localOffset).DateTime);
+
+        var result = new List<object>();
+        for (var day = firstDay; day < nextMonth; day = day.AddDays(1))
+        {
+            var status = "closed";
+            if (day < today)
+            {
+                status = "past";
+            }
+            else if (!TenantSettingsService.IsClosed(settings, day))
+            {
+                var workingDay = TenantSettingsService.GetWorkingDay(settings, day);
+                if (workingDay is not null)
+                {
+                    var localStart = new DateTimeOffset(day.ToDateTime(workingDay.OpenTime), localOffset);
+                    var localEnd = new DateTimeOffset(day.ToDateTime(workingDay.CloseTime), localOffset);
+                    var hasSlot = Enumerable.Range(0, Math.Max(0, (int)Math.Floor((localEnd - localStart).TotalMinutes / 30) + 1))
+                        .Select(i => localStart.AddMinutes(i * 30))
+                        .Where(slot => slot.AddMinutes(service.DurationMinutes) <= localEnd)
+                        .Where(slot => slot > DateTimeOffset.UtcNow.ToOffset(localOffset))
+                        .Any(localSlot => BookingService.CountOverlappingBookings(confirmed, localSlot.ToUniversalTime(), service.DurationMinutes) < settings.BayCapacity);
+                    status = hasSlot ? "available" : "full";
+                }
+            }
+
+            result.Add(new { date = day.ToString("yyyy-MM-dd"), status });
+        }
+
+        return result;
     }
 
     public async Task<IReadOnlyList<object>> GetAvailabilityAsync(
@@ -104,12 +191,14 @@ public class PublicBookingService(
         if (phone.Length < 7)
             throw new ArgumentException("Customer phone must include at least 7 digits.");
 
-        var plate = RequireText(input.VehiclePlate, "Vehicle plate").Trim().ToUpperInvariant();
-        var customerName = RequireText(input.CustomerName, "Customer name").Trim();
-        var vehicleMake = RequireText(input.VehicleMake, "Vehicle make").Trim();
-        var vehicleModel = RequireText(input.VehicleModel, "Vehicle model").Trim();
-        var vehicleColor = RequireText(input.VehicleColor, "Vehicle color").Trim();
-        var vehicleType = input.VehicleType ?? throw new ArgumentException("Vehicle type is required.");
+        var customerName = string.IsNullOrWhiteSpace(input.CustomerName) ? null : input.CustomerName.Trim();
+        var legacyVehicleValues = new[] { input.VehiclePlate, input.VehicleMake, input.VehicleModel, input.VehicleColor };
+        var hasAnyLegacyVehicle = legacyVehicleValues.Any(value => !string.IsNullOrWhiteSpace(value)) || input.VehicleType.HasValue;
+        var hasCompleteLegacyVehicle = legacyVehicleValues.All(value => !string.IsNullOrWhiteSpace(value)) && input.VehicleType.HasValue;
+        if (hasAnyLegacyVehicle && !hasCompleteLegacyVehicle)
+            throw new ArgumentException("Vehicle details must be supplied together.");
+        if (hasCompleteLegacyVehicle && input.ExistingVehicleId.HasValue)
+            throw new ArgumentException("Choose an existing vehicle or supply vehicle details, not both.");
         var service = await GetActiveServiceAsync(tenant.Id, input.ServiceTypeId);
 
         var localDay = DateOnly.FromDateTime(localScheduledAt.DateTime);
@@ -150,27 +239,35 @@ public class PublicBookingService(
         }
         else
         {
-            customer.FullName = customerName;
+            if (customerName is not null)
+                customer.FullName = customerName;
         }
 
-        var vehicle = await db.Vehicles
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(v => v.TenantId == tenant.Id && v.PlateNumber == plate);
-        if (vehicle is null)
+        Vehicle? vehicle = null;
+        if (input.ExistingVehicleId.HasValue)
         {
-            vehicle = new Vehicle
-            {
-                TenantId = tenant.Id,
-                Customer = customer,
-                PlateNumber = plate
-            };
-            db.Vehicles.Add(vehicle);
+            vehicle = await db.Vehicles
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(v => v.TenantId == tenant.Id && v.Id == input.ExistingVehicleId && v.CustomerId == customer.Id)
+                ?? throw new ArgumentException("Selected vehicle is not available for this phone number.");
         }
-
-        vehicle.Make = vehicleMake;
-        vehicle.Model = vehicleModel;
-        vehicle.Color = vehicleColor;
-        vehicle.VehicleType = vehicleType;
+        else if (hasCompleteLegacyVehicle)
+        {
+            var plate = input.VehiclePlate!.Trim().ToUpperInvariant();
+            vehicle = await db.Vehicles
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(v => v.TenantId == tenant.Id && v.PlateNumber == plate);
+            if (vehicle is null)
+            {
+                vehicle = new Vehicle { TenantId = tenant.Id, Customer = customer, PlateNumber = plate };
+                db.Vehicles.Add(vehicle);
+            }
+            vehicle.Customer = customer;
+            vehicle.Make = input.VehicleMake!.Trim();
+            vehicle.Model = input.VehicleModel!.Trim();
+            vehicle.Color = input.VehicleColor!.Trim();
+            vehicle.VehicleType = input.VehicleType!.Value;
+        }
 
         var booking = new Booking
         {
@@ -212,7 +309,7 @@ public class PublicBookingService(
             workOrder.TrackingToken,
             trackingUrl = $"/track/{workOrder.TrackingToken}",
             customer = new { customer.Id, customer.FullName, customer.Phone },
-            vehicle = new
+            vehicle = vehicle is null ? null : new
             {
                 vehicle.Id,
                 vehicle.PlateNumber,
@@ -261,6 +358,13 @@ public class PublicBookingService(
     }
 
     private static string NormalizePhone(string phone) => new(RequireText(phone, "Customer phone").Where(char.IsDigit).ToArray());
+
+    private static string MaskPlate(string plate)
+    {
+        var normalized = plate.Trim();
+        var suffix = normalized.Length <= 2 ? normalized : normalized[^2..];
+        return $"••••{suffix}";
+    }
 
     private static string RequireText(string? value, string name) =>
         string.IsNullOrWhiteSpace(value) ? throw new ArgumentException($"{name} is required.") : value;

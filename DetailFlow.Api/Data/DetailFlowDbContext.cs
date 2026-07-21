@@ -31,6 +31,10 @@ public class DetailFlowDbContext(DbContextOptions<DetailFlowDbContext> options, 
 
         modelBuilder.Entity<Tenant>().HasIndex(t => t.Slug).IsUnique();
         modelBuilder.Entity<Tenant>()
+            .Property(t => t.DashboardLocale)
+            .HasMaxLength(5)
+            .HasDefaultValue(DashboardLanguages.Default);
+        modelBuilder.Entity<Tenant>()
             .Property(t => t.Settings)
             .HasColumnType("jsonb")
             .HasConversion(

@@ -104,7 +104,7 @@ public class AnalyticsService(
             .Select(h => new
             {
                 h.ChangedByName,
-                VehiclePlate = h.WorkOrder.Vehicle.PlateNumber,
+                VehiclePlate = h.WorkOrder.Vehicle == null ? "Vehicle pending" : h.WorkOrder.Vehicle.PlateNumber,
                 h.FromStage,
                 h.ToStage,
                 h.ChangedAt

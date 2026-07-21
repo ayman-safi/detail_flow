@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using DetailFlow.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -414,6 +415,81 @@ public class BookingApiTests
             TestApi.BuildPublicBookingPayload(serviceId, slot, "CLOSED-1"));
 
         await TestApi.AssertStatusAsync(response, HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Phone_only_public_booking_can_be_completed_by_staff_before_work_starts()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        var slot = TestApi.NextOpenSlot(daysFromNow: 6);
+
+        var create = await client.PostAsJsonAsync($"/api/public/shops/{tenant.Slug}/bookings", new
+        {
+            customerPhone = "+1 (555) 010-9191",
+            serviceTypeId = serviceId,
+            scheduledAt = slot
+        });
+        await TestApi.AssertStatusAsync(create, HttpStatusCode.OK);
+        Guid bookingId;
+        Guid workOrderId;
+        using (var json = await TestApi.ReadJsonAsync(create))
+        {
+            bookingId = Guid.Parse(json.RootElement.GetProperty("bookingId").GetString()!);
+            workOrderId = Guid.Parse(json.RootElement.GetProperty("workOrderId").GetString()!);
+            Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty("vehicle").ValueKind);
+            Assert.Equal(JsonValueKind.Null, json.RootElement.GetProperty("customer").GetProperty("fullName").ValueKind);
+        }
+
+        var blocked = await client.PatchAsJsonAsync($"/api/work-orders/{workOrderId}/stage", new { newStage = "Arrived" });
+        await TestApi.AssertStatusAsync(blocked, HttpStatusCode.Conflict);
+
+        var complete = await client.PatchAsJsonAsync($"/api/bookings/{bookingId}/vehicle", new
+        {
+            vehiclePlate = "LATER-91",
+            vehicleMake = "Toyota",
+            vehicleModel = "Corolla",
+            vehicleColor = "White",
+            vehicleType = "Sedan"
+        });
+        await TestApi.AssertStatusAsync(complete, HttpStatusCode.OK);
+
+        var moved = await client.PatchAsJsonAsync($"/api/work-orders/{workOrderId}/stage", new { newStage = "Arrived" });
+        await TestApi.AssertStatusAsync(moved, HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Public_vehicle_lookup_is_masked_tenant_scoped_and_selectable()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+        var serviceId = await TestApi.GetExteriorWashServiceIdAsync(client, tenant.Slug);
+        await TestApi.CreatePublicBookingAsync(client, tenant.Slug, serviceId, TestApi.NextOpenSlot(daysFromNow: 7), "LOOK-123");
+
+        var lookup = await client.PostAsJsonAsync($"/api/public/shops/{tenant.Slug}/vehicle-lookup", new { customerPhone = "1 555 010 2000" });
+        await TestApi.AssertStatusAsync(lookup, HttpStatusCode.OK);
+        Guid vehicleId;
+        using (var json = await TestApi.ReadJsonAsync(lookup))
+        {
+            var vehicle = json.RootElement.GetProperty("vehicles")[0];
+            vehicleId = Guid.Parse(vehicle.GetProperty("id").GetString()!);
+            Assert.Equal("••••23", vehicle.GetProperty("maskedPlate").GetString());
+            Assert.False(vehicle.TryGetProperty("plateNumber", out _));
+        }
+
+        var second = await client.PostAsJsonAsync($"/api/public/shops/{tenant.Slug}/bookings", new
+        {
+            customerPhone = "15550102000",
+            serviceTypeId = serviceId,
+            scheduledAt = TestApi.NextOpenSlot(daysFromNow: 8),
+            existingVehicleId = vehicleId
+        });
+        await TestApi.AssertStatusAsync(second, HttpStatusCode.OK);
+        using var secondJson = await TestApi.ReadJsonAsync(second);
+        Assert.Equal("LOOK-123", secondJson.RootElement.GetProperty("vehicle").GetProperty("plateNumber").GetString());
     }
 
     private static async Task<Guid> GetServiceIdByNameAsync(HttpClient client, string tenantSlug, string name)

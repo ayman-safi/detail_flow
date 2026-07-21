@@ -20,6 +20,7 @@
       "retry": "Tekrar dene",
       "next": "İleri",
       "previous": "Geri",
+      "back": "Geri",
       "copyLink": "Bağlantıyı kopyala",
       "newBooking": "Yeni randevu",
       "confirmBooking": "Randevuyu onayla",
@@ -61,14 +62,16 @@
       "shopName": "Dükkan adı",
       "actualPrice": "Gerçek fiyat",
       "assignedStaff": "Atanan personel",
-      "search": "Ara"
+      "search": "Ara",
+      "total": "Toplam"
     },
     "states": {
       "active": "Aktif",
       "inactive": "Pasif",
       "unassigned": "Atanmamış",
       "loading": "Yükleniyor",
-      "disabled": "Devre dışı"
+      "disabled": "Devre dışı",
+      "vehiclePending": "Araç bilgisi bekleniyor"
     },
     "units": {
       "minutesShort": "{value} dk",
@@ -279,6 +282,8 @@
     "confirm": "Onayla",
     "cancel": "İptal",
     "viewWorkOrder": "İş emrini görüntüle",
+    "vehiclePendingHelp": "Personel işe başlamadan önce araç bilgilerini ekleyecek.",
+    "completeVehicle": { "title": "Araç bilgilerini tamamla", "description": "Bu iş emrinin Geldi aşamasına geçebilmesi için araç bilgileri gereklidir.", "action": "Aracı kaydet", "required": "Tüm araç bilgilerini girin.", "saved": "Araç bilgileri kaydedildi", "failed": "Araç bilgileri kaydedilemedi." },
     "edit": {
       "action": "Randevuyu düzenle",
       "title": "Randevuyu düzenle",
@@ -318,16 +323,29 @@
   },
   "publicBooking": {
     "eyebrow": "Hizmet randevusu alın",
+    "header": { "subtitle": "Araç bakımı ve detaylandırma", "secure": "Güvenli randevu", "guarantee": "Hizmet ve ürün garantisi", "languages": "Dil seçin" },
+    "steps": { "label": "Randevu ilerlemesi", "service": "Hizmet seç", "schedule": "Saat seç", "confirm": "Randevuyu onayla" },
+    "actions": { "continue": "Devam" },
     "notFound": {
       "title": "Randevu sayfası bulunamadı",
       "description": "Dükkan bağlantısını kontrol edip tekrar deneyin."
     },
     "service": {
       "choose": "Bir hizmet seçin",
+      "title": "Hizmetinizi seçin",
+      "subtitle": "Aracınızın ihtiyacı olan bakımı seçin.",
       "empty": "Şu anda kullanılabilir hizmet yok."
     },
     "schedule": {
       "title": "Tarih ve saat",
+      "chooseTitle": "Randevu saati seçin",
+      "chooseSubtitle": "Size uygun bir tarih ve başlangıç saati seçin.",
+      "previousMonth": "Önceki ay",
+      "nextMonth": "Sonraki ay",
+      "available": "Uygun",
+      "unavailable": "Uygun değil",
+      "selected": "Seçili",
+      "chooseDate": "Saatleri görmek için uygun bir tarih seçin.",
       "availableSlots": "Uygun 30 dakikalık aralıklar",
       "noSlots": "Bu tarih için uygun saat yok.",
       "chooseServiceFirst": "Saatleri görmek için önce bir hizmet seçin.",
@@ -337,6 +355,41 @@
     },
     "customer": {
       "phone": "Telefon numarası"
+    },
+    "confirm": {
+      "title": "İncele ve onayla",
+      "subtitle": "Randevunuzu ayırmak için yalnızca telefon numaranız yeterli.",
+      "phoneTitle": "Telefon numaranız",
+      "phoneHelp": "Randevunuzu bulmak ve güncellemeleri göndermek için kullanılır.",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "lookingUp": "Araçlarınız aranıyor…",
+      "lookupFailed": "Araç araması kullanılamıyor. Yine de randevu alabilirsiniz.",
+      "noVehicles": "Kayıtlı araç bulunamadı. Personel geldiğinizde ekleyebilir.",
+      "vehicleTitle": "Kayıtlı araç",
+      "optional": "İsteğe bağlı",
+      "vehicleHelp": "Tanınan bir aracı seçin veya daha sonra personele ekletin.",
+      "addLater": "Araç bilgilerini dükkânda ekle",
+      "review": "Randevu detayları"
+    },
+    "summary": {
+      "title": "Randevu özeti",
+      "noService": "Hizmet seçilmedi",
+      "vehicleLater": "Daha sonra eklenecek",
+      "location": "Konum",
+      "guarantee": "Uygunluğun doğru kalması için onay sırasında saat yeniden kontrol edilir.",
+      "professional": "Eğitimli uzmanlardan hizmet",
+      "safe": "Güvenilir ürünler ve kalite garantisi"
+    },
+    "trust": {
+      "label": "Neden bizi seçmelisiniz",
+      "easyTitle": "Kolay deneyim",
+      "easyBody": "Üç basit adımda hızlı randevu",
+      "teamTitle": "Profesyonel ekip",
+      "teamBody": "Deneyimli araç bakım uzmanları",
+      "flexibleTitle": "Esnek saatler",
+      "flexibleBody": "Gününüze uygun saati seçin",
+      "qualityTitle": "Kalite garantisi",
+      "qualityBody": "Güvenilir hizmet ve ürünler"
     },
     "notes": {
       "placeholder": "Lütfen iç kısma odaklanın"
@@ -433,6 +486,7 @@
     "description": "DetailFlow genelinde kullanılan işletme bilgilerini, hizmetleri, çalışma saatlerini, fişleri, ekibi ve bildirimleri yönetin.",
     "tabs": {
       "profile": "Profil",
+      "language": "Dil",
       "services": "Hizmetler",
       "availability": "Müsaitlik",
       "receipts": "Fişler",
@@ -457,6 +511,15 @@
       "saved": "Profil kaydedildi",
       "uploaded": "Logo yüklendi"
     },
+    "language": {
+      "title": "Panel dili",
+      "subtitle": "Bu kiracının panelinde oturum açan tüm kullanıcılar için kullanılacak dili seçin.",
+      "label": "Panel dili",
+      "hint": "Bu ayar kiracıyı kullanıcılar, cihazlar ve oturumlar arasında takip eder. Müşteriye açık sayfalar kendi dil tercihini korur.",
+      "saved": "Panel dili kaydedildi",
+      "saveFailed": "Panel dili kaydedilemedi.",
+      "loadFailed": "Panel dili yüklenemedi."
+    },
     "services": {
       "title": "Hizmetler",
       "subtitle": "Müşterilerin ve personelin rezerve edebileceği hizmetlerin süresini, fiyatını ve sırasını yönetin.",
@@ -472,6 +535,17 @@
       "restricted": "Hizmet ayarları yöneticiler ve sahipler için kullanılabilir.",
       "saved": "Hizmet kaydedildi",
       "reordered": "Hizmet sırası güncellendi",
+      "descriptionLabel": "Açıklama",
+      "descriptionPlaceholder": "Bu hizmete neler dahil?",
+      "imageLabel": "Hizmet görseli",
+      "imageHelp": "En fazla 5 MB JPEG, PNG veya WEBP. Herkese açık randevu kartında görünür.",
+      "imageAfterSave": "Önce hizmeti kaydedin, ardından görsel ekleyin.",
+      "uploadImage": "Görsel yükle",
+      "replaceImage": "Görseli değiştir",
+      "removeImage": "Görseli kaldır",
+      "imageSaved": "Hizmet görseli kaydedildi",
+      "imageRemoved": "Hizmet görseli kaldırıldı",
+      "imageFailed": "Hizmet görseli güncellenemedi.",
       "toggleAria": "{name} durumunu değiştir"
     },
     "availability": {
@@ -930,6 +1004,8 @@
       "createdHeader": "Oluşturulma",
       "owner": "Sahip: {name} ? {email}",
       "accountControls": "Hesap kontrolleri",
+      "dashboardLanguage": "Panel dili",
+      "dashboardLanguageHint": "Bu kiracıdaki tüm kimliği doğrulanmış panel kullanıcılarına uygulanır.",
       "billingStatus": "Faturalandırma durumu",
       "billingNotes": "Faturalandırma notları",
       "billingNotesPlaceholder": "Manuel fatura durumu, yenileme notları veya ödeme takibi.",

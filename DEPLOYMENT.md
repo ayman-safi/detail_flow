@@ -66,6 +66,10 @@ sudo bash /opt/detailflow/deploy/restore.sh detailflow latest --allow-production
 
 That path creates one more R2 backup before overwriting production. Application rollback does not automatically reverse a database migration; schema changes should remain backward-compatible, and a database restore must be an intentional operator decision.
 
+### Public-booking rollback note
+
+The `AddPublicBookingWizard` migration allows confirmed bookings and Booked work orders to have no vehicle until staff completes the record. Once the redesigned public page has accepted such a booking, an older API image is not a safe application-only rollback because it assumes every booking and work order has a vehicle. Before reverting to an older image, either restore the pre-deployment database backup or attach valid tenant-scoped placeholder vehicle records to every null `VehicleId`, then verify the board and booking list against the compatibility data. Do not reverse the migration while null vehicle rows exist.
+
 ## Operations
 
 Useful checks on the VPS:

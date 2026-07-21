@@ -35,6 +35,28 @@ public class TenantSettingsService(
         await db.SaveChangesAsync();
     }
 
+    public async Task<string> GetDashboardLanguageAsync()
+    {
+        var language = await db.Tenants
+            .Where(t => t.Id == tenantContext.TenantId)
+            .Select(t => t.DashboardLocale)
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException("Tenant not found.");
+
+        return DashboardLanguages.Normalize(language);
+    }
+
+    public async Task<string> SaveDashboardLanguageAsync(string? language)
+    {
+        var tenant = await db.Tenants
+            .FirstOrDefaultAsync(t => t.Id == tenantContext.TenantId)
+            ?? throw new KeyNotFoundException("Tenant not found.");
+
+        tenant.DashboardLocale = DashboardLanguages.Validate(language);
+        await db.SaveChangesAsync();
+        return tenant.DashboardLocale;
+    }
+
     public async Task<WorkingDay?> GetWorkingDayAsync(DateOnly date)
     {
         var settings = await GetAsync();

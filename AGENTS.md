@@ -18,6 +18,7 @@ Important implemented capabilities are:
 - tenant- and tracking-token-scoped server-sent events (SSE), with public tracking polling fallback;
 - before/after photo storage in Cloudflare R2, localized PDF receipts, and WhatsApp template/provider integration;
 - tenant profile, service catalog, hours/closures, locale/currency, receipt, staff, plan/quota, date-range analytics, and notification settings;
+- tenant-scoped authenticated dashboard language (`en`, `ar`, or `tr`), managed by Owner/Manager or the platform admin independently of public-page locale preferences;
 - platform tenant search/filter/update and time-limited support sessions;
 - English, Arabic RTL, and Turkish user interfaces plus a localized marketing site.
 
@@ -281,6 +282,7 @@ docker compose --env-file .env.example -f deploy/compose.yml config --quiet
 - Analytics accepts inclusive shop-local date ranges up to 90 days and uses the browser timezone offset for UTC query boundaries. Bookings, completions, service mix, repeat customers, trend data, and activity follow the selected range; active vehicles remains a live snapshot.
 - `src/types/index.ts` is not generated. C# payload/enum changes can compile while the web contract becomes stale; update and build both applications.
 - Translation keys must remain complete across `en.json`, `ar.json`, and `tr.json`. Verify Arabic RTL as well as English; fallback-to-English can hide missing keys.
+- `Tenant.DashboardLocale` is returned by tenant authentication/session initialization and applied through the dashboard layout's scoped i18n override. Keep it separate from public `DefaultLocale`/`AvailableLocales` and the public locale cookie/local-storage preference.
 - `MVP_Plan.md` is historical input, not a source of current framework or feature truth. `SYSTEM_TESTING_REPORT.md` and dated counts are snapshots, not automatically live.
 - `DevSeedService` is intentionally deterministic and destructive for its fixture tenants. The Playwright suite depends on its stable IDs/tokens/accounts and one-worker reset behavior. Do not randomize it or expose the seed outside Development.
 - Edit `MANUAL_REGRESSION_TEST_SUITE.md` and `e2e-manual/generate-suite.mjs`, then regenerate. Do not edit generated Playwright spec files, `tests/generated/manual-cases.ts`, or `PLAYWRIGHT_COVERAGE.md` directly.

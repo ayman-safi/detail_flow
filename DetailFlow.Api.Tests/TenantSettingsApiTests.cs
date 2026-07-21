@@ -1,11 +1,88 @@
 using System.Net;
 using System.Net.Http.Json;
+using DetailFlow.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DetailFlow.Api.Tests;
 
 public class TenantSettingsApiTests
 {
+    [Fact]
+    public async Task Dashboard_language_is_tenant_scoped_and_limited_to_owner_and_manager()
+    {
+        using var app = new DetailFlowApiFactory();
+        var firstClient = TestApi.CreateClient(app);
+        var firstTenant = await TestApi.RegisterTenantAsync(firstClient);
+        var secondClient = TestApi.CreateClient(app);
+        await TestApi.RegisterTenantAsync(secondClient);
+
+        var ownerUpdate = await firstClient.PatchAsJsonAsync(
+            "/api/settings/dashboard-language",
+            new { dashboardLocale = "tr" });
+        await TestApi.AssertStatusAsync(ownerUpdate, HttpStatusCode.OK);
+
+        TestApi.SetBearerToken(firstClient, firstTenant, UserRole.Manager);
+        var managerUpdate = await firstClient.PatchAsJsonAsync(
+            "/api/settings/dashboard-language",
+            new { dashboardLocale = "ar" });
+        await TestApi.AssertStatusAsync(managerUpdate, HttpStatusCode.OK);
+
+        TestApi.SetBearerToken(firstClient, firstTenant, UserRole.Staff);
+        var staffRead = await firstClient.GetAsync("/api/settings/dashboard-language");
+        await TestApi.AssertStatusAsync(staffRead, HttpStatusCode.OK);
+        using (var staffJson = await TestApi.ReadJsonAsync(staffRead))
+        {
+            Assert.Equal("ar", staffJson.RootElement.GetProperty("dashboardLocale").GetString());
+        }
+
+        var staffUpdate = await firstClient.PatchAsJsonAsync(
+            "/api/settings/dashboard-language",
+            new { dashboardLocale = "en" });
+        await TestApi.AssertStatusAsync(staffUpdate, HttpStatusCode.Forbidden);
+
+        var secondTenantRead = await secondClient.GetAsync("/api/settings/dashboard-language");
+        await TestApi.AssertStatusAsync(secondTenantRead, HttpStatusCode.OK);
+        using (var secondJson = await TestApi.ReadJsonAsync(secondTenantRead))
+        {
+            Assert.Equal("en", secondJson.RootElement.GetProperty("dashboardLocale").GetString());
+        }
+
+        TestApi.SetBearerToken(firstClient, firstTenant);
+        var invalidUpdate = await firstClient.PatchAsJsonAsync(
+            "/api/settings/dashboard-language",
+            new { dashboardLocale = "invalid" });
+        await TestApi.AssertStatusAsync(invalidUpdate, HttpStatusCode.BadRequest);
+
+        var meResponse = await firstClient.GetAsync("/api/auth/me");
+        await TestApi.AssertStatusAsync(meResponse, HttpStatusCode.OK);
+        using var meJson = await TestApi.ReadJsonAsync(meResponse);
+        Assert.Equal(
+            "ar",
+            meJson.RootElement.GetProperty("user").GetProperty("dashboardLocale").GetString());
+    }
+
+    [Fact]
+    public async Task Authentication_falls_back_for_an_invalid_stored_dashboard_language()
+    {
+        using var app = new DetailFlowApiFactory();
+        var client = TestApi.CreateClient(app);
+        var tenant = await TestApi.RegisterTenantAsync(client);
+
+        await app.ExecuteDbContextAsync(async db =>
+        {
+            var currentTenant = await db.Tenants.SingleAsync(t => t.Id == tenant.Id);
+            currentTenant.DashboardLocale = "xx";
+            await db.SaveChangesAsync();
+        });
+
+        var response = await client.GetAsync("/api/auth/me");
+        await TestApi.AssertStatusAsync(response, HttpStatusCode.OK);
+        using var json = await TestApi.ReadJsonAsync(response);
+        Assert.Equal(
+            "en",
+            json.RootElement.GetProperty("user").GetProperty("dashboardLocale").GetString());
+    }
+
     [Fact]
     public async Task Owner_can_update_profile_receipt_currency_and_availability()
     {

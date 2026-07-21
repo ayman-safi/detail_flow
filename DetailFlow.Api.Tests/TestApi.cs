@@ -133,7 +133,7 @@ internal static class TestApi
     {
         var date = DateTimeOffset.UtcNow.Date.AddDays(daysFromNow);
         while (date.DayOfWeek == DayOfWeek.Friday)
-            date = date.AddDays(1);
+            date = date.AddDays(2);
 
         return new DateTimeOffset(date.Year, date.Month, date.Day, 10, 0, 0, TimeSpan.Zero);
     }

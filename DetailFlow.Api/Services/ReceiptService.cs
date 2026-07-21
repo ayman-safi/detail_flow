@@ -104,9 +104,9 @@ public class ReceiptService
                         {
                             info.Spacing(2);
                             info.Item().Text(text.VehicleLabel).Bold().FontSize(9).FontColor("#64748b");
-                            info.Item().Text($"{workOrder.Vehicle.Make} {workOrder.Vehicle.Model}").Bold().FontSize(12);
-                            info.Item().ContentFromLeftToRight().Text(workOrder.Vehicle.PlateNumber);
-                            info.Item().Text(workOrder.Vehicle.Color).FontColor("#475569");
+                            info.Item().Text(workOrder.Vehicle is null ? "Vehicle pending" : $"{workOrder.Vehicle.Make} {workOrder.Vehicle.Model}").Bold().FontSize(12);
+                            info.Item().ContentFromLeftToRight().Text(workOrder.Vehicle?.PlateNumber ?? "—");
+                            info.Item().Text(workOrder.Vehicle?.Color ?? "—").FontColor("#475569");
                         });
                     });
 

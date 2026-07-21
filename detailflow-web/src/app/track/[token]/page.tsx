@@ -132,12 +132,12 @@ export default function TrackingPage() {
       <div className="mx-auto max-w-[480px] p-4">
         <section className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-white p-5">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="h-4 w-4 rounded-full border border-slate-200" style={{ background: info.vehicleColor }} />
-            <h1 className="min-w-0 flex-1 font-[var(--font-display)] text-xl font-bold">{info.vehicleMake} {info.vehicleModel}</h1>
-            <span dir="ltr" className="plate shrink-0 rounded bg-slate-100 px-2 py-1 text-sm">{info.vehiclePlate}</span>
+            {info.vehicleColor && <span className="h-4 w-4 rounded-full border border-slate-200" style={{ background: info.vehicleColor }} />}
+            <h1 className="min-w-0 flex-1 font-[var(--font-display)] text-xl font-bold">{info.vehicleMake && info.vehicleModel ? `${info.vehicleMake} ${info.vehicleModel}` : t('common.states.vehiclePending')}</h1>
+            {info.vehiclePlate && <span dir="ltr" className="plate shrink-0 rounded bg-slate-100 px-2 py-1 text-sm">{info.vehiclePlate}</span>}
           </div>
           <p className="mt-2 text-sm text-[var(--color-text-muted)]">{info.serviceName}</p>
-          {readyOrDelivered && (
+          {readyOrDelivered && info.vehiclePlate && (
             <a
               href={receiptUrl}
               target="_blank"

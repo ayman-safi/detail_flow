@@ -10,4 +10,6 @@ public class ServiceType
     public int DurationMinutes { get; set; }
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; } = 0;
+    public string? ImageUrl { get; set; }
+    public string? ImageR2Key { get; set; }
 }

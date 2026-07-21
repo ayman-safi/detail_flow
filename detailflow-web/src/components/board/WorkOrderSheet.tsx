@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle, Copy, Download, Loader2, MessageCircle } from 'lucide-react';
+import { Car, CheckCircle, Copy, Download, Loader2, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { useTenantCurrency } from '@/hooks/useTenantCurrency';
 import { useAuthStore } from '@/store/authStore';
 import { useBoardStore } from '@/store/boardStore';
-import type { NotificationEventType, PaymentStatus, Stage, StaffMember, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
+import type { NotificationEventType, PaymentStatus, Stage, StaffMember, VehicleType, WhatsAppShare, WorkOrderCard, WorkOrderDetail, WorkOrderStageHistoryEntry } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ import { StageBadge } from '@/components/shared/StageBadge';
 import { PhotoGrid } from '@/components/photos/PhotoGrid';
 import { PhotoUploader } from '@/components/photos/PhotoUploader';
 import { useI18n } from '@/i18n/I18nProvider';
-import { getStageKey, stageSequence } from '@/i18n/domain';
+import { getStageKey, getVehicleTypeKey, stageSequence, vehicleTypes } from '@/i18n/domain';
 import { cn } from '@/lib/utils';
 
 const defaultTab = 'details';
@@ -39,6 +39,8 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
   const [whatsAppShare, setWhatsAppShare] = useState<WhatsAppShare | null>(null);
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingNavigationHref, setPendingNavigationHref] = useState<string | null>(null);
+  const [vehicleSaving, setVehicleSaving] = useState(false);
+  const [vehicleDraft, setVehicleDraft] = useState({ plateNumber: '', make: '', model: '', color: '', vehicleType: 'Sedan' as VehicleType });
   const user = useAuthStore((state) => state.user);
   const updateCard = useBoardStore((state) => state.updateCard);
   const qc = useQueryClient();
@@ -196,7 +198,7 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
   };
 
   const downloadReceipt = async () => {
-    if (!card) return;
+    if (!card?.vehicle) return;
     setReceiptLoading(true);
     try {
       const response = await api.get(`/work-orders/${workOrderId}/receipt`, {
@@ -213,6 +215,31 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
       URL.revokeObjectURL(url);
     } finally {
       setReceiptLoading(false);
+    }
+  };
+
+  const completeVehicle = async () => {
+    if (!card?.bookingId || vehicleSaving) return;
+    if (!vehicleDraft.plateNumber.trim() || !vehicleDraft.make.trim() || !vehicleDraft.model.trim() || !vehicleDraft.color.trim()) {
+      toast.error(t('bookings.completeVehicle.required'));
+      return;
+    }
+    setVehicleSaving(true);
+    try {
+      const { data: updated } = await api.patch<WorkOrderCard>(`/bookings/${card.bookingId}/vehicle`, {
+        vehiclePlate: vehicleDraft.plateNumber,
+        vehicleMake: vehicleDraft.make,
+        vehicleModel: vehicleDraft.model,
+        vehicleColor: vehicleDraft.color,
+        vehicleType: vehicleDraft.vehicleType,
+      });
+      refreshBoardCard(updated);
+      await Promise.all([refetch(), qc.invalidateQueries({ queryKey: ['bookings'] })]);
+      toast.success(t('bookings.completeVehicle.saved'));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('bookings.completeVehicle.failed')));
+    } finally {
+      setVehicleSaving(false);
     }
   };
 
@@ -318,9 +345,9 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                   <SheetTitle className="font-[var(--font-display)] text-[1.75rem] leading-none font-semibold">
                     {t('board.workOrder.title')}
                   </SheetTitle>
-                  <div className="plate text-2xl">{card.vehicle.plateNumber}</div>
+                  <div className="plate text-2xl">{card.vehicle?.plateNumber ?? t('common.states.vehiclePending')}</div>
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    {card.vehicle.make} {card.vehicle.model}
+                    {card.vehicle ? `${card.vehicle.make} ${card.vehicle.model}` : t('bookings.vehiclePendingHelp')}
                   </p>
                 </div>
                 <div className={cn('flex min-w-0 flex-col gap-3 sm:min-w-[140px]', isRtl ? 'items-start text-right' : 'items-start text-left sm:items-end sm:text-right')}>
@@ -341,10 +368,24 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
               </TabsList>
 
               <TabsContent value="details" className="space-y-5">
+                {!card.vehicle && card.bookingId && (
+                  <section className="rounded-[var(--radius-lg)] border border-[var(--color-primary)] bg-[var(--color-primary-muted)] p-4">
+                    <h3 className="flex items-center gap-2 font-semibold text-[var(--color-primary)]"><Car size={18} />{t('bookings.completeVehicle.title')}</h3>
+                    <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t('bookings.completeVehicle.description')}</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div><Label>{t('common.labels.plate')}</Label><Input value={vehicleDraft.plateNumber} onChange={(event) => setVehicleDraft((current) => ({ ...current, plateNumber: event.target.value.toUpperCase() }))} /></div>
+                      <div><Label>{t('common.labels.make')}</Label><Input value={vehicleDraft.make} onChange={(event) => setVehicleDraft((current) => ({ ...current, make: event.target.value }))} /></div>
+                      <div><Label>{t('common.labels.model')}</Label><Input value={vehicleDraft.model} onChange={(event) => setVehicleDraft((current) => ({ ...current, model: event.target.value }))} /></div>
+                      <div><Label>{t('common.labels.color')}</Label><Input value={vehicleDraft.color} onChange={(event) => setVehicleDraft((current) => ({ ...current, color: event.target.value }))} /></div>
+                      <div><Label>{t('common.labels.type')}</Label><select className={cn(selectClassName, 'mt-2')} value={vehicleDraft.vehicleType} onChange={(event) => setVehicleDraft((current) => ({ ...current, vehicleType: event.target.value as VehicleType }))}>{vehicleTypes.map((type) => <option key={type} value={type}>{t(getVehicleTypeKey(type))}</option>)}</select></div>
+                    </div>
+                    <Button className="mt-4 h-11 w-full sm:w-auto" disabled={vehicleSaving} onClick={() => void completeVehicle()}>{vehicleSaving && <Loader2 size={16} className="animate-spin" />}{t('bookings.completeVehicle.action')}</Button>
+                  </section>
+                )}
                 <section className={cn('grid gap-4 sm:grid-cols-2', isRtl && 'sm:[direction:rtl]')}>
                   <div className={panelClassName}>
                     <p className={sectionLabelClassName}>{t('common.labels.customer')}</p>
-                    <p className="mt-2 text-lg font-semibold">{card.customer.fullName}</p>
+                    <p className="mt-2 text-lg font-semibold">{card.customer.fullName ?? card.customer.phone}</p>
                     <a className="mt-1 inline-flex text-sm text-[var(--color-primary)]" href={`tel:${card.customer.phone}`}>
                       {card.customer.phone}
                     </a>
@@ -352,10 +393,10 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                   <div className={panelClassName}>
                     <p className={sectionLabelClassName}>{t('common.labels.vehicle')}</p>
                     <p className="mt-2 text-lg font-semibold">
-                      {card.vehicle.color} {card.vehicle.vehicleType}
+                      {card.vehicle ? `${card.vehicle.color} ${t(getVehicleTypeKey(card.vehicle.vehicleType))}` : t('common.states.vehiclePending')}
                     </p>
                     <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                      {card.vehicle.make} {card.vehicle.model}
+                      {card.vehicle ? `${card.vehicle.make} ${card.vehicle.model}` : t('bookings.vehiclePendingHelp')}
                     </p>
                   </div>
                 </section>
@@ -428,6 +469,7 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                           className={cn(selectClassName, 'mt-2')}
                           value={card.stage}
                           onChange={(event) => changeStage(event.target.value as Stage)}
+                          disabled={!card.vehicle}
                         >
                           {stageSequence.map((stage) => (
                             <option key={stage} value={stage}>
@@ -442,7 +484,7 @@ export function WorkOrderSheet({ workOrderId, onClose }: { workOrderId: string |
                         className="mt-auto h-11 w-full rounded-[var(--radius-md)]"
                         variant="secondary"
                         onClick={downloadReceipt}
-                        disabled={receiptLoading}
+                        disabled={receiptLoading || !card.vehicle}
                       >
                         {receiptLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download size={16} />}
                         {t('common.actions.downloadReceipt')}

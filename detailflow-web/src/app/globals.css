@@ -119,6 +119,13 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { font-family: var(--font-body); background-color: var(--color-bg); color: var(--color-text); font-size: 16px; -webkit-font-smoothing: antialiased; }
 body { min-height: 100vh; margin: 0; background: var(--color-bg); color: var(--color-text); transition: background-color 180ms ease, color 180ms ease; }
+html[data-public-surface="light"],
+html[data-public-surface="light"] body {
+  background: #f5f8fd;
+  color-scheme: light;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+}
 button, input, textarea, select { font: inherit; }
 button, [role="button"], a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
 :is(a, button, input, textarea, select, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
