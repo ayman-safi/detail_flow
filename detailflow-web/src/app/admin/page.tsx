@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useI18n } from '@/i18n/I18nProvider';
 import { getRoleKey } from '@/i18n/domain';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 const plans: TenantPlan[] = ['Free', 'Pro', 'Business'];
 const billingStatuses: TenantBillingStatus[] = ['Trial', 'Active', 'PastDue', 'Suspended', 'Manual'];
@@ -131,6 +132,7 @@ export default function PlatformAdminPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <ThemeToggle />
             <Button variant="secondary" onClick={refresh}>
               <RefreshCw size={16} />
               {t('common.actions.refresh')}

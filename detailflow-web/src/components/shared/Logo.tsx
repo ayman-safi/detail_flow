@@ -10,7 +10,7 @@ export function Logo({ collapsed = false }: { collapsed?: boolean }) {
       <span className="h-3.5 w-3.5 rotate-45 rounded-[2px] bg-[var(--color-primary)]" aria-hidden />
       {!collapsed && (
         <span>
-          <span className="text-white">{t('common.brandLead')}</span>
+          <span className="text-[var(--color-text)]">{t('common.brandLead')}</span>
           <span className="text-[var(--color-primary)]">{t('common.brandAccent')}</span>
         </span>
       )}

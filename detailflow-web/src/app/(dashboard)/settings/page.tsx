@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { BadgeDollarSign, CalendarX, Check, Clock, Copy, GripVertical, MessageCircle, MoreVertical, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { AlertCircle, BadgeDollarSign, Building2, CalendarX, Check, Clock, Copy, GripVertical, ImagePlus, MessageCircle, MoreVertical, Pencil, Plus, ReceiptText, RefreshCw, Trash2, Users, X } from 'lucide-react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { fallbackReceiptSettings, useReceiptSettings, useTenantCurrency } from '@/hooks/useTenantCurrency';
@@ -30,6 +30,60 @@ type TenantProfile = { name?: string; logoUrl?: string };
 type LogoUploadResponse = { logoUrl: string };
 const weekdays: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const whatsAppTemplateEventTypes: NotificationEventType[] = ['TrackingLink', 'ReadyForPickup', 'StaffInvite', 'PasswordReset'];
+const serviceDesktopGrid = 'md:grid-cols-[40px_minmax(0,1.6fr)_120px_120px_100px_96px]';
+
+function SettingsSectionHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-4 border-b border-[var(--color-border-subtle)] px-4 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
+          <Icon size={20} aria-hidden="true" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="font-[var(--font-display)] text-xl font-semibold leading-tight">{title}</h2>
+          {description && <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-text-muted)]">{description}</p>}
+        </div>
+      </div>
+      {action && <div className="w-full shrink-0 sm:w-auto">{action}</div>}
+    </div>
+  );
+}
+
+function SettingsFormActions({ children }: { children: React.ReactNode }) {
+  return <div className="flex justify-end border-t border-[var(--color-border-subtle)] px-4 py-4 sm:px-6">{children}</div>;
+}
+
+function SettingsState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex min-h-36 flex-col items-center justify-center gap-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] px-4 py-8 text-center" role={onRetry ? 'alert' : 'status'}>
+      <AlertCircle size={20} className="text-[var(--color-text-muted)]" aria-hidden="true" />
+      <p className="max-w-md text-sm text-[var(--color-text-muted)]">{message}</p>
+      {onRetry && <Button variant="secondary" size="sm" onClick={onRetry}><RefreshCw size={15} />{t('common.actions.retry')}</Button>}
+    </div>
+  );
+}
+
+function StatusBadge({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'info' }) {
+  const tones = {
+    neutral: 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]',
+    success: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
+    warning: 'bg-[var(--color-warning-muted)] text-[var(--color-warning)]',
+    danger: 'bg-[var(--color-destructive-muted)] text-[var(--color-destructive)]',
+    info: 'bg-[var(--color-primary-muted)] text-[var(--color-primary)]',
+  };
+  return <span className={cn('inline-flex min-h-6 items-center rounded-full px-2.5 py-1 text-xs font-medium leading-none', tones[tone])}>{children}</span>;
+}
 
 function defaultWhatsAppTemplates(): WhatsAppTemplateSettings[] {
   return whatsAppTemplateEventTypes.map((eventType) => ({
@@ -104,17 +158,30 @@ function serializeAvailabilitySettings(settings: TenantSettings): TenantSettings
 
 export default function SettingsPage() {
   const { t } = useI18n();
+  const [activeTab, setActiveTab] = useState('profile');
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    tabsRef.current?.querySelector<HTMLElement>('[data-state="active"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }, [activeTab]);
+
   return (
-    <div className="p-4">
-      <Tabs defaultValue="profile">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:inline-flex lg:w-auto">
-          <TabsTrigger className="px-3 sm:px-4" value="profile">{t('settings.tabs.profile')}</TabsTrigger>
-          <TabsTrigger className="px-3 sm:px-4" value="services">{t('settings.tabs.services')}</TabsTrigger>
-          <TabsTrigger className="px-3 sm:px-4" value="availability">{t('settings.tabs.availability')}</TabsTrigger>
-          <TabsTrigger className="px-3 sm:px-4" value="receipts">{t('settings.tabs.receipts')}</TabsTrigger>
-          <TabsTrigger className="px-3 sm:px-4" value="staff">{t('settings.tabs.staff')}</TabsTrigger>
-          <TabsTrigger className="px-3 sm:px-4" value="notifications">{t('settings.tabs.notifications')}</TabsTrigger>
-        </TabsList>
+    <main className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-5 lg:px-6 lg:py-6">
+      <div className="mb-5">
+        <h1 className="font-[var(--font-display)] text-2xl font-semibold tracking-tight sm:text-3xl">{t('navigation.settings')}</h1>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-text-muted)]">{t('settings.description')}</p>
+      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div ref={tabsRef} className="-mx-4 overflow-hidden px-4 sm:mx-0 sm:px-0">
+          <TabsList aria-label={t('navigation.settings')} className="flex w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-[var(--radius-md)] p-1 sm:w-fit">
+            <TabsTrigger className="h-11 shrink-0 px-4" value="profile">{t('settings.tabs.profile')}</TabsTrigger>
+            <TabsTrigger className="h-11 shrink-0 px-4" value="services">{t('settings.tabs.services')}</TabsTrigger>
+            <TabsTrigger className="h-11 shrink-0 px-4" value="availability">{t('settings.tabs.availability')}</TabsTrigger>
+            <TabsTrigger className="h-11 shrink-0 px-4" value="receipts">{t('settings.tabs.receipts')}</TabsTrigger>
+            <TabsTrigger className="h-11 shrink-0 px-4" value="staff">{t('settings.tabs.staff')}</TabsTrigger>
+            <TabsTrigger className="h-11 shrink-0 px-4" value="notifications">{t('settings.tabs.notifications')}</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="profile"><ProfileTab /></TabsContent>
         <TabsContent value="services"><ServicesTab /></TabsContent>
         <TabsContent value="availability"><AvailabilityTab /></TabsContent>
@@ -122,7 +189,7 @@ export default function SettingsPage() {
         <TabsContent value="staff"><StaffTab /></TabsContent>
         <TabsContent value="notifications"><NotificationsTab /></TabsContent>
       </Tabs>
-    </div>
+    </main>
   );
 }
 
@@ -132,8 +199,9 @@ function AvailabilityTab() {
   const { isRtl, t } = useI18n();
   const allowed = user?.role === 'Owner' || user?.role === 'Manager';
   const [draft, setDraft] = useState<TenantSettings | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const { data: settings, isLoading } = useQuery<TenantSettings>({
+  const { data: settings, isLoading, isError, refetch } = useQuery<TenantSettings>({
     queryKey: ['availability-settings'],
     enabled: allowed,
     queryFn: () => api.get<TenantSettings>('/settings/availability').then((response) => response.data),
@@ -191,6 +259,8 @@ function AvailabilityTab() {
   };
 
   const save = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       await api.put('/settings/availability', serializeAvailabilitySettings(form));
       toast.success(t('settings.availability.saved'));
@@ -200,118 +270,94 @@ function AvailabilityTab() {
       qc.invalidateQueries({ queryKey: ['public-availability'] });
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('settings.availability.saveFailed')));
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const workingDays = form.workingDays;
   const closurePeriods = form.closurePeriods;
 
-  return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.55fr)]">
-      <Card className="p-5">
-        <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
-            <Clock size={20} />
-          </div>
-          <div>
-            <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.availability.title')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.availability.subtitle')}</p>
-          </div>
-        </div>
+  if (isLoading) return <Card className="p-4 sm:p-6" aria-busy="true"><SettingsState message={t('common.states.loading')} /></Card>;
+  if (isError) return <Card className="p-4 sm:p-6"><SettingsState message={t('settings.availability.loadFailed')} onRetry={() => void refetch()} /></Card>;
 
-        <div className="mb-5 max-w-xs">
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)] lg:items-start">
+      <Card className="overflow-hidden">
+        <SettingsSectionHeader icon={Clock} title={t('settings.availability.title')} description={t('settings.availability.subtitle')} />
+
+        <div className="px-4 py-5 sm:px-6">
+        <div className="mb-6 max-w-sm">
           <Label htmlFor="bay-capacity">{t('settings.availability.bayCapacity')}</Label>
           <Input
             id="bay-capacity"
             type="number"
             min={1}
             value={form.bayCapacity}
-            disabled={isLoading}
+            disabled={isSaving}
             onChange={(event) => setDraft((current) => ({ ...(current ?? form), bayCapacity: Number(event.target.value) }))}
           />
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t('settings.availability.bayCapacityHint')}</p>
         </div>
 
-        <div className="mb-3 flex items-center gap-2">
-          <h3 className="font-medium">{t('settings.availability.weeklyHours')}</h3>
-        </div>
+        <h3 className="mb-3 font-medium">{t('settings.availability.weeklyHours')}</h3>
         <div className="space-y-3">
           {workingDays.map((day) => (
-            <div key={day.day} className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3 md:grid-cols-[minmax(120px,1fr)_120px_minmax(0,1fr)_minmax(0,1fr)] md:items-center">
-              <div className="flex items-center justify-between gap-3">
+            <div key={day.day} className={cn('rounded-[var(--radius-md)] border border-[var(--color-border)] p-4 transition-colors', day.isOpen ? 'bg-[var(--color-surface)]' : 'bg-[var(--color-surface-elevated)]/55')}>
+              <div className="flex items-center justify-between gap-3 md:hidden">
                 <p className="font-medium">{t(`weekdays.${day.day}`)}</p>
-                <span className="text-xs text-[var(--color-text-muted)] md:hidden">
-                  {day.isOpen ? t('settings.availability.open') : t('settings.availability.closed')}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[var(--color-text-muted)]">{day.isOpen ? t('settings.availability.open') : t('settings.availability.closed')}</span>
+                  <Switch aria-label={t(`weekdays.${day.day}`)} checked={day.isOpen} disabled={isSaving} onCheckedChange={(checked) => updateWorkingDay(day.day, { isOpen: checked })} />
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  aria-label={t(`weekdays.${day.day}`)}
-                  checked={day.isOpen}
-                  disabled={isLoading}
-                  onCheckedChange={(checked) => updateWorkingDay(day.day, { isOpen: checked })}
-                />
-                <span className="hidden text-sm text-[var(--color-text-muted)] md:inline">
-                  {day.isOpen ? t('settings.availability.open') : t('settings.availability.closed')}
-                </span>
-              </div>
-              <div>
-                <Label>{t('settings.availability.opens')}</Label>
-                <Input
-                  type="time"
-                  value={day.openTime}
-                  disabled={isLoading || !day.isOpen}
-                  onChange={(event) => updateWorkingDay(day.day, { openTime: event.target.value })}
-                />
-              </div>
-              <div>
-                <Label>{t('settings.availability.closes')}</Label>
-                <Input
-                  type="time"
-                  value={day.closeTime}
-                  disabled={isLoading || !day.isOpen}
-                  onChange={(event) => updateWorkingDay(day.day, { closeTime: event.target.value })}
-                />
+              <div className="mt-4 grid gap-3 min-[430px]:grid-cols-2 md:mt-0 md:grid-cols-[minmax(120px,1fr)_120px_minmax(0,1fr)_minmax(0,1fr)] md:items-center">
+                <p className="hidden font-medium md:block">{t(`weekdays.${day.day}`)}</p>
+                <div className="hidden items-center gap-2 md:flex">
+                  <Switch aria-label={t(`weekdays.${day.day}`)} checked={day.isOpen} disabled={isSaving} onCheckedChange={(checked) => updateWorkingDay(day.day, { isOpen: checked })} />
+                  <span className="text-sm text-[var(--color-text-muted)]">
+                    {day.isOpen ? t('settings.availability.open') : t('settings.availability.closed')}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <Label htmlFor={`opens-${day.day}`}>{t('settings.availability.opens')}</Label>
+                  <Input id={`opens-${day.day}`} type="time" value={day.openTime} disabled={isSaving || !day.isOpen} onChange={(event) => updateWorkingDay(day.day, { openTime: event.target.value })} />
+                </div>
+                <div className="min-w-0">
+                  <Label htmlFor={`closes-${day.day}`}>{t('settings.availability.closes')}</Label>
+                  <Input id={`closes-${day.day}`} type="time" value={day.closeTime} disabled={isSaving || !day.isOpen} onChange={(event) => updateWorkingDay(day.day, { closeTime: event.target.value })} />
+                </div>
               </div>
             </div>
           ))}
         </div>
-
-        <Button className="mt-5 w-full sm:w-auto" onClick={save} disabled={isLoading}>
-          {t('common.actions.save')}
-        </Button>
+        </div>
+        <SettingsFormActions><Button className="w-full sm:w-auto" onClick={save} disabled={isSaving} aria-busy={isSaving}>{t('common.actions.save')}</Button></SettingsFormActions>
       </Card>
 
-      <Card className="p-5">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
-              <CalendarX size={20} />
-            </div>
-            <div>
-              <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.availability.closures')}</h2>
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.availability.closuresHint')}</p>
-            </div>
-          </div>
-          <Button variant="secondary" size="icon" onClick={addClosure} disabled={isLoading} aria-label={t('settings.availability.addClosure')}>
-            <Plus size={16} />
-          </Button>
-        </div>
+      <Card className="overflow-hidden">
+        <SettingsSectionHeader
+          icon={CalendarX}
+          title={t('settings.availability.closures')}
+          description={t('settings.availability.closuresHint')}
+        />
 
+        <div className="p-4 sm:p-6">
+        <Button className="mb-4 w-full" variant="secondary" onClick={addClosure} disabled={isSaving}><Plus size={16} />{t('settings.availability.addClosure')}</Button>
         {closurePeriods.length === 0 ? (
-          <p className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-muted)]">{t('settings.availability.noClosures')}</p>
+          <SettingsState message={t('settings.availability.noClosures')} />
         ) : (
           <div className="space-y-3">
             {closurePeriods.map((period, index) => (
               <div key={`${period.from}-${period.to}-${index}`} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <Label>{t('settings.availability.from')}</Label>
-                    <Input type="date" value={period.from} disabled={isLoading} onChange={(event) => updateClosure(index, { from: event.target.value })} />
+                    <Label htmlFor={`closure-from-${index}`}>{t('settings.availability.from')}</Label>
+                    <Input id={`closure-from-${index}`} type="date" value={period.from} disabled={isSaving} onChange={(event) => updateClosure(index, { from: event.target.value })} />
                   </div>
                   <div>
-                    <Label>{t('settings.availability.to')}</Label>
-                    <Input type="date" value={period.to} disabled={isLoading} onChange={(event) => updateClosure(index, { to: event.target.value })} />
+                    <Label htmlFor={`closure-to-${index}`}>{t('settings.availability.to')}</Label>
+                    <Input id={`closure-to-${index}`} type="date" value={period.to} disabled={isSaving} onChange={(event) => updateClosure(index, { to: event.target.value })} />
                   </div>
                 </div>
                 <div className="mt-3 flex gap-2">
@@ -319,14 +365,14 @@ function AvailabilityTab() {
                     aria-label={t('settings.availability.reason')}
                     placeholder={t('settings.availability.reasonPlaceholder')}
                     value={period.reason ?? ''}
-                    disabled={isLoading}
+                    disabled={isSaving}
                     onChange={(event) => updateClosure(index, { reason: event.target.value })}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeClosure(index)}
-                    disabled={isLoading}
+                    disabled={isSaving}
                     aria-label={t('settings.availability.removeClosure')}
                     className={cn('shrink-0', isRtl && 'order-first')}
                   >
@@ -337,6 +383,7 @@ function AvailabilityTab() {
             ))}
           </div>
         )}
+        </div>
       </Card>
     </div>
   );
@@ -347,9 +394,10 @@ function ReceiptTab() {
   const qc = useQueryClient();
   const { formatCurrency, isRtl, t } = useI18n();
   const allowed = user?.role === 'Owner' || user?.role === 'Manager';
-  const { data, isLoading } = useReceiptSettings();
+  const { data, isLoading, isError, refetch } = useReceiptSettings();
   const settings = data ?? fallbackReceiptSettings;
   const [draftCurrency, setDraftCurrency] = useState<TenantCurrency | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const currency = draftCurrency ?? data?.currency ?? 'SAR';
   const selectClassName = cn(
     'h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)]',
@@ -361,6 +409,8 @@ function ReceiptTab() {
   }
 
   const save = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const { data: saved } = await api.put<ReceiptSettings>('/settings/receipt', { currency });
       setDraftCurrency(saved.currency);
@@ -368,29 +418,25 @@ function ReceiptTab() {
       qc.invalidateQueries({ queryKey: ['receipt-settings'] });
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('settings.receipts.saveFailed')));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  return (
-    <Card className="max-w-[680px] p-5">
-      <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
-          <BadgeDollarSign size={20} />
-        </div>
-        <div>
-          <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.receipts.title')}</h2>
-          <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.receipts.subtitle')}</p>
-        </div>
-      </div>
+  if (isLoading) return <Card className="p-4 sm:p-6" aria-busy="true"><SettingsState message={t('common.states.loading')} /></Card>;
+  if (isError) return <Card className="p-4 sm:p-6"><SettingsState message={t('settings.receipts.loadFailed')} onRetry={() => void refetch()} /></Card>;
 
-      <div className="space-y-4">
-        <div>
+  return (
+    <Card className="max-w-[960px] overflow-hidden">
+      <SettingsSectionHeader icon={BadgeDollarSign} title={t('settings.receipts.title')} description={t('settings.receipts.subtitle')} />
+      <div className="grid gap-5 px-4 py-5 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)] md:items-stretch">
+        <div className="max-w-md">
           <Label htmlFor="receipt-currency">{t('settings.receipts.currency')}</Label>
           <select
             id="receipt-currency"
             className={selectClassName}
             value={currency}
-            disabled={isLoading}
+            disabled={isSaving}
             onChange={(event) => setDraftCurrency(event.target.value as TenantCurrency)}
           >
             {settings.supportedCurrencies.map((option) => (
@@ -402,23 +448,27 @@ function ReceiptTab() {
           <p className="mt-1 text-xs text-[var(--color-text-muted)]">{t('settings.receipts.currencyHint')}</p>
         </div>
 
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.05em] text-[var(--color-text-muted)]">{t('settings.receipts.previewLabel')}</p>
-          <p className="mt-2 text-2xl font-semibold">{formatCurrency(220, currency)}</p>
+        <div className="flex min-h-36 flex-col justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/40 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.05em] text-[var(--color-text-muted)]">{t('settings.receipts.previewLabel')}</p>
+            <ReceiptText size={20} className="text-[var(--color-primary)]" aria-hidden="true" />
+          </div>
+          <p className="mt-6 font-[var(--font-display)] text-3xl font-semibold tabular-nums" dir="ltr">{formatCurrency(220, currency)}</p>
         </div>
-
-        <Button onClick={save} disabled={isLoading}>{t('common.actions.save')}</Button>
       </div>
+      <SettingsFormActions><Button className="w-full sm:w-auto" onClick={save} disabled={isSaving} aria-busy={isSaving}>{t('common.actions.save')}</Button></SettingsFormActions>
     </Card>
   );
 }
 
 function ProfileTab() {
   const qc = useQueryClient();
-  const { data } = useQuery<TenantProfile>({ queryKey: ['tenant-profile'], queryFn: () => api.get<TenantProfile>('/tenant/profile').then((response) => response.data) });
+  const { data, isLoading, isError, refetch } = useQuery<TenantProfile>({ queryKey: ['tenant-profile'], queryFn: () => api.get<TenantProfile>('/tenant/profile').then((response) => response.data) });
   const [name, setName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -428,16 +478,26 @@ function ProfileTab() {
   }, [data]);
 
   const save = async () => {
-    await api.patch('/tenant/profile', {
-      name,
-      logoUrl,
-    });
-    toast.success(t('settings.profile.saved'));
-    qc.invalidateQueries({ queryKey: ['tenant-profile'] });
+    if (isSaving || uploadProgress !== null) return;
+    setIsSaving(true);
+    try {
+      await api.patch('/tenant/profile', { name, logoUrl });
+      toast.success(t('settings.profile.saved'));
+      await qc.invalidateQueries({ queryKey: ['tenant-profile'] });
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('settings.profile.saveFailed')));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const upload = async (file?: File) => {
     if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      toast.error(t('settings.profile.logoValidation'));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     const form = new FormData();
     form.append('file', file);
     setUploadProgress(0);
@@ -450,57 +510,117 @@ function ProfileTab() {
       });
       setLogoUrl(response.logoUrl);
       toast.success(t('settings.profile.uploaded'));
+      void qc.invalidateQueries({ queryKey: ['tenant-profile'] });
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('board.workOrder.uploadFailed')));
     } finally {
       setUploadProgress(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
-  const displayedLogoUrl = logoUrl || data?.logoUrl || '';
+  const displayedLogoUrl = logoUrl;
+  const initials = (name || data?.name || t('settings.profile.initialsFallback')).trim().slice(0, 2).toLocaleUpperCase();
+
+  if (isLoading) return <Card className="p-4 sm:p-6" aria-busy="true"><SettingsState message={t('common.states.loading')} /></Card>;
+  if (isError) return <Card className="p-4 sm:p-6"><SettingsState message={t('settings.profile.loadFailed')} onRetry={() => void refetch()} /></Card>;
 
   return (
-    <Card className="max-w-[680px] p-5">
-      <h2 className="mb-4 font-[var(--font-display)] text-xl font-semibold">{t('settings.profile.title')}</h2>
-      <div className="space-y-4">
-        <div><Label htmlFor="shop-name">{t('common.labels.shopName')}</Label><Input id="shop-name" value={name} onChange={(event) => setName(event.target.value)} /></div>
-        <div>
-          <Label htmlFor="shop-logo">{t('common.labels.logo')}</Label>
-          <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center">
-            {displayedLogoUrl && <img src={displayedLogoUrl} alt="" className="h-20 w-20 rounded-[var(--radius-md)] object-cover" />}
-            <div className="flex-1">
-              <Input id="shop-logo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => upload(event.target.files?.[0])} />
-              {uploadProgress !== null && (
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--color-border)]">
-                  <div className="h-full bg-[var(--color-primary)]" style={{ width: `${uploadProgress}%` }} />
-                </div>
-              )}
+    <Card className="max-w-[1040px] overflow-hidden">
+      <SettingsSectionHeader icon={Building2} title={t('settings.profile.title')} description={t('settings.profile.subtitle')} />
+      <div className="grid gap-6 px-4 py-5 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)] md:gap-8">
+        <div className="max-w-xl">
+          <Label htmlFor="shop-name">{t('common.labels.shopName')}</Label>
+          <Input id="shop-name" value={name} disabled={isSaving} onChange={(event) => setName(event.target.value)} />
+          <p className="mt-2 text-xs leading-5 text-[var(--color-text-muted)]">{t('settings.profile.nameHint')}</p>
+        </div>
+
+        <section aria-labelledby="shop-logo-heading" className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4">
+          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-start md:flex-col md:text-center lg:flex-row lg:text-start">
+            {displayedLogoUrl ? (
+              <img src={displayedLogoUrl} alt={t('settings.profile.logoAlt', { name: name || data?.name || '' })} className="h-20 w-20 shrink-0 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] object-cover" />
+            ) : (
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-primary-muted)] font-[var(--font-display)] text-xl font-semibold text-[var(--color-primary)]" aria-hidden="true">{initials}</div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 id="shop-logo-heading" className="font-medium">{t('settings.profile.logoTitle')}</h3>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{t('settings.profile.logoHint')}</p>
+              <input
+                ref={fileInputRef}
+                id="shop-logo"
+                className="sr-only"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={uploadProgress !== null || isSaving}
+                onChange={(event) => void upload(event.target.files?.[0])}
+              />
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
+                <Button className="w-full sm:w-auto md:w-full lg:w-auto" variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={uploadProgress !== null || isSaving}>
+                  <ImagePlus size={16} />
+                  {displayedLogoUrl ? t('settings.profile.replaceLogo') : t('settings.profile.uploadLogo')}
+                </Button>
+                {displayedLogoUrl && <Button className="w-full sm:w-auto md:w-full lg:w-auto" variant="ghost" onClick={() => setLogoUrl('')} disabled={uploadProgress !== null || isSaving}>{t('settings.profile.removeLogo')}</Button>}
+              </div>
             </div>
           </div>
-        </div>
-        <Button onClick={save}>{t('common.actions.save')}</Button>
+          {uploadProgress !== null && (
+            <div className="mt-4" aria-live="polite">
+              <div className="mb-1 flex justify-between text-xs text-[var(--color-text-muted)]"><span>{t('settings.profile.uploading')}</span><span>{uploadProgress}%</span></div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-border)]" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress}>
+                <div className="h-full bg-[var(--color-primary)] transition-[width]" style={{ width: `${uploadProgress}%` }} />
+              </div>
+            </div>
+          )}
+        </section>
       </div>
+      <SettingsFormActions><Button className="w-full sm:w-auto" onClick={save} disabled={isSaving || uploadProgress !== null || !name.trim()} aria-busy={isSaving}>{t('common.actions.save')}</Button></SettingsFormActions>
     </Card>
   );
 }
 
 function ServicesTab() {
+  const user = useAuthStore((state) => state.user);
   const qc = useQueryClient();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-  const { data: services = [] } = useQuery<ServiceType[]>({
+  const allowed = user?.role === 'Owner' || user?.role === 'Manager';
+  const { data: services = [], isLoading, isError, refetch } = useQuery<ServiceType[]>({
     queryKey: ['services', 'manage'],
+    enabled: allowed,
     queryFn: () => api.get<ServiceType[]>('/services', { params: { includeInactive: true } }).then((response) => response.data),
   });
   const [editing, setEditing] = useState<Partial<ServiceType> | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { formatCurrency, isRtl, t } = useI18n();
   const currency = useTenantCurrency();
 
   const save = async () => {
-    if (!editing?.name) return;
-    if (editing.id) await api.patch(`/services/${editing.id}`, editing);
-    else await api.post('/services', editing);
-    setEditing(null);
-    toast.success(t('settings.services.saved'));
-    qc.invalidateQueries({ queryKey: ['services'] });
+    if (!editing || isSaving) return;
+    const name = editing.name?.trim() ?? '';
+    if (!name) {
+      toast.error(t('settings.services.nameRequired'));
+      return;
+    }
+    if (!editing.durationMinutes || editing.durationMinutes < 1) {
+      toast.error(t('settings.services.durationRequired'));
+      return;
+    }
+    if (!editing.basePrice || editing.basePrice <= 0) {
+      toast.error(t('settings.services.priceRequired'));
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = { ...editing, name };
+      if (editing.id) await api.patch(`/services/${editing.id}`, payload);
+      else await api.post('/services', payload);
+      await qc.invalidateQueries({ queryKey: ['services'] });
+      setEditing(null);
+      toast.success(t('settings.services.saved'));
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, t('settings.services.saveFailed')));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const patchService = async (id: string, payload: Partial<ServiceType>) => {
@@ -520,29 +640,43 @@ function ServicesTab() {
     qc.invalidateQueries({ queryKey: ['services'] });
   };
 
-  const rows = [...services, ...(editing && !editing.id ? [editing as ServiceType] : [])];
+  const rows = editing && !editing.id ? [editing as ServiceType, ...services] : services;
+
+  if (!allowed) return <Card className="p-5">{t('settings.services.restricted')}</Card>;
 
   return (
-    <Card className="p-5">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.services.title')}</h2>
-        <Button className="w-full sm:w-auto" onClick={() => setEditing({ name: '', basePrice: 1, durationMinutes: 30, sortOrder: services.length + 1, isActive: true })}><Plus size={16} />{t('settings.services.add')}</Button>
-      </div>
+    <Card className="overflow-hidden">
+      <SettingsSectionHeader
+        icon={BadgeDollarSign}
+        title={t('settings.services.title')}
+        description={t('settings.services.subtitle')}
+        action={<Button className="w-full sm:w-auto" disabled={editing !== null || isSaving} onClick={() => setEditing({ name: '', basePrice: 1, durationMinutes: 30, sortOrder: services.length + 1, isActive: true })}><Plus size={16} />{t('settings.services.add')}</Button>}
+      />
+      <div className="p-4 sm:p-6" aria-busy={isLoading}>
+      {isLoading ? (
+        <SettingsState message={t('common.states.loading')} />
+      ) : isError ? (
+        <SettingsState message={t('settings.services.loadFailed')} onRetry={() => void refetch()} />
+      ) : rows.length === 0 ? (
+        <SettingsState message={t('settings.services.empty')} />
+      ) : (
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={services.map((service) => service.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
-            <div className={cn('hidden grid-cols-[40px_minmax(0,1.6fr)_120px_120px_88px_48px] gap-3 px-3 text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:grid', isRtl ? 'text-right' : 'text-left')}>
+            <div className={cn('hidden gap-3 px-4 text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:grid', serviceDesktopGrid, isRtl ? 'text-right' : 'text-left')}>
               <span />
               <span>{t('common.labels.name')}</span>
               <span>{t('common.labels.duration')}</span>
-              <span>{t('common.labels.price')}</span>
+              <span className="text-right">{t('common.labels.price')}</span>
               <span>{t('common.labels.status')}</span>
               <span />
             </div>
-            {rows.map((service) => <ServiceItem key={service.id ?? 'new'} service={service} editing={editing} setEditing={setEditing} save={save} patchService={patchService} formatCurrency={(value) => formatCurrency(value, currency)} />)}
+            {rows.map((service) => <ServiceItem key={service.id ?? 'new'} service={service} editing={editing} setEditing={setEditing} save={save} isSaving={isSaving} patchService={patchService} formatCurrency={(value) => formatCurrency(value, currency)} />)}
           </div>
         </SortableContext>
       </DndContext>
+      )}
+      </div>
     </Card>
   );
 }
@@ -552,6 +686,7 @@ function ServiceItem({
   editing,
   setEditing,
   save,
+  isSaving,
   patchService,
   formatCurrency,
 }: {
@@ -559,6 +694,7 @@ function ServiceItem({
   editing: Partial<ServiceType> | null;
   setEditing: React.Dispatch<React.SetStateAction<Partial<ServiceType> | null>>;
   save: () => Promise<void>;
+  isSaving: boolean;
   patchService: (id: string, payload: Partial<ServiceType>) => Promise<void>;
   formatCurrency: (value: number) => string;
 }) {
@@ -568,44 +704,46 @@ function ServiceItem({
   const { t } = useI18n();
 
   return (
-    <div ref={sortable.setNodeRef} style={style} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3">
+    <div ref={sortable.setNodeRef} style={style} className={cn('rounded-[var(--radius-md)] border bg-[var(--color-surface)] p-4 transition-colors hover:bg-[var(--color-surface-elevated)]/35 focus-within:border-[var(--color-primary)]', isEditing ? 'border-[var(--color-primary)] shadow-[var(--shadow-sm)]' : 'border-[var(--color-border)]')}>
       {isEditing ? (
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1.4fr)_120px_120px_auto] md:items-end">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_140px_140px_auto] md:items-end">
           <div>
-            <Label>{t('common.labels.name')}</Label>
-            <Input value={editing?.name ?? ''} onChange={(event) => setEditing((current) => ({ ...current, name: event.target.value }))} />
+            <Label htmlFor={`service-name-${service.id ?? 'new'}`}>{t('common.labels.name')}</Label>
+            <Input id={`service-name-${service.id ?? 'new'}`} autoFocus={!service.id} value={editing?.name ?? ''} onChange={(event) => setEditing((current) => ({ ...current, name: event.target.value }))} disabled={isSaving} />
           </div>
           <div>
-            <Label>{t('common.labels.duration')}</Label>
-            <Input type="number" value={editing?.durationMinutes ?? 0} onChange={(event) => setEditing((current) => ({ ...current, durationMinutes: Number(event.target.value) }))} />
+            <Label htmlFor={`service-duration-${service.id ?? 'new'}`}>{t('common.labels.duration')}</Label>
+            <Input id={`service-duration-${service.id ?? 'new'}`} type="number" min={1} max={1440} inputMode="numeric" value={editing?.durationMinutes ?? 0} onChange={(event) => setEditing((current) => ({ ...current, durationMinutes: Number(event.target.value) }))} disabled={isSaving} />
           </div>
           <div>
-            <Label>{t('common.labels.price')}</Label>
-            <Input type="number" value={editing?.basePrice ?? 0} onChange={(event) => setEditing((current) => ({ ...current, basePrice: Number(event.target.value) }))} />
+            <Label htmlFor={`service-price-${service.id ?? 'new'}`}>{t('common.labels.price')}</Label>
+            <Input id={`service-price-${service.id ?? 'new'}`} type="number" min={0.01} max={999999} step="0.01" inputMode="decimal" value={editing?.basePrice ?? 0} onChange={(event) => setEditing((current) => ({ ...current, basePrice: Number(event.target.value) }))} disabled={isSaving} />
           </div>
-          <div className="flex items-center justify-end gap-2">
-            <Button size="icon" aria-label={t('common.actions.save')} onClick={save}><Check size={16} /></Button>
-            <Button size="icon" variant="ghost" aria-label={t('common.actions.cancel')} onClick={() => setEditing(null)}><X size={16} /></Button>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row md:justify-end">
+            <Button className="w-full sm:w-auto" variant="secondary" onClick={() => setEditing(null)} disabled={isSaving}><X size={16} />{t('common.actions.cancel')}</Button>
+            <Button className="w-full sm:w-auto" onClick={() => void save()} disabled={isSaving} aria-busy={isSaving}><Check size={16} />{t('common.actions.save')}</Button>
           </div>
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-[40px_minmax(0,1.6fr)_120px_120px_88px_48px] md:items-center">
-          <div className="flex items-center justify-between md:justify-start">
-            <button type="button" className="grid h-9 w-9 cursor-grab place-items-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]" aria-label={t('board.help.dragToMove')} {...sortable.attributes} {...sortable.listeners}><GripVertical size={16} /></button>
-            <span className="text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:hidden">{service.sortOrder}</span>
+        <div className={cn('grid gap-4 md:gap-3 md:items-center', serviceDesktopGrid)}>
+          <div className="flex items-start justify-between gap-3 md:contents">
+            <button type="button" className="grid h-11 w-11 shrink-0 cursor-grab touch-manipulation place-items-center rounded-[var(--radius-sm)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)] active:cursor-grabbing md:h-10 md:w-10" aria-label={t('board.help.dragToMove')} {...sortable.attributes} {...sortable.listeners}><GripVertical size={18} /></button>
+            <div className="min-w-0 flex-1 md:col-start-2">
+              <p className="font-medium leading-6">{service.name}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--color-text-muted)] md:hidden">
+                <span className="tabular-nums">{t('common.units.minutesShort', { value: service.durationMinutes })}</span>
+                <span className="tabular-nums" dir="ltr">{formatCurrency(service.basePrice)}</span>
+              </div>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-medium">{service.name}</p>
-            <p className="mt-1 text-xs text-[var(--color-text-muted)] md:hidden">{t('common.units.minutesShort', { value: service.durationMinutes })} | {formatCurrency(service.basePrice)}</p>
-          </div>
-          <div className="hidden text-sm md:block">{t('common.units.minutesShort', { value: service.durationMinutes })}</div>
-          <div className="hidden text-sm md:block">{formatCurrency(service.basePrice)}</div>
-          <div className="flex items-center gap-2">
-            <Switch checked={service.isActive} onCheckedChange={(checked) => patchService(service.id, { isActive: checked })} aria-label={t('settings.services.toggleAria', { name: service.name })} />
+          <div className="hidden text-sm tabular-nums md:block">{t('common.units.minutesShort', { value: service.durationMinutes })}</div>
+          <div className="hidden text-right text-sm tabular-nums md:block" dir="ltr">{formatCurrency(service.basePrice)}</div>
+          <div className="flex items-center justify-between gap-2 md:justify-start">
             <span className="text-xs text-[var(--color-text-muted)] md:hidden">{service.isActive ? t('common.states.active') : t('common.states.inactive')}</span>
+            <Switch checked={service.isActive} onCheckedChange={(checked) => patchService(service.id, { isActive: checked })} aria-label={t('settings.services.toggleAria', { name: service.name })} />
           </div>
-          <div className="flex justify-end">
-            <Button size="icon" variant="ghost" aria-label={t('common.labels.actions')} onClick={() => setEditing(service)}><Pencil size={16} /></Button>
+          <div className="flex justify-end border-t border-[var(--color-border-subtle)] pt-3 md:border-0 md:pt-0">
+            <Button className="w-full md:w-auto" variant="ghost" aria-label={t('settings.services.editAria', { name: service.name })} onClick={() => setEditing(service)}><Pencil size={16} /><span className="md:sr-only">{t('settings.services.edit')}</span></Button>
           </div>
         </div>
       )}
@@ -625,16 +763,17 @@ function NotificationsTab() {
     templates: defaultWhatsAppTemplates(),
     autoSendReady: false,
   });
+  const [isSaving, setIsSaving] = useState(false);
   const { formatNumber, formatRelativeTime, t } = useI18n();
   const owner = user?.role === 'Owner';
   const whatsAppEnabled = plan?.whatsAppEnabled === true;
 
-  const { data: settings, isLoading } = useQuery<WhatsAppSettings>({
+  const { data: settings, isLoading, isError: settingsError, refetch: refetchSettings } = useQuery<WhatsAppSettings>({
     queryKey: ['whatsapp-settings'],
     enabled: owner && whatsAppEnabled,
     queryFn: () => api.get<WhatsAppSettings>('/notifications/whatsapp/settings').then((response) => response.data),
   });
-  const { data: logs = [], refetch: refetchLogs } = useQuery<NotificationLogEntry[]>({
+  const { data: logs = [], isError: logsError, isFetching: logsFetching, refetch: refetchLogs } = useQuery<NotificationLogEntry[]>({
     queryKey: ['whatsapp-logs'],
     enabled: owner && whatsAppEnabled,
     queryFn: () => api.get<NotificationLogEntry[]>('/notifications/whatsapp/logs', { params: { limit: 25 } }).then((response) => response.data),
@@ -662,6 +801,8 @@ function NotificationsTab() {
   }
 
   const save = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       await api.patch('/notifications/whatsapp/settings', form);
       setForm((current) => ({ ...current, accessToken: '', clearAccessToken: false }));
@@ -670,6 +811,8 @@ function NotificationsTab() {
       qc.invalidateQueries({ queryKey: ['whatsapp-logs'] });
     } catch (error) {
       toast.error(getApiErrorMessage(error, t('settings.notifications.saveFailed')));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -677,6 +820,13 @@ function NotificationsTab() {
     const key = `settings.notifications.statuses.${status}`;
     const translated = t(key);
     return translated === key ? status : translated;
+  };
+
+  const statusTone = (status: NotificationLogEntry['status']): 'neutral' | 'success' | 'warning' | 'danger' | 'info' => {
+    if (status === 'Failed') return 'danger';
+    if (status === 'Delivered' || status === 'Read') return 'success';
+    if (status === 'Requested') return 'warning';
+    return 'info';
   };
 
   const updateTemplate = (eventType: NotificationEventType, patch: Partial<WhatsAppTemplateSettings>) => {
@@ -688,82 +838,96 @@ function NotificationsTab() {
     }));
   };
 
-  return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.7fr)]">
-      <Card className="p-5">
-        <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
-            <MessageCircle size={20} />
-          </div>
-          <div>
-            <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.notifications.title')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.subtitle')}</p>
-          </div>
-        </div>
+  if (isLoading || planLoading) return <Card className="p-4 sm:p-6" aria-busy="true"><SettingsState message={t('common.states.loading')} /></Card>;
 
-        <div className="space-y-5">
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(340px,0.65fr)] xl:items-start">
+      <Card className="overflow-hidden">
+        <SettingsSectionHeader
+          icon={MessageCircle}
+          title={t('settings.notifications.title')}
+          description={t('settings.notifications.subtitle')}
+          action={<StatusBadge tone={settings?.hasAccessToken && settings.businessPhoneNumberId ? 'success' : 'neutral'}>{settings?.hasAccessToken && settings.businessPhoneNumberId ? t('settings.notifications.configured') : t('settings.notifications.notConfigured')}</StatusBadge>}
+        />
+
+        <div className="space-y-6 px-4 py-5 sm:px-6">
+          {settingsError ? (
+            <SettingsState message={t('settings.notifications.loadFailed')} onRetry={() => void refetchSettings()} />
+          ) : (
+          <>
           {plan && (
-            <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4 sm:grid-cols-3">
+            <section aria-labelledby="notification-usage-heading">
+              <h3 id="notification-usage-heading" className="mb-3 font-medium">{t('settings.notifications.usageTitle')}</h3>
+            <div className="grid grid-cols-2 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4 sm:grid-cols-3">
               <div>
                 <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaUsed')}</p>
-                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesUsed)} / {formatNumber(plan.whatsAppMessagesLimit)}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{formatNumber(plan.whatsAppMessagesUsed)} / {formatNumber(plan.whatsAppMessagesLimit)}</p>
               </div>
               <div>
                 <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaRemaining')}</p>
-                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesRemaining)}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{formatNumber(plan.whatsAppMessagesRemaining)}</p>
               </div>
-              <div>
+              <div className="col-span-2 sm:col-span-1">
                 <p className="text-xs text-[var(--color-text-muted)]">{t('settings.notifications.quotaAddon')}</p>
-                <p className="mt-1 text-lg font-semibold">{formatNumber(plan.whatsAppMessagesAddon)}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">{formatNumber(plan.whatsAppMessagesAddon)}</p>
               </div>
             </div>
+            </section>
           )}
 
+          <section aria-labelledby="notification-provider-heading" className="space-y-4">
+            <h3 id="notification-provider-heading" className="font-medium">{t('settings.notifications.providerTitle')}</h3>
           <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4">
             <div>
               <p className="font-medium">{t('settings.notifications.enabled')}</p>
               <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.enabledHint')}</p>
             </div>
-            <Switch aria-label={t('settings.notifications.enabled')} checked={form.isEnabled} onCheckedChange={(checked) => setForm((current) => ({ ...current, isEnabled: checked }))} />
+            <Switch aria-label={t('settings.notifications.enabled')} checked={form.isEnabled} disabled={isSaving} onCheckedChange={(checked) => setForm((current) => ({ ...current, isEnabled: checked }))} />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <Label>{t('settings.notifications.phoneNumberId')}</Label>
-              <Input value={form.businessPhoneNumberId} onChange={(event) => setForm((current) => ({ ...current, businessPhoneNumberId: event.target.value }))} />
+              <Label htmlFor="whatsapp-phone-number-id">{t('settings.notifications.phoneNumberId')}</Label>
+              <Input id="whatsapp-phone-number-id" dir="ltr" value={form.businessPhoneNumberId} disabled={isSaving} onChange={(event) => setForm((current) => ({ ...current, businessPhoneNumberId: event.target.value }))} />
             </div>
             <div>
-              <Label>{t('settings.notifications.accessToken')}</Label>
+              <Label htmlFor="whatsapp-access-token">{t('settings.notifications.accessToken')}</Label>
               <Input
+                id="whatsapp-access-token"
                 type="password"
+                dir="ltr"
                 value={form.accessToken}
-                disabled={form.clearAccessToken}
+                disabled={form.clearAccessToken || isSaving}
                 placeholder={settings?.hasAccessToken ? t('settings.notifications.accessTokenStored') : ''}
                 onChange={(event) => setForm((current) => ({ ...current, accessToken: event.target.value }))}
               />
             </div>
           </div>
+          </section>
 
+          <section aria-labelledby="notification-templates-heading">
+          <h3 id="notification-templates-heading" className="mb-3 font-medium">{t('settings.notifications.templatesTitle')}</h3>
           <div className="grid gap-3">
             {form.templates.map((template) => (
-              <div key={template.eventType} className="rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
+              <div key={template.eventType} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/20 p-4">
                 <div className="mb-3">
                   <p className="font-medium">{t(`settings.notifications.eventTypes.${template.eventType}`)}</p>
                   <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t(`settings.notifications.eventHints.${template.eventType}`)}</p>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div>
-                    <Label>{t('settings.notifications.templateName')}</Label>
-                    <Input value={template.templateName} onChange={(event) => updateTemplate(template.eventType, { templateName: event.target.value })} />
+                    <Label htmlFor={`template-name-${template.eventType}`}>{t('settings.notifications.templateName')}</Label>
+                    <Input id={`template-name-${template.eventType}`} value={template.templateName} disabled={isSaving} onChange={(event) => updateTemplate(template.eventType, { templateName: event.target.value })} />
                   </div>
                   <div>
-                    <Label>{t('settings.notifications.templateLanguage')}</Label>
-                    <Input value={template.languageCode} onChange={(event) => updateTemplate(template.eventType, { languageCode: event.target.value })} />
+                    <Label htmlFor={`template-language-${template.eventType}`}>{t('settings.notifications.templateLanguage')}</Label>
+                    <Input id={`template-language-${template.eventType}`} dir="ltr" value={template.languageCode} disabled={isSaving} onChange={(event) => updateTemplate(template.eventType, { languageCode: event.target.value })} />
                   </div>
                 </div>
               </div>
             ))}
           </div>
+          </section>
 
           <div className="grid gap-3 md:grid-cols-2">
             <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
@@ -771,48 +935,42 @@ function NotificationsTab() {
                 <p className="font-medium">{t('settings.notifications.clearToken')}</p>
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.clearTokenHint')}</p>
               </div>
-              <Switch aria-label={t('settings.notifications.clearToken')} checked={form.clearAccessToken} onCheckedChange={(checked) => setForm((current) => ({ ...current, clearAccessToken: checked, accessToken: checked ? '' : current.accessToken }))} />
+              <Switch aria-label={t('settings.notifications.clearToken')} checked={form.clearAccessToken} disabled={isSaving} onCheckedChange={(checked) => setForm((current) => ({ ...current, clearAccessToken: checked, accessToken: checked ? '' : current.accessToken }))} />
             </div>
             <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] p-4">
               <div>
                 <p className="font-medium">{t('settings.notifications.autoReady')}</p>
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.autoReadyHint')}</p>
               </div>
-              <Switch aria-label={t('settings.notifications.autoReady')} checked={form.autoSendReady} onCheckedChange={(checked) => setForm((current) => ({ ...current, autoSendReady: checked }))} />
+              <Switch aria-label={t('settings.notifications.autoReady')} checked={form.autoSendReady} disabled={isSaving} onCheckedChange={(checked) => setForm((current) => ({ ...current, autoSendReady: checked }))} />
             </div>
           </div>
-
-          <Button onClick={save} disabled={isLoading || planLoading}>{t('common.actions.save')}</Button>
+          </>
+          )}
         </div>
+        {!settingsError && <SettingsFormActions><Button className="w-full sm:w-auto" onClick={save} disabled={isSaving} aria-busy={isSaving}>{t('common.actions.save')}</Button></SettingsFormActions>}
       </Card>
 
-      <Card className="p-5">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.notifications.activityTitle')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.activitySubtitle')}</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={() => void refetchLogs()} aria-label={t('common.actions.retry')}>
-            <RefreshCw size={16} />
-          </Button>
-        </div>
+      <Card className="overflow-hidden">
+        <SettingsSectionHeader icon={RefreshCw} title={t('settings.notifications.activityTitle')} description={t('settings.notifications.activitySubtitle')} action={<Button variant="ghost" size="icon" onClick={() => void refetchLogs()} disabled={logsFetching} aria-label={t('common.actions.refresh')} aria-busy={logsFetching}><RefreshCw size={17} /></Button>} />
 
-        {logs.length === 0 ? (
-          <p className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] p-4 text-sm text-[var(--color-text-muted)]">{t('settings.notifications.activityEmpty')}</p>
+        <div className="p-4 sm:p-6" aria-busy={logsFetching}>
+        {logsError ? (
+          <SettingsState message={t('settings.notifications.logsLoadFailed')} onRetry={() => void refetchLogs()} />
+        ) : logs.length === 0 ? (
+          <SettingsState message={t('settings.notifications.activityEmpty')} />
         ) : (
           <div className="space-y-3">
             {logs.map((log) => (
-              <div key={log.id} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3">
+              <div key={log.id} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium">{log.eventType}</p>
-                    <p className="mt-1 truncate text-xs text-[var(--color-text-muted)]">{log.recipientPhone}</p>
+                    <p className="mt-1 break-all text-xs text-[var(--color-text-muted)]" dir="ltr">{log.recipientPhone}</p>
                   </div>
-                  <span className="rounded-full bg-[var(--color-primary-muted)] px-2 py-1 text-xs text-[var(--color-primary)]">
-                    {statusText(log.status)}
-                  </span>
+                  <StatusBadge tone={statusTone(log.status)}>{statusText(log.status)}</StatusBadge>
                 </div>
-                {log.errorMessage && <p className="mt-2 text-xs text-[var(--color-destructive)]">{log.errorMessage}</p>}
+                {log.errorMessage && <p className="mt-2 break-words rounded-[var(--radius-sm)] bg-[var(--color-destructive-muted)] p-2 text-xs leading-5 text-[var(--color-destructive)]">{log.errorMessage}</p>}
                 <p className="mt-3 text-xs text-[var(--color-text-muted)]">
                   {t('settings.notifications.lastEvent', { time: formatRelativeTime(log.updatedAt) })}
                 </p>
@@ -820,6 +978,7 @@ function NotificationsTab() {
             ))}
           </div>
         )}
+        </div>
       </Card>
     </div>
   );
@@ -829,7 +988,7 @@ function StaffTab() {
   const user = useAuthStore((state) => state.user);
   const qc = useQueryClient();
   const { data: plan } = usePlanStatus();
-  const { data: staff = [] } = useQuery<StaffMember[]>({ queryKey: ['staff'], enabled: user?.role !== 'Staff', queryFn: () => api.get<StaffMember[]>('/staff').then((response) => response.data) });
+  const { data: staff = [], isLoading, isError, refetch } = useQuery<StaffMember[]>({ queryKey: ['staff'], enabled: user?.role !== 'Staff', queryFn: () => api.get<StaffMember[]>('/staff').then((response) => response.data) });
   const [open, setOpen] = useState(false);
   const [invite, setInvite] = useState({ fullName: '', email: '', phone: '', role: 'Staff' as StaffMember['role'] });
   const [generatedInvite, setGeneratedInvite] = useState<{ link: string; expiresAt: string } | null>(null);
@@ -919,18 +1078,16 @@ function StaffTab() {
   if (user?.role === 'Staff') return <Card className="p-5">{t('settings.staff.restricted')}</Card>;
 
   return (
-    <Card className="p-5">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-[var(--font-display)] text-xl font-semibold">{t('settings.staff.title')}</h2>
-          {plan && (
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              {isUnlimitedLimit(plan.staffLimit)
-                ? t('planStatus.staffUnlimited', { used: formatNumber(plan.staffUsed) })
-                : t('planStatus.staffUsage', { used: formatNumber(plan.staffUsed), limit: formatNumber(plan.staffLimit) })}
-            </p>
-          )}
-        </div>
+    <Card className="overflow-hidden">
+      <SettingsSectionHeader
+        icon={Users}
+        title={t('settings.staff.title')}
+        description={plan
+          ? (isUnlimitedLimit(plan.staffLimit)
+              ? t('planStatus.staffUnlimited', { used: formatNumber(plan.staffUsed) })
+              : t('planStatus.staffUsage', { used: formatNumber(plan.staffUsed), limit: formatNumber(plan.staffLimit) }))
+          : t('settings.staff.subtitle')}
+        action={
         <Dialog open={open} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild><Button className="w-full sm:w-auto"><Plus size={16} />{t('settings.staff.invite')}</Button></DialogTrigger>
           <DialogContent>
@@ -962,7 +1119,16 @@ function StaffTab() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
+      <div className="p-4 sm:p-6" aria-busy={isLoading}>
+      {isLoading ? (
+        <SettingsState message={t('common.states.loading')} />
+      ) : isError ? (
+        <SettingsState message={t('settings.staff.loadFailed')} onRetry={() => void refetch()} />
+      ) : staff.length === 0 ? (
+        <SettingsState message={t('settings.staff.empty')} />
+      ) : (
       <div className="space-y-3">
         <div className={cn('hidden grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.8fr)_120px_90px_52px] gap-3 px-3 text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)] md:grid', isRtl ? 'text-right' : 'text-left')}>
           <span>{t('common.labels.name')}</span>
@@ -980,19 +1146,35 @@ function StaffTab() {
             ? t('settings.staff.pendingInvite')
             : member.isActive ? t('common.states.active') : t('common.states.inactive');
           return (
-            <div key={member.id} className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.8fr)_120px_90px_52px] md:items-center">
-              <div className="min-w-0">
-                <p className="font-medium">{member.fullName}</p>
-                <p className="mt-1 text-xs text-[var(--color-text-muted)] md:hidden">{member.email}</p>
-                <p className="mt-1 text-xs text-[var(--color-text-muted)] md:hidden">{member.phone || t('settings.staff.noPhone')}</p>
+            <div key={member.id} className="grid gap-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-colors hover:bg-[var(--color-surface-elevated)]/35 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.8fr)_120px_100px_52px] md:items-center md:gap-3">
+              <div className="flex min-w-0 items-start justify-between gap-3 md:block">
+                <div className="min-w-0">
+                  <p className="font-medium leading-6">{member.fullName}</p>
+                  <p className="mt-1 break-words text-sm text-[var(--color-text-muted)] md:hidden" dir="ltr">{member.email}</p>
+                  <p className="mt-1 break-words text-sm text-[var(--color-text-muted)] md:hidden" dir="ltr">{member.phone || t('settings.staff.noPhone')}</p>
+                </div>
+                <div className="md:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={t('settings.staff.actionsAria', { name: member.fullName })}><MoreVertical size={18} /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {member.isInvitePending
+                        ? <DropdownMenuItem disabled={!member.isActive} onClick={() => copyInviteLink(member.id)}>{t('settings.staff.copyInviteLink')}</DropdownMenuItem>
+                        : <DropdownMenuItem disabled={!member.isActive} onClick={() => copyResetLink(member.id)}>{t('settings.staff.copyResetLink')}</DropdownMenuItem>}
+                      <DropdownMenuItem disabled={!member.isActive} onClick={() => updatePhone(member)}>{t('settings.staff.updatePhone')}</DropdownMenuItem>
+                      {canEditRole && member.role !== 'Staff' && <DropdownMenuItem onClick={() => patchStaff(member.id, { role: 'Staff' })}>{t('settings.staff.makeStaff')}</DropdownMenuItem>}
+                      {canEditRole && member.role !== 'Manager' && <DropdownMenuItem onClick={() => patchStaff(member.id, { role: 'Manager' })}>{t('settings.staff.makeManager')}</DropdownMenuItem>}
+                      <DropdownMenuItem disabled={isSelf || managerBlocked} onClick={() => patchStaff(member.id, { isActive: !member.isActive })}>{member.isActive ? t('settings.staff.deactivate') : t('settings.staff.activate')}</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-              <div className="hidden min-w-0 text-sm text-[var(--color-text-secondary)] md:block">{member.email}</div>
-              <div className="hidden min-w-0 text-sm text-[var(--color-text-secondary)] md:block">{member.phone || t('settings.staff.noPhone')}</div>
-              <div><span className="rounded-full bg-[var(--color-primary-muted)] px-2 py-1 text-xs text-[var(--color-primary)]">{t(getRoleKey(member.role))}</span></div>
-              <div className={cn('text-sm', member.isActive && !member.isInvitePending ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]')}>{status}</div>
-              <div className="flex justify-end">
+              <div className="hidden min-w-0 break-words text-sm text-[var(--color-text-secondary)] md:block" dir="ltr">{member.email}</div>
+              <div className="hidden min-w-0 break-words text-sm text-[var(--color-text-secondary)] md:block" dir="ltr">{member.phone || t('settings.staff.noPhone')}</div>
+              <div><StatusBadge tone="info">{t(getRoleKey(member.role))}</StatusBadge></div>
+              <div><StatusBadge tone={member.isInvitePending ? 'warning' : member.isActive ? 'success' : 'neutral'}>{status}</StatusBadge></div>
+              <div className="hidden justify-end md:flex">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={t('common.labels.actions')}><MoreVertical size={16} /></Button></DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={t('settings.staff.actionsAria', { name: member.fullName })}><MoreVertical size={18} /></Button></DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {member.isInvitePending
                       ? <DropdownMenuItem disabled={!member.isActive} onClick={() => copyInviteLink(member.id)}>{t('settings.staff.copyInviteLink')}</DropdownMenuItem>
@@ -1007,6 +1189,8 @@ function StaffTab() {
             </div>
           );
         })}
+      </div>
+      )}
       </div>
     </Card>
   );

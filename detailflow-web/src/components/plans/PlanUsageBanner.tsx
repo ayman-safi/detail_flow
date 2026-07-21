@@ -16,9 +16,9 @@ export function PlanUsageBanner() {
   if (plan.bookingsUsed < threshold || remaining <= 0) return null;
 
   return (
-    <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-amber-950">
+    <div className="border-b border-[var(--color-warning)]/25 bg-[var(--color-warning-muted)] px-4 py-2 text-[var(--color-text)]">
       <div className="flex items-center gap-2 text-sm">
-        <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+        <AlertTriangle size={16} className="shrink-0 text-[var(--color-warning)]" />
         <span>
           {t('planStatus.bookingWarning', {
             remaining: formatNumber(remaining),

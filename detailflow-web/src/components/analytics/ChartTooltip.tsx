@@ -19,7 +19,7 @@ export function ChartTooltip({ active, label, labelFormatter, payload }: ChartTo
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="min-w-36 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] px-3 py-2 text-sm shadow-xl shadow-black/20"
+      className="min-w-36 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm shadow-[var(--shadow-popover)]"
     >
       <p className="max-w-48 truncate font-medium text-[var(--color-text)]">{labelFormatter ? labelFormatter(label) : String(label ?? '')}</p>
       <div className="mt-2 flex items-center justify-between gap-6 text-xs text-[var(--color-text-muted)]">

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import type { Stage, WorkOrderCard } from '@/types';
 import { useI18n } from '@/i18n/I18nProvider';
 import { getStageKey } from '@/i18n/domain';
-import { stageColors } from '@/styles/theme';
+import { colorMix, stageColors } from '@/styles/theme';
 import { VehicleCard } from './VehicleCard';
 
 function DraggableCard({
@@ -77,11 +77,11 @@ export function StageColumn({
     <section
       ref={setNodeRef}
       className={cn(
-        'flex min-w-0 flex-col rounded-[var(--radius-lg)] border bg-[var(--color-surface)]/84 shadow-[0_18px_40px_rgba(0,0,0,0.16)] backdrop-blur transition-colors duration-150',
+        'flex min-w-0 flex-col rounded-[var(--radius-lg)] border bg-[var(--color-surface)]/94 shadow-[var(--shadow-card)] backdrop-blur transition-colors duration-150',
         isRtl && 'text-right',
         compact ? 'min-h-[calc(100svh-15rem)]' : 'h-[calc(100svh-12rem)]',
       )}
-      style={{ borderColor: isOver ? color : 'var(--color-border-subtle)', background: isOver ? `${color}10` : undefined }}
+      style={{ borderColor: isOver ? color : 'var(--color-border-subtle)', background: isOver ? colorMix(color, 7) : undefined }}
     >
       <header className={cn('z-10 flex items-center gap-2 rounded-t-[var(--radius-lg)] border-b border-[var(--color-border-subtle)] bg-[var(--color-bg)]/92 px-3 backdrop-blur', isRtl && 'flex-row-reverse', compact ? 'sticky top-0 min-h-14 py-3' : 'sticky top-0 h-14')}>
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />
@@ -89,7 +89,7 @@ export function StageColumn({
           <h2 className="truncate font-[var(--font-display)] text-sm font-semibold uppercase tracking-[0.05em]">{t(getStageKey(stage))}</h2>
           <p className="text-[11px] text-[var(--color-text-muted)]">{t('common.units.vehicles', { count: workOrders.length })}</p>
         </div>
-        <span className={`${isRtl ? 'mr-auto' : 'ml-auto'} min-w-7 shrink-0 rounded-full px-2 py-0.5 text-center text-xs font-bold`} style={{ background: `${color}20`, color }}>{workOrders.length}</span>
+        <span className={`${isRtl ? 'mr-auto' : 'ml-auto'} min-w-7 shrink-0 rounded-full px-2 py-0.5 text-center text-xs font-bold`} style={{ background: colorMix(color, 13), color }}>{workOrders.length}</span>
       </header>
       <div className={cn('flex-1 space-y-2.5 p-2.5', compact ? 'pb-24' : 'overflow-y-auto pb-6')}>
         {workOrders.length === 0 ? (

@@ -50,7 +50,7 @@ export function VehicleCard({
         if (!isDragging) onOpenDetail(workOrder.id);
       }}
       className={cn(
-        'group w-full cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 transition hover:-translate-y-px hover:border-[var(--color-primary)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] sm:p-3.5',
+        'group w-full cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)] p-3 transition hover:-translate-y-px hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-interactive)] sm:p-3.5',
         isRtl && 'text-right',
         compact ? 'min-h-[148px]' : 'min-h-[126px]',
         isDragging && 'ring-2 ring-[var(--color-primary)]',
@@ -60,7 +60,7 @@ export function VehicleCard({
       <div className={cn('flex items-start justify-between gap-2', isRtl && 'flex-row-reverse')}>
         <div className={cn('flex min-w-0 items-center gap-2', isRtl && 'flex-row-reverse')}>
           <span className="plate truncate text-sm sm:text-base">{workOrder.vehicle.plateNumber}</span>
-          <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-white/20" style={{ background: colorMap[workOrder.vehicle.color.toLowerCase()] ?? workOrder.vehicle.color }} />
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-[var(--color-border)]" style={{ background: colorMap[workOrder.vehicle.color.toLowerCase()] ?? workOrder.vehicle.color }} />
         </div>
         <div className={cn('flex items-center gap-1', isRtl && 'flex-row-reverse')}>
           <span className={cn('rounded-full bg-[var(--color-surface)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.05em] text-[var(--color-text-muted)] transition', compact ? 'opacity-100' : 'opacity-0 group-hover:opacity-100')}>

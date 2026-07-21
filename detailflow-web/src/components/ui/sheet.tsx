@@ -15,10 +15,10 @@ export function SheetContent({ className, children, side = 'right', 'aria-descri
   const resolvedSide = isRtl ? (side === 'right' ? 'left' : 'right') : side;
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[1px]" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-[var(--color-overlay)] backdrop-blur-[2px]" />
       <DialogPrimitive.Content
         className={cn(
-          'fixed top-0 z-50 h-full w-full max-w-[520px] border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-xl outline-none',
+          'fixed top-0 z-50 h-full w-full max-w-[520px] border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-popover)] outline-none',
           resolvedSide === 'right' ? 'right-0 border-l' : 'left-0 border-r',
           className,
         )}

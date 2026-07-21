@@ -10,7 +10,7 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
         ref={ref}
         dir={isRtl ? 'rtl' : 'ltr'}
         className={cn(
-          'h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-elevated)] disabled:text-[var(--color-text-muted)] aria-[invalid=true]:border-[var(--color-destructive)] aria-[invalid=true]:focus:ring-[var(--color-destructive-muted)]',
+          'h-10 w-full min-w-0 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)] shadow-sm outline-none transition-[background-color,border-color,box-shadow] placeholder:text-[var(--color-text-muted)] hover:border-[var(--color-text-disabled)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-muted)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-elevated)] disabled:text-[var(--color-text-disabled)] disabled:shadow-none aria-[invalid=true]:border-[var(--color-destructive)] aria-[invalid=true]:focus:ring-[var(--color-destructive-muted)]',
           isRtl ? 'text-right' : 'text-left',
           className,
         )}

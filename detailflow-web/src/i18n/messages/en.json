@@ -9,6 +9,10 @@
     "language": "Language",
     "close": "Close",
     "copySuccess": "Link copied",
+    "theme": {
+      "useLight": "Use light theme",
+      "useDark": "Use dark theme"
+    },
     "actions": {
       "save": "Save",
       "cancel": "Cancel",
@@ -434,6 +438,7 @@
     }
   },
   "settings": {
+    "description": "Manage the shop details, services, scheduling, receipts, team, and notifications used across DetailFlow.",
     "tabs": {
       "profile": "Profile",
       "services": "Services",
@@ -444,12 +449,35 @@
     },
     "profile": {
       "title": "Shop profile",
+      "subtitle": "Keep the workshop name and logo consistent across the dashboard and customer-facing documents.",
+      "nameHint": "This name identifies the workshop throughout DetailFlow.",
+      "logoTitle": "Shop logo",
+      "logoHint": "JPEG, PNG, or WEBP. Maximum file size 5 MB.",
+      "uploadLogo": "Upload logo",
+      "replaceLogo": "Replace logo",
+      "removeLogo": "Remove",
+      "uploading": "Uploading logo",
+      "logoValidation": "Choose a JPEG, PNG, or WEBP image no larger than 5 MB.",
+      "logoAlt": "{name} logo",
+      "initialsFallback": "Shop",
+      "loadFailed": "Unable to load the shop profile.",
+      "saveFailed": "Unable to save the shop profile.",
       "saved": "Profile saved",
       "uploaded": "Logo uploaded"
     },
     "services": {
       "title": "Services",
+      "subtitle": "Manage the services customers and staff can book, including duration, price, and display order.",
       "add": "Add service",
+      "edit": "Edit",
+      "editAria": "Edit {name}",
+      "empty": "No services have been added yet.",
+      "loadFailed": "Unable to load services.",
+      "saveFailed": "Unable to save the service.",
+      "nameRequired": "Enter a service name.",
+      "durationRequired": "Duration must be at least one minute.",
+      "priceRequired": "Price must be greater than zero.",
+      "restricted": "Service settings are available to managers and owners.",
       "saved": "Service saved",
       "reordered": "Service order updated",
       "toggleAria": "Toggle {name}"
@@ -475,6 +503,7 @@
       "reasonPlaceholder": "Holiday, maintenance, private event",
       "saved": "Availability settings saved",
       "saveFailed": "Unable to save availability settings",
+      "loadFailed": "Unable to load availability settings.",
       "restricted": "Availability settings are available to managers and owners."
     },
     "receipts": {
@@ -485,6 +514,7 @@
       "previewLabel": "Preview",
       "saved": "Receipt settings saved",
       "saveFailed": "Unable to save receipt settings",
+      "loadFailed": "Unable to load receipt settings.",
       "restricted": "Receipt settings are available to managers and owners.",
       "currencyOptions": {
         "SAR": "Saudi riyal",
@@ -496,6 +526,10 @@
     },
     "staff": {
       "title": "Staff",
+      "subtitle": "Manage the people who can access this workshop.",
+      "empty": "No staff members have been added yet.",
+      "loadFailed": "Unable to load staff members.",
+      "actionsAria": "Actions for {name}",
       "invite": "Invite staff",
       "inviteTitle": "Invite staff",
       "fullNamePlaceholder": "Full name",
@@ -542,7 +576,7 @@
       "accessTokenStored": "Stored securely. Enter a new token only to replace it.",
       "clearToken": "Clear stored token",
       "clearTokenHint": "Use this only when replacing or disabling the integration.",
-      "templateName": "Ready template name",
+      "templateName": "Template name",
       "templateLanguage": "Template language code",
       "quotaUsed": "Used this month",
       "quotaRemaining": "Remaining",
@@ -552,6 +586,13 @@
       "activityTitle": "Delivery activity",
       "activitySubtitle": "Recent Ready-notification attempts and provider status updates.",
       "activityEmpty": "No notification activity yet.",
+      "configured": "Configured",
+      "notConfigured": "Not configured",
+      "usageTitle": "Monthly usage",
+      "providerTitle": "Provider configuration",
+      "templatesTitle": "Message templates",
+      "loadFailed": "Unable to load WhatsApp settings.",
+      "logsLoadFailed": "Unable to load delivery activity.",
       "lastEvent": "Last update {time}",
       "statuses": {
         "Requested": "Requested",

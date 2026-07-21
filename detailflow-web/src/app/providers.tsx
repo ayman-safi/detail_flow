@@ -6,6 +6,7 @@ import { I18nProvider, useI18n } from '@/i18n/I18nProvider';
 import type { AppLocale } from '@/i18n/config';
 import { queryClient } from '@/lib/queryClient';
 import { PlanLimitDialog } from '@/components/plans/PlanLimitDialog';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 function AppToaster() {
   const { isRtl } = useI18n();
@@ -34,12 +35,14 @@ export function Providers({
   initialLocaleAuthoritative?: boolean;
 }) {
   return (
-    <I18nProvider initialLocale={initialLocale} initialLocaleAuthoritative={initialLocaleAuthoritative}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <PlanLimitDialog />
-        <AppToaster />
-      </QueryClientProvider>
-    </I18nProvider>
+    <ThemeProvider>
+      <I18nProvider initialLocale={initialLocale} initialLocaleAuthoritative={initialLocaleAuthoritative}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <PlanLimitDialog />
+          <AppToaster />
+        </QueryClientProvider>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }

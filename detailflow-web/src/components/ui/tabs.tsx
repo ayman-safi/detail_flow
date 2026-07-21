@@ -14,7 +14,7 @@ export function TabsList({ className, ...props }: React.ComponentProps<typeof Ta
 }
 
 export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  return <TabsPrimitive.Trigger className={cn('min-w-0 rounded-[var(--radius-sm)] px-4 py-2 text-center text-sm text-[var(--color-text-muted)] transition data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-white', className)} {...props} />;
+  return <TabsPrimitive.Trigger className={cn('min-w-0 cursor-pointer rounded-[var(--radius-sm)] px-4 py-2 text-center text-sm text-[var(--color-text-muted)] transition data-[state=active]:bg-[var(--color-primary)] data-[state=active]:text-[var(--color-on-primary)]', className)} {...props} />;
 }
 
 export function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {

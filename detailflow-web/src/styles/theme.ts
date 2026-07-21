@@ -1,12 +1,16 @@
 export const stageColors: Record<string, string> = {
-  Booked: '#6366f1',
-  Arrived: '#8b5cf6',
-  Washing: '#3b82f6',
-  Detailing: '#06b6d4',
-  Polishing: '#f59e0b',
-  Ready: '#22c55e',
-  Delivered: '#475569',
+  Booked: 'var(--stage-booked)',
+  Arrived: 'var(--stage-arrived)',
+  Washing: 'var(--stage-washing)',
+  Detailing: 'var(--stage-detailing)',
+  Polishing: 'var(--stage-polishing)',
+  Ready: 'var(--stage-ready)',
+  Delivered: 'var(--stage-delivered)',
 };
+
+export function colorMix(color: string, percentage: number) {
+  return `color-mix(in srgb, ${color} ${percentage}%, transparent)`;
+}
 
 export const stageLabels: Record<string, string> = {
   Booked: 'Booked',

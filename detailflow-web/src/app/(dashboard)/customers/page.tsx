@@ -132,7 +132,7 @@ function Metric({ title, value, icon: Icon, tone = 'primary' }: { title: string;
           <p className="text-xs uppercase tracking-[0.05em] text-[var(--color-text-muted)]">{title}</p>
           <p className="mt-1 font-[var(--font-display)] text-2xl font-bold">{value}</p>
         </div>
-        <div className="grid h-10 w-10 place-items-center rounded-full" style={{ background: `${color}20`, color }}>
+        <div className="grid h-10 w-10 place-items-center rounded-full" style={{ background: `color-mix(in srgb, ${color} 13%, transparent)`, color }}>
           <Icon size={18} />
         </div>
       </div>

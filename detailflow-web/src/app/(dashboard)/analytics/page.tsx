@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
         <StatCard className="p-4 sm:p-5" title={t('analytics.stats.bookings')} value={summary?.totalBookings ?? 0} subtitle={t('analytics.stats.walkIns', { count: formatNumber(summary?.walkIns ?? 0) })} icon={CalendarDays} loading={loading} />
         <StatCard className="p-4 sm:p-5" title={t('analytics.stats.activeVehicles')} value={summary?.activeVehicles ?? 0} subtitle={t('analytics.stats.liveSnapshot')} icon={Car} color="var(--color-accent)" loading={loading} />
         <StatCard className="p-4 sm:p-5" title={t('analytics.stats.completed')} value={summary?.completedJobs ?? 0} icon={CheckCircle} color="var(--color-success)" loading={loading} />
-        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.repeatCustomers')} value={data?.repeatCustomers ?? 0} icon={Users} color="#6366f1" loading={loading} />
+        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.repeatCustomers')} value={data?.repeatCustomers ?? 0} icon={Users} color="var(--color-info)" loading={loading} />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,1fr)]">

@@ -45,6 +45,7 @@ public class ServiceCatalogService(DetailFlowDbContext db, ITenantContext tenant
             Description = input.Description,
             BasePrice = input.BasePrice.Value,
             DurationMinutes = input.DurationMinutes.Value,
+            IsActive = input.IsActive ?? true,
             SortOrder = input.SortOrder ?? 0
         };
 

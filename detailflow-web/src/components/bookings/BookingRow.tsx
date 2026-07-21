@@ -23,9 +23,9 @@ export function BookingRow({
 }) {
   const { formatDate, t } = useI18n();
   const colors = {
-    Pending: 'bg-amber-500/10 text-amber-500',
-    Confirmed: 'bg-green-500/10 text-green-500',
-    Cancelled: 'bg-slate-500/10 text-slate-400',
+    Pending: 'bg-[var(--color-warning-muted)] text-[var(--color-warning)]',
+    Confirmed: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
+    Cancelled: 'bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)]',
   };
 
   return (

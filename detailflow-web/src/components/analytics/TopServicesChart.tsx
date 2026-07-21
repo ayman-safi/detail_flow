@@ -38,7 +38,7 @@ export function TopServicesChart({ data }: { data: { serviceName: string; count:
             tickFormatter={formatServiceLabel}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(148, 163, 184, 0.10)' }}
+            cursor={{ fill: 'var(--color-chart-cursor)' }}
             content={<ChartTooltip />}
             wrapperStyle={{ outline: 'none' }}
           />

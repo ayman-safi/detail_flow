@@ -14,7 +14,7 @@ export function DropdownMenuContent({ className, sideOffset = 6, ...props }: Rea
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
-        className={cn('z-50 min-w-40 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1 text-sm shadow-xl', className)}
+        className={cn('z-50 min-w-40 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1 text-sm shadow-[var(--shadow-popover)]', className)}
         {...props}
       />
     </DropdownMenuPrimitive.Portal>

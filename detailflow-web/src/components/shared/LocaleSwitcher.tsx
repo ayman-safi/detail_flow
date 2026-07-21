@@ -27,7 +27,7 @@ export function LocaleSwitcher({ compact = false }: { compact?: boolean }) {
             className={cn(
               'rounded-full px-3 py-1 text-xs font-semibold transition',
               active
-                ? 'bg-[var(--color-primary)] text-white'
+                ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
             )}
             onClick={() => setLocale(item)}

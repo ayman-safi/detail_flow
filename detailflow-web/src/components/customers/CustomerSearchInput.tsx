@@ -115,7 +115,7 @@ export function CustomerSearchInput({
       />
       {loading && <span aria-live="polite" className={`absolute top-2.5 text-xs text-[var(--color-text-muted)] ${isRtl ? 'left-3' : 'right-3'}`}>...</span>}
       {open && term.length >= 2 && (
-        <div id={listId} role="listbox" className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+        <div id={listId} role="listbox" className="absolute z-30 mt-1 max-h-56 w-full overflow-auto rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-popover)]">
           {loading ? (
             <div className="p-3 text-sm text-[var(--color-text-muted)]">{t('common.states.loading')}</div>
           ) : items.length === 0 ? (

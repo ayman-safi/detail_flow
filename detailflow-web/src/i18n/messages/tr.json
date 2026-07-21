@@ -9,6 +9,10 @@
     "language": "Dil",
     "close": "Kapat",
     "copySuccess": "Bağlantı kopyalandı",
+    "theme": {
+      "useLight": "Açık temayı kullan",
+      "useDark": "Koyu temayı kullan"
+    },
     "actions": {
       "save": "Kaydet",
       "cancel": "İptal",
@@ -426,6 +430,7 @@
     }
   },
   "settings": {
+    "description": "DetailFlow genelinde kullanılan işletme bilgilerini, hizmetleri, çalışma saatlerini, fişleri, ekibi ve bildirimleri yönetin.",
     "tabs": {
       "profile": "Profil",
       "services": "Hizmetler",
@@ -436,12 +441,35 @@
     },
     "profile": {
       "title": "Dükkan profili",
+      "subtitle": "Atölye adını ve logosunu panelde ve müşteriye gösterilen belgelerde tutarlı tutun.",
+      "nameHint": "Bu ad, atölyeyi DetailFlow genelinde tanımlar.",
+      "logoTitle": "Dükkan logosu",
+      "logoHint": "JPEG, PNG veya WEBP. En fazla 5 MB.",
+      "uploadLogo": "Logo yükle",
+      "replaceLogo": "Logoyu değiştir",
+      "removeLogo": "Kaldır",
+      "uploading": "Logo yükleniyor",
+      "logoValidation": "En fazla 5 MB boyutunda bir JPEG, PNG veya WEBP görseli seçin.",
+      "logoAlt": "{name} logosu",
+      "initialsFallback": "Dükkan",
+      "loadFailed": "Dükkan profili yüklenemedi.",
+      "saveFailed": "Dükkan profili kaydedilemedi.",
       "saved": "Profil kaydedildi",
       "uploaded": "Logo yüklendi"
     },
     "services": {
       "title": "Hizmetler",
+      "subtitle": "Müşterilerin ve personelin rezerve edebileceği hizmetlerin süresini, fiyatını ve sırasını yönetin.",
       "add": "Hizmet ekle",
+      "edit": "Düzenle",
+      "editAria": "{name} hizmetini düzenle",
+      "empty": "Henüz hizmet eklenmedi.",
+      "loadFailed": "Hizmetler yüklenemedi.",
+      "saveFailed": "Hizmet kaydedilemedi.",
+      "nameRequired": "Hizmet adını girin.",
+      "durationRequired": "Süre en az bir dakika olmalıdır.",
+      "priceRequired": "Fiyat sıfırdan büyük olmalıdır.",
+      "restricted": "Hizmet ayarları yöneticiler ve sahipler için kullanılabilir.",
       "saved": "Hizmet kaydedildi",
       "reordered": "Hizmet sırası güncellendi",
       "toggleAria": "{name} durumunu değiştir"
@@ -467,6 +495,7 @@
       "reasonPlaceholder": "Tatil, bakım, özel etkinlik",
       "saved": "Müsaitlik ayarları kaydedildi",
       "saveFailed": "Müsaitlik ayarları kaydedilemedi",
+      "loadFailed": "Müsaitlik ayarları yüklenemedi.",
       "restricted": "Müsaitlik ayarları yöneticiler ve sahipler için kullanılabilir."
     },
     "receipts": {
@@ -477,6 +506,7 @@
       "previewLabel": "Önizleme",
       "saved": "Fiş ayarları kaydedildi",
       "saveFailed": "Fiş ayarları kaydedilemedi",
+      "loadFailed": "Fiş ayarları yüklenemedi.",
       "restricted": "Fiş ayarları yöneticiler ve sahipler için kullanılabilir.",
       "currencyOptions": {
         "SAR": "Suudi riyali",
@@ -488,11 +518,15 @@
     },
     "staff": {
       "title": "Personel",
+      "subtitle": "Bu atölyeye erişebilen kişileri yönetin.",
+      "empty": "Henüz personel eklenmedi.",
+      "loadFailed": "Personel yüklenemedi.",
+      "actionsAria": "{name} için işlemler",
       "invite": "Personel davet et",
       "inviteTitle": "Personel davet et",
       "fullNamePlaceholder": "Ad soyad",
       "emailPlaceholder": "E-posta",
-      "phonePlaceholder": "WhatsApp phone",
+      "phonePlaceholder": "WhatsApp telefonu",
       "temporaryPasswordPlaceholder": "Geçici şifre",
       "createUser": "Kullanıcı oluştur",
       "added": "Personel eklendi",
@@ -509,11 +543,11 @@
       "inviteLinkFailed": "Davet bağlantısı oluşturulamadı",
       "resetLinkFailed": "Sıfırlama bağlantısı oluşturulamadı",
       "linkExpires": "{date} tarihinde sona erer",
-      "whatsAppAccepted": "WhatsApp message sent",
-      "whatsAppFailed": "WhatsApp delivery failed; use the copied link fallback.",
-      "noPhone": "No phone",
-      "phonePrompt": "Staff WhatsApp phone",
-      "updatePhone": "Update phone",
+      "whatsAppAccepted": "WhatsApp mesajı gönderildi",
+      "whatsAppFailed": "WhatsApp teslimatı başarısız oldu; kopyalanan bağlantıyı kullanın.",
+      "noPhone": "Telefon yok",
+      "phonePrompt": "Personel WhatsApp telefonu",
+      "updatePhone": "Telefonu güncelle",
       "makeStaff": "Personel yap",
       "makeManager": "Yönetici yap",
       "activate": "Etkinleştir",
@@ -534,13 +568,23 @@
       "accessTokenStored": "Güvenli şekilde saklanır. Sadece değiştirmek için yeni bir jeton girin.",
       "clearToken": "Saklanan jetonu temizle",
       "clearTokenHint": "Bunu yalnızca entegrasyonu değiştirirken veya devre dışı bırakırken kullanın.",
-      "templateName": "Hazır şablon adı",
+      "templateName": "Şablon adı",
       "templateLanguage": "Şablon dil kodu",
+      "quotaUsed": "Bu ay kullanılan",
+      "quotaRemaining": "Kalan",
+      "quotaAddon": "Ek paket hakkı",
       "autoReady": "Otomatik Hazır mesajı",
       "autoReadyHint": "Bir iş emri Hazır aşamasına girdiğinde onaylı WhatsApp şablonunu gönderin.",
       "activityTitle": "Teslimat etkinliği",
       "activitySubtitle": "Son Hazır bildirim denemeleri ve sağlayıcı durum güncellemeleri.",
       "activityEmpty": "Henüz bildirim etkinliği yok.",
+      "configured": "Yapılandırıldı",
+      "notConfigured": "Yapılandırılmadı",
+      "usageTitle": "Aylık kullanım",
+      "providerTitle": "Sağlayıcı yapılandırması",
+      "templatesTitle": "Mesaj şablonları",
+      "loadFailed": "WhatsApp ayarları yüklenemedi.",
+      "logsLoadFailed": "Teslimat etkinliği yüklenemedi.",
       "lastEvent": "Son güncelleme {time}",
       "statuses": {
         "Requested": "Talep edildi",
@@ -551,16 +595,16 @@
         "Failed": "Başarısız"
       },
       "eventTypes": {
-        "TrackingLink": "Tracking link",
-        "ReadyForPickup": "Ready for pickup",
-        "StaffInvite": "Staff invite",
-        "PasswordReset": "Password reset"
+        "TrackingLink": "Takip bağlantısı",
+        "ReadyForPickup": "Teslime hazır",
+        "StaffInvite": "Personel daveti",
+        "PasswordReset": "Şifre sıfırlama"
       },
       "eventHints": {
-        "TrackingLink": "Utility template for sending a customer tracking URL.",
-        "ReadyForPickup": "Utility template for pickup-ready messages with tracking and receipt links.",
-        "StaffInvite": "Utility template with one variable for the staff invite link.",
-        "PasswordReset": "Utility template with one variable for the password reset link."
+        "TrackingLink": "Müşteriye takip bağlantısı göndermek için kullanılan hizmet şablonu.",
+        "ReadyForPickup": "Takip ve fiş bağlantılarını içeren teslime hazır mesaj şablonu.",
+        "StaffInvite": "Personel davet bağlantısı için tek değişkenli hizmet şablonu.",
+        "PasswordReset": "Şifre sıfırlama bağlantısı için tek değişkenli hizmet şablonu."
       }
     }
   },

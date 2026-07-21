@@ -9,6 +9,10 @@
     "language": "اللغة",
     "close": "إغلاق",
     "copySuccess": "تم نسخ الرابط",
+    "theme": {
+      "useLight": "استخدام المظهر الفاتح",
+      "useDark": "استخدام المظهر الداكن"
+    },
     "actions": {
       "save": "حفظ",
       "cancel": "إلغاء",
@@ -426,6 +430,7 @@
     }
   },
   "settings": {
+    "description": "إدارة بيانات الورشة والخدمات والمواعيد والفواتير والفريق والإشعارات المستخدمة في DetailFlow.",
     "tabs": {
       "profile": "الملف",
       "services": "الخدمات",
@@ -436,12 +441,35 @@
     },
     "profile": {
       "title": "ملف الورشة",
+      "subtitle": "حافظ على اتساق اسم الورشة وشعارها في لوحة التحكم والمستندات المعروضة للعملاء.",
+      "nameHint": "يُستخدم هذا الاسم لتعريف الورشة في جميع أجزاء DetailFlow.",
+      "logoTitle": "شعار الورشة",
+      "logoHint": "JPEG أو PNG أو WEBP. الحد الأقصى 5 ميجابايت.",
+      "uploadLogo": "رفع الشعار",
+      "replaceLogo": "تغيير الشعار",
+      "removeLogo": "إزالة",
+      "uploading": "جارٍ رفع الشعار",
+      "logoValidation": "اختر صورة JPEG أو PNG أو WEBP لا يتجاوز حجمها 5 ميجابايت.",
+      "logoAlt": "شعار {name}",
+      "initialsFallback": "ورشة",
+      "loadFailed": "تعذر تحميل ملف الورشة.",
+      "saveFailed": "تعذر حفظ ملف الورشة.",
       "saved": "تم حفظ الملف",
       "uploaded": "تم رفع الشعار"
     },
     "services": {
       "title": "الخدمات",
+      "subtitle": "إدارة الخدمات التي يمكن للعملاء والموظفين حجزها، بما في ذلك المدة والسعر وترتيب العرض.",
       "add": "إضافة خدمة",
+      "edit": "تعديل",
+      "editAria": "تعديل {name}",
+      "empty": "لم تتم إضافة أي خدمات بعد.",
+      "loadFailed": "تعذر تحميل الخدمات.",
+      "saveFailed": "تعذر حفظ الخدمة.",
+      "nameRequired": "أدخل اسم الخدمة.",
+      "durationRequired": "يجب ألا تقل المدة عن دقيقة واحدة.",
+      "priceRequired": "يجب أن يكون السعر أكبر من صفر.",
+      "restricted": "إعدادات الخدمات متاحة للمديرين والمالكين.",
       "saved": "تم حفظ الخدمة",
       "reordered": "تم تحديث ترتيب الخدمات",
       "toggleAria": "تبديل {name}"
@@ -467,6 +495,7 @@
       "reasonPlaceholder": "إجازة، صيانة، مناسبة خاصة",
       "saved": "تم حفظ إعدادات التوفر",
       "saveFailed": "تعذر حفظ إعدادات التوفر",
+      "loadFailed": "تعذر تحميل إعدادات التوفر.",
       "restricted": "إعدادات التوفر متاحة للمديرين والمالكين."
     },
     "receipts": {
@@ -477,6 +506,7 @@
       "previewLabel": "معاينة",
       "saved": "تم حفظ إعدادات الفواتير",
       "saveFailed": "تعذر حفظ إعدادات الفواتير",
+      "loadFailed": "تعذر تحميل إعدادات الفواتير.",
       "restricted": "إعدادات الفواتير متاحة للمديرين والمالكين.",
       "currencyOptions": {
         "SAR": "الريال السعودي",
@@ -488,11 +518,15 @@
     },
     "staff": {
       "title": "الفريق",
+      "subtitle": "إدارة الأشخاص الذين يمكنهم الوصول إلى هذه الورشة.",
+      "empty": "لم تتم إضافة أي موظفين بعد.",
+      "loadFailed": "تعذر تحميل أعضاء الفريق.",
+      "actionsAria": "إجراءات {name}",
       "invite": "دعوة موظف",
       "inviteTitle": "دعوة موظف",
       "fullNamePlaceholder": "الاسم الكامل",
       "emailPlaceholder": "البريد الإلكتروني",
-      "phonePlaceholder": "WhatsApp phone",
+      "phonePlaceholder": "هاتف واتساب",
       "temporaryPasswordPlaceholder": "كلمة مرور مؤقتة",
       "createUser": "إنشاء مستخدم",
       "added": "تمت إضافة الموظف",
@@ -509,11 +543,11 @@
       "inviteLinkFailed": "تعذر إنشاء رابط الدعوة",
       "resetLinkFailed": "تعذر إنشاء رابط إعادة التعيين",
       "linkExpires": "ينتهي في {date}",
-      "whatsAppAccepted": "WhatsApp message sent",
-      "whatsAppFailed": "WhatsApp delivery failed; use the copied link fallback.",
-      "noPhone": "No phone",
-      "phonePrompt": "Staff WhatsApp phone",
-      "updatePhone": "Update phone",
+      "whatsAppAccepted": "تم إرسال رسالة واتساب",
+      "whatsAppFailed": "فشل إرسال رسالة واتساب؛ استخدم الرابط المنسوخ كبديل.",
+      "noPhone": "لا يوجد هاتف",
+      "phonePrompt": "هاتف واتساب للموظف",
+      "updatePhone": "تحديث الهاتف",
       "makeStaff": "تعيين كموظف",
       "makeManager": "تعيين كمدير",
       "activate": "تفعيل",
@@ -534,13 +568,23 @@
       "accessTokenStored": "محفوظ بأمان. أدخل رمزًا جديدًا فقط لاستبداله.",
       "clearToken": "مسح الرمز المحفوظ",
       "clearTokenHint": "استخدم هذا فقط عند استبدال التكامل أو تعطيله.",
-      "templateName": "اسم قالب الجاهزية",
+      "templateName": "اسم القالب",
       "templateLanguage": "رمز لغة القالب",
+      "quotaUsed": "المستخدم هذا الشهر",
+      "quotaRemaining": "المتبقي",
+      "quotaAddon": "الحصة الإضافية",
       "autoReady": "رسالة جاهزية تلقائية",
       "autoReadyHint": "إرسال قالب واتساب المعتمد عند انتقال أمر العمل إلى جاهز.",
       "activityTitle": "نشاط الإرسال",
       "activitySubtitle": "آخر محاولات إشعارات الجاهزية وتحديثات حالة المزوّد.",
       "activityEmpty": "لا يوجد نشاط إشعارات بعد.",
+      "configured": "تم الإعداد",
+      "notConfigured": "غير مُعدّ",
+      "usageTitle": "الاستخدام الشهري",
+      "providerTitle": "إعداد المزوّد",
+      "templatesTitle": "قوالب الرسائل",
+      "loadFailed": "تعذر تحميل إعدادات واتساب.",
+      "logsLoadFailed": "تعذر تحميل نشاط الإرسال.",
       "lastEvent": "آخر تحديث {time}",
       "statuses": {
         "Requested": "مطلوب",
@@ -551,16 +595,16 @@
         "Failed": "فشل"
       },
       "eventTypes": {
-        "TrackingLink": "Tracking link",
-        "ReadyForPickup": "Ready for pickup",
-        "StaffInvite": "Staff invite",
-        "PasswordReset": "Password reset"
+        "TrackingLink": "رابط التتبع",
+        "ReadyForPickup": "جاهزة للاستلام",
+        "StaffInvite": "دعوة موظف",
+        "PasswordReset": "إعادة تعيين كلمة المرور"
       },
       "eventHints": {
-        "TrackingLink": "Utility template for sending a customer tracking URL.",
-        "ReadyForPickup": "Utility template for pickup-ready messages with tracking and receipt links.",
-        "StaffInvite": "Utility template with one variable for the staff invite link.",
-        "PasswordReset": "Utility template with one variable for the password reset link."
+        "TrackingLink": "قالب خدمات لإرسال رابط تتبع إلى العميل.",
+        "ReadyForPickup": "قالب رسالة جاهزية للاستلام يتضمن روابط التتبع والفاتورة.",
+        "StaffInvite": "قالب خدمات بمتغير واحد لرابط دعوة الموظف.",
+        "PasswordReset": "قالب خدمات بمتغير واحد لرابط إعادة تعيين كلمة المرور."
       }
     }
   },

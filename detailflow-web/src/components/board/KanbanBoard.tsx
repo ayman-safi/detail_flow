@@ -13,7 +13,7 @@ import { useBoardStore } from '@/store/boardStore';
 import type { BoardData, Stage, WorkOrderCard } from '@/types';
 import { useI18n } from '@/i18n/I18nProvider';
 import { boardBaseStageSequence, getStageKey } from '@/i18n/domain';
-import { stageColors } from '@/styles/theme';
+import { colorMix, stageColors } from '@/styles/theme';
 import { Button } from '@/components/ui/button';
 import { StageColumn } from './StageColumn';
 import { VehicleCard } from './VehicleCard';
@@ -168,7 +168,7 @@ export function KanbanBoard({ onOpenDetail }: { onOpenDetail: (id: string) => vo
                   >
                     <span className="h-2 w-2 rounded-full" style={{ background: color }} />
                     <span>{t(getStageKey(stage))}</span>
-                    <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[11px]" style={{ background: `${color}20`, color }}>{board[key(stage)].length}</span>
+                    <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[11px]" style={{ background: colorMix(color, 13), color }}>{board[key(stage)].length}</span>
                   </button>
                 );
               })}

@@ -107,7 +107,7 @@ export default function BoardPage() {
       </div>
       {isLoading && <div className="grid gap-3 px-4 pb-6 pt-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">{Array.from({ length: 6 }).map((_, column) => <div key={column} className="min-w-0 space-y-2">{Array.from({ length: 3 }).map((__, index) => <VehicleCardSkeleton key={index} />)}</div>)}</div>}
       {!isLoading && <KanbanBoard onOpenDetail={setSelected} />}
-      <Button className={`fixed bottom-4 h-11 rounded-full px-4 shadow-xl sm:bottom-6 sm:h-12 sm:px-5 ${isRtl ? 'left-4 sm:left-6' : 'right-4 sm:right-6'}`} onClick={() => setWalkInOpen(true)}>
+      <Button className={`fixed bottom-4 h-11 rounded-full px-4 shadow-[var(--shadow-popover)] sm:bottom-6 sm:h-12 sm:px-5 ${isRtl ? 'left-4 sm:left-6' : 'right-4 sm:right-6'}`} onClick={() => setWalkInOpen(true)}>
         <Plus size={18} />
         {t('board.walkIn.title')}
       </Button>

@@ -38,7 +38,7 @@ export function JobsChart({ data }: { data: { date: string; count: number }[] })
             tickFormatter={(value) => formatNumber(Number(value))}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(148, 163, 184, 0.10)' }}
+            cursor={{ fill: 'var(--color-chart-cursor)' }}
             content={<ChartTooltip labelFormatter={(value) => formatDate(`${String(value)}T00:00:00`, { weekday: 'short', day: 'numeric', month: 'short' })} />}
             wrapperStyle={{ outline: 'none' }}
           />

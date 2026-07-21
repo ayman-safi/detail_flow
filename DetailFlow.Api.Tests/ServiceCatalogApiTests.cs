@@ -30,12 +30,14 @@ public class ServiceCatalogApiTests
             description = "Fast exterior finish",
             basePrice = 35,
             durationMinutes = 45,
+            isActive = true,
             sortOrder = 99
         });
         await TestApi.AssertStatusAsync(createResponse, HttpStatusCode.OK);
         using var createJson = await TestApi.ReadJsonAsync(createResponse);
         var createdId = Guid.Parse(createJson.RootElement.GetProperty("id").GetString()!);
         Assert.Equal("Express Wax", createJson.RootElement.GetProperty("name").GetString());
+        Assert.True(createJson.RootElement.GetProperty("isActive").GetBoolean());
 
         var updateResponse = await client.PatchAsJsonAsync($"/api/services/{createdId}", new
         {
