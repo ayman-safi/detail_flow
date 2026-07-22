@@ -88,7 +88,7 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | BKG-008 | Internal booking required fields and enums | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-009 | Phone and plate normalization | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-010 | Existing customer name mismatch behavior | tests/bookings/bkg.spec.ts | Yes | ✅ |
-| BKG-011 | Existing public customer/vehicle update behavior | tests/bookings/bkg.spec.ts | Yes | ✅ |
+| BKG-011 | Public new-vehicle entry and reuse behavior | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-012 | Create public booking journey | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-013 | Public invalid/inactive shop isolation | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-014 | Public booking abuse validation/rate limit | tests/bookings/bkg.spec.ts | Yes | ✅ |
@@ -103,7 +103,7 @@ Generated from `MANUAL_REGRESSION_TEST_SUITE.md`. Do not edit by hand.
 | BKG-023 | Booking UI failure recovery | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-024 | Three-step phone-only public booking | tests/bookings/bkg.spec.ts | Yes | ✅ |
 | BKG-025 | Masked vehicle lookup and staff completion | tests/bookings/bkg.spec.ts | Yes | ✅ |
-| CUS-001 | Customer list default sorting and metrics | tests/customers/cus.spec.ts | Yes | ✅ |
+| CUS-001 | Customer list default sorting and summary | tests/customers/cus.spec.ts | Yes | ✅ |
 | CUS-002 | Search by name and phone | tests/customers/cus.spec.ts | Yes | ✅ |
 | CUS-003 | Customer pagination boundaries | tests/customers/cus.spec.ts | Yes | ✅ |
 | CUS-004 | Customer detail drawer and recent history | tests/customers/cus.spec.ts | Yes | ✅ |

@@ -272,6 +272,7 @@
   "bookings": {
     "title": "حجز جديد",
     "countOnDate": "{count} حجوزات في {date}",
+    "summary": { "total": "إجمالي الحجوزات", "confirmed": "مؤكد", "pending": "قيد الانتظار" },
     "emptyTitle": "لا توجد حجوزات لهذا اليوم.",
     "statusUpdated": "تم تحديث الحالة",
     "statusUpdateFailed": "تعذر تحديث حالة الحجز",
@@ -428,6 +429,8 @@
     },
     "title": "العملاء",
     "subtitle": "ابحث، راجع سجل الزيارات، وافتح آخر سياق لأوامر العمل.",
+    "filter": "تصفية العملاء",
+    "moreActions": "إجراءات العميل",
     "searchPlaceholder": "ابحث بالاسم أو الهاتف",
     "emptyTitle": "لا يوجد عملاء",
     "emptyDescription": "جرّب اسمًا أو رقم هاتف آخر.",
@@ -436,6 +439,9 @@
     "recentWork": "آخر عمل",
     "noWorkOrders": "لا توجد أوامر عمل",
     "pagination": "الصفحة {page} من {total}",
+    "pageLabel": "الصفحة",
+    "paginationNavigation": "صفحات العملاء",
+    "showing": "عرض {first} إلى {last} من أصل {total} عميل",
     "drawer": {
       "totalVisits": "إجمالي الزيارات",
       "noVisitsYet": "لا توجد زيارات بعد",
@@ -478,6 +484,17 @@
       "apply": "تطبيق النطاق",
       "invalid": "اختر تاريخ بداية ونهاية صالحين.",
       "tooLong": "اختر نطاقًا لا يتجاوز 90 يومًا."
+    },
+    "comparison": {
+      "percent": "{direction} {value}% مقارنة بالفترة السابقة",
+      "noPrevious": "لا يوجد خط أساس للفترة السابقة"
+    },
+    "summary": {
+      "title": "الملخص",
+      "completed": "إجمالي الأعمال المكتملة",
+      "walkIns": "بدون حجز",
+      "averagePerDay": "متوسط الأعمال يوميًا",
+      "repeatRate": "معدل العملاء المتكررين"
     },
     "lockedTitle": "التحليلات تتطلب Pro",
     "lockedDescription": "قم بالترقية إلى Pro لفتح اتجاهات الخدمات ومؤشرات العملاء المتكررين وآخر النشاطات.",

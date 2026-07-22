@@ -39,6 +39,9 @@ public class AnalyticsService(
 
         var rangeStart = new DateTimeOffset(rangeFrom.ToDateTime(TimeOnly.MinValue), localOffset).ToUniversalTime();
         var rangeEnd = new DateTimeOffset(rangeTo.AddDays(1).ToDateTime(TimeOnly.MinValue), localOffset).ToUniversalTime();
+        var previousRangeStart = rangeStart.AddDays(-rangeDays);
+        var previousRangeFrom = rangeFrom.AddDays(-rangeDays);
+        var previousRangeTo = rangeFrom.AddDays(-1);
         var todayStart = new DateTimeOffset(localToday.ToDateTime(TimeOnly.MinValue), localOffset).ToUniversalTime();
         var tomorrowStart = todayStart.AddDays(1);
 
@@ -82,6 +85,20 @@ public class AnalyticsService(
         var repeatCustomers = await db.WorkOrders
             .AsNoTracking()
             .Where(w => w.CreatedAt >= rangeStart && w.CreatedAt < rangeEnd)
+            .GroupBy(w => w.CustomerId)
+            .CountAsync(group => group.Count() > 1);
+        var previousTotalBookings = await db.Bookings
+            .AsNoTracking()
+            .CountAsync(b => b.ScheduledAt >= previousRangeStart && b.ScheduledAt < rangeStart);
+        var previousCompletedJobs = await db.WorkOrders
+            .AsNoTracking()
+            .CountAsync(w => w.Stage == WorkOrderStage.Delivered && w.UpdatedAt >= previousRangeStart && w.UpdatedAt < rangeStart);
+        var previousWalkIns = await db.WorkOrders
+            .AsNoTracking()
+            .CountAsync(w => w.BookingId == null && w.CreatedAt >= previousRangeStart && w.CreatedAt < rangeStart);
+        var previousRepeatCustomers = await db.WorkOrders
+            .AsNoTracking()
+            .Where(w => w.CreatedAt >= previousRangeStart && w.CreatedAt < rangeStart)
             .GroupBy(w => w.CustomerId)
             .CountAsync(group => group.Count() > 1);
         var completedJobUpdates = await db.WorkOrders
@@ -134,6 +151,15 @@ public class AnalyticsService(
                 totalWorkOrders,
                 walkIns
             },
+            comparison = new
+            {
+                previousFrom = previousRangeFrom.ToString("yyyy-MM-dd"),
+                previousTo = previousRangeTo.ToString("yyyy-MM-dd"),
+                totalBookingsPercent = CalculatePercentChange(totalBookings, previousTotalBookings),
+                completedJobsPercent = CalculatePercentChange(completedJobs, previousCompletedJobs),
+                walkInsPercent = CalculatePercentChange(walkIns, previousWalkIns),
+                repeatCustomersPercent = CalculatePercentChange(repeatCustomers, previousRepeatCustomers)
+            },
             topServices = topServices.Select(x => new { serviceName = x.ServiceName, count = x.Count }),
             repeatCustomers,
             jobsByDay = jobsByDay.Select(x => new { date = x.Date, count = x.Count }),
@@ -148,5 +174,13 @@ public class AnalyticsService(
         };
         cache.Set(key, dto, TimeSpan.FromSeconds(60));
         return dto;
+    }
+
+    private static decimal? CalculatePercentChange(int current, int previous)
+    {
+        if (previous == 0)
+            return current == 0 ? 0 : null;
+
+        return Math.Round((current - previous) * 100m / previous, 1);
     }
 }

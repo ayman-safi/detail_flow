@@ -272,6 +272,7 @@
   "bookings": {
     "title": "Yeni randevu",
     "countOnDate": "{date} tarihinde {count} randevu",
+    "summary": { "total": "Toplam randevu", "confirmed": "Onaylandı", "pending": "Beklemede" },
     "emptyTitle": "Bu gün için randevu yok.",
     "statusUpdated": "Durum güncellendi",
     "statusUpdateFailed": "Randevu durumu güncellenemedi",
@@ -428,6 +429,8 @@
     },
     "title": "Müşteriler",
     "subtitle": "Arama yapın, ziyaret geçmişini inceleyin ve son iş emri bağlamını açın.",
+    "filter": "Müşterileri filtrele",
+    "moreActions": "Müşteri işlemleri",
     "searchPlaceholder": "Ad veya telefon ara",
     "emptyTitle": "Müşteri bulunamadı",
     "emptyDescription": "Farklı bir ad veya telefon numarası deneyin.",
@@ -436,6 +439,9 @@
     "recentWork": "Son işlemler",
     "noWorkOrders": "İş emri yok",
     "pagination": "Sayfa {page} / {total}",
+    "pageLabel": "Sayfa",
+    "paginationNavigation": "Müşteri sayfaları",
+    "showing": "{total} müşteriden {first}–{last} arası gösteriliyor",
     "drawer": {
       "totalVisits": "Toplam ziyaret",
       "noVisitsYet": "Henüz ziyaret yok",
@@ -478,6 +484,17 @@
       "apply": "Aralığı uygula",
       "invalid": "Geçerli bir başlangıç ve bitiş tarihi seçin.",
       "tooLong": "90 gün veya daha kısa bir aralık seçin."
+    },
+    "comparison": {
+      "percent": "{direction} önceki döneme göre %{value}",
+      "noPrevious": "Önceki dönem karşılaştırması yok"
+    },
+    "summary": {
+      "title": "Özet",
+      "completed": "Tamamlanan toplam iş",
+      "walkIns": "Randevusuz girişler",
+      "averagePerDay": "Günlük ortalama iş",
+      "repeatRate": "Tekrarlayan müşteri oranı"
     },
     "lockedTitle": "Analiz için Pro gerekir",
     "lockedDescription": "Hizmet trendlerini, tekrarlayan müşteri metriklerini ve son etkinlik raporlamasını açmak için Pro'ya yükseltin.",

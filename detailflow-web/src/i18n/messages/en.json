@@ -280,6 +280,7 @@
   "bookings": {
     "title": "New booking",
     "countOnDate": "{count} bookings on {date}",
+    "summary": { "total": "Total bookings", "confirmed": "Confirmed", "pending": "Pending" },
     "emptyTitle": "No bookings for this day.",
     "statusUpdated": "Status updated",
     "statusUpdateFailed": "Unable to update booking status",
@@ -436,6 +437,8 @@
     },
     "title": "Customers",
     "subtitle": "Search, inspect visit history, and open recent work-order context.",
+    "filter": "Filter customers",
+    "moreActions": "Customer actions for",
     "searchPlaceholder": "Search name or phone",
     "emptyTitle": "No customers found",
     "emptyDescription": "Try a different name or phone number.",
@@ -444,6 +447,9 @@
     "recentWork": "Recent work",
     "noWorkOrders": "No work orders",
     "pagination": "Page {page} of {total}",
+    "pageLabel": "Page",
+    "paginationNavigation": "Customer pages",
+    "showing": "Showing {first} to {last} of {total} customers",
     "drawer": {
       "totalVisits": "Total visits",
       "noVisitsYet": "No visits yet",
@@ -486,6 +492,17 @@
       "apply": "Apply range",
       "invalid": "Choose a valid start and end date.",
       "tooLong": "Choose a range of 90 days or less."
+    },
+    "comparison": {
+      "percent": "{direction} {value}% vs prior period",
+      "noPrevious": "No prior-period baseline"
+    },
+    "summary": {
+      "title": "Summary",
+      "completed": "Total jobs completed",
+      "walkIns": "Walk-ins",
+      "averagePerDay": "Avg. jobs per day",
+      "repeatRate": "Repeat customer rate"
     },
     "lockedTitle": "Analytics require Pro",
     "lockedDescription": "Upgrade to Pro to unlock service trends, repeat-customer metrics, and recent activity reporting.",

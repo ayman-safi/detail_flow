@@ -6,7 +6,7 @@ import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { AlertCircle, BadgeDollarSign, Building2, CalendarX, Check, Clock, Copy, GripVertical, ImagePlus, Languages, MessageCircle, MoreVertical, Pencil, Plus, ReceiptText, RefreshCw, Trash2, Users, Wrench, X } from 'lucide-react';
+import { AlertCircle, BadgeDollarSign, Building2, CalendarX, Check, ChevronLeft, ChevronRight, Clock, Copy, GripVertical, ImagePlus, Languages, MessageCircle, MoreVertical, Pencil, Plus, ReceiptText, RefreshCw, Trash2, Users, Wrench, X } from 'lucide-react';
 import api, { getApiErrorMessage } from '@/lib/api';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { fallbackReceiptSettings, useReceiptSettings, useTenantCurrency } from '@/hooks/useTenantCurrency';
@@ -159,11 +159,23 @@ function serializeAvailabilitySettings(settings: TenantSettings): TenantSettings
 }
 
 export default function SettingsPage() {
-  const { t } = useI18n();
+  const { isRtl, t } = useI18n();
   const user = useAuthStore((state) => state.user);
   const canManageDashboardLanguage = user?.role === 'Owner' || user?.role === 'Manager';
   const [activeTab, setActiveTab] = useState('profile');
   const tabsRef = useRef<HTMLDivElement>(null);
+  const settingsTabs = [
+    { value: 'profile', label: t('settings.tabs.profile') },
+    ...(canManageDashboardLanguage ? [{ value: 'language', label: t('settings.tabs.language') }] : []),
+    { value: 'services', label: t('settings.tabs.services') },
+    { value: 'availability', label: t('settings.tabs.availability') },
+    { value: 'receipts', label: t('settings.tabs.receipts') },
+    { value: 'staff', label: t('settings.tabs.staff') },
+    { value: 'notifications', label: t('settings.tabs.notifications') },
+  ];
+  const activeTabIndex = settingsTabs.findIndex((tab) => tab.value === activeTab);
+  const previousTab = activeTabIndex > 0 ? settingsTabs[activeTabIndex - 1] : undefined;
+  const nextTab = activeTabIndex < settingsTabs.length - 1 ? settingsTabs[activeTabIndex + 1] : undefined;
 
   useEffect(() => {
     tabsRef.current?.querySelector<HTMLElement>('[data-state="active"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
@@ -176,16 +188,36 @@ export default function SettingsPage() {
         <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-text-muted)]">{t('settings.description')}</p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div ref={tabsRef} className="-mx-4 overflow-hidden px-4 sm:mx-0 sm:px-0">
-          <TabsList aria-label={t('navigation.settings')} className="flex w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-[var(--radius-md)] p-1 sm:w-fit">
-            <TabsTrigger className="h-11 shrink-0 px-4" value="profile">{t('settings.tabs.profile')}</TabsTrigger>
-            {canManageDashboardLanguage && <TabsTrigger className="h-11 shrink-0 px-4" value="language">{t('settings.tabs.language')}</TabsTrigger>}
-            <TabsTrigger className="h-11 shrink-0 px-4" value="services">{t('settings.tabs.services')}</TabsTrigger>
-            <TabsTrigger className="h-11 shrink-0 px-4" value="availability">{t('settings.tabs.availability')}</TabsTrigger>
-            <TabsTrigger className="h-11 shrink-0 px-4" value="receipts">{t('settings.tabs.receipts')}</TabsTrigger>
-            <TabsTrigger className="h-11 shrink-0 px-4" value="staff">{t('settings.tabs.staff')}</TabsTrigger>
-            <TabsTrigger className="h-11 shrink-0 px-4" value="notifications">{t('settings.tabs.notifications')}</TabsTrigger>
-          </TabsList>
+        <div className="-mx-2 flex items-center gap-1 sm:mx-0 sm:block">
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="h-11 w-10 shrink-0 sm:hidden"
+            disabled={!previousTab}
+            onClick={() => previousTab && setActiveTab(previousTab.value)}
+            aria-label={previousTab ? `${t('common.actions.previous')}: ${previousTab.label}` : t('common.actions.previous')}
+          >
+            {isRtl ? <ChevronRight size={18} aria-hidden="true" /> : <ChevronLeft size={18} aria-hidden="true" />}
+          </Button>
+          <div ref={tabsRef} className="min-w-0 flex-1 overflow-hidden">
+            <TabsList aria-label={t('navigation.settings')} className="flex w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-[var(--radius-md)] p-1 sm:w-fit">
+              {settingsTabs.map((tab) => (
+                <TabsTrigger key={tab.value} className="h-11 shrink-0 px-4" value={tab.value}>{tab.label}</TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="icon"
+            className="h-11 w-10 shrink-0 sm:hidden"
+            disabled={!nextTab}
+            onClick={() => nextTab && setActiveTab(nextTab.value)}
+            aria-label={nextTab ? `${t('common.actions.next')}: ${nextTab.label}` : t('common.actions.next')}
+          >
+            {isRtl ? <ChevronLeft size={18} aria-hidden="true" /> : <ChevronRight size={18} aria-hidden="true" />}
+          </Button>
         </div>
         <TabsContent value="profile"><ProfileTab /></TabsContent>
         {canManageDashboardLanguage && <TabsContent value="language"><DashboardLanguageTab /></TabsContent>}

@@ -133,14 +133,14 @@ button, [role="button"], a, input, textarea, select { -webkit-tap-highlight-colo
   outline-offset: 2px;
 }
 ::selection { background: var(--color-primary-muted); color: var(--color-text); }
-html[dir="rtl"] input,
-html[dir="rtl"] textarea,
-html[dir="rtl"] select {
+html[dir="rtl"] input:not([dir]),
+html[dir="rtl"] textarea:not([dir]),
+html[dir="rtl"] select:not([dir]) {
   direction: rtl;
   text-align: right;
 }
-html[dir="rtl"] input::placeholder,
-html[dir="rtl"] textarea::placeholder {
+html[dir="rtl"] input:not([dir])::placeholder,
+html[dir="rtl"] textarea:not([dir])::placeholder {
   text-align: right;
 }
 ::-webkit-scrollbar { width: 6px; height: 6px; }

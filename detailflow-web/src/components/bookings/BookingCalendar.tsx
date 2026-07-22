@@ -23,24 +23,24 @@ export function BookingCalendar({ selectedDate, onSelect }: { selectedDate: Date
   });
 
   return (
-    <div className="flex items-center gap-2">
-      <Button variant="ghost" size="icon" aria-label={t('common.actions.previous')} onClick={() => setAnchor((date) => addDays(date, -7))}>
+    <div className="flex items-center gap-1 sm:gap-2">
+      <Button variant="ghost" size="icon" className="h-11 w-8 shrink-0 sm:h-12 sm:w-10" aria-label={t('common.actions.previous')} onClick={() => setAnchor((date) => addDays(date, -7))}>
         {isRtl ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </Button>
-      <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex min-w-0 flex-1 snap-x gap-1.5 overflow-x-auto px-0.5 py-1 [scrollbar-width:none] sm:gap-2 [&::-webkit-scrollbar]:hidden">
         {days.map((day, index) => {
           const active = format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
           const hasBookings = (indicators[index].data ?? 0) > 0;
           return (
-            <Button key={day.toISOString()} variant={active ? 'primary' : 'secondary'} className="relative h-16 min-w-16 flex-col" aria-pressed={active} aria-label={formatDate(day, { weekday: 'long', day: 'numeric', month: 'long' })} onClick={() => onSelect(day)}>
-              <span className="text-xs">{formatDate(day, { weekday: 'short' })}</span>
-              <span className="font-[var(--font-display)] text-lg">{formatDate(day, { day: 'numeric' })}</span>
-              {hasBookings && <span className="absolute bottom-1 h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />}
+            <Button key={day.toISOString()} variant={active ? 'primary' : 'secondary'} className="relative h-[72px] min-w-[60px] snap-start flex-col gap-1 rounded-[var(--radius-sm)] px-2 sm:h-[76px] sm:min-w-[70px]" aria-pressed={active} aria-label={formatDate(day, { weekday: 'long', day: 'numeric', month: 'long' })} onClick={() => onSelect(day)}>
+              <span className="text-[11px] font-medium">{formatDate(day, { weekday: 'short' })}</span>
+              <span className="font-[var(--font-display)] text-base font-medium sm:text-lg">{formatDate(day, { day: 'numeric' })}</span>
+              {hasBookings && <span className={`absolute bottom-1.5 h-1.5 w-1.5 rounded-full ${active ? 'bg-[var(--color-on-primary)]' : 'bg-[var(--color-accent)]'}`} />}
             </Button>
           );
         })}
       </div>
-      <Button variant="ghost" size="icon" aria-label={t('common.actions.next')} onClick={() => setAnchor((date) => addDays(date, 7))}>
+      <Button variant="ghost" size="icon" className="h-11 w-8 shrink-0 sm:h-12 sm:w-10" aria-label={t('common.actions.next')} onClick={() => setAnchor((date) => addDays(date, 7))}>
         {isRtl ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
       </Button>
     </div>

@@ -9,8 +9,8 @@ export function JobsChart({ data }: { data: { date: string; count: number }[] })
   const axisTick = { fill: 'var(--color-text-muted)', fontSize: 12, fontFamily: 'var(--font-body)' };
 
   return (
-    <div dir="ltr" className="h-72 min-w-0">
-      <ResponsiveContainer width="100%" height="100%">
+    <div dir="ltr" className="h-56 min-w-0 sm:h-72">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -8 }}>
           <defs>
             <linearGradient id="jobs-area" x1="0" y1="0" x2="0" y2="1">

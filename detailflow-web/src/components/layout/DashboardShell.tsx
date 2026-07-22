@@ -30,7 +30,10 @@ export function DashboardShell({
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </main>
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="left" className="w-[260px] max-w-[82vw] p-0 xl:hidden">
+        <SheetContent
+          side="left"
+          className="h-full w-[18rem] max-w-[86vw] overflow-y-auto border-0 p-0 supports-[height:100dvh]:h-dvh xl:hidden"
+        >
           <SheetTitle className="sr-only">{t('navigation.openNavigation')}</SheetTitle>
           <Sidebar mobile onNavigate={() => setMenuOpen(false)} />
         </SheetContent>

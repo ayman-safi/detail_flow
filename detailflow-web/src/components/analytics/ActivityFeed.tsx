@@ -11,21 +11,18 @@ export function ActivityFeed({ activity }: { activity: DashboardData['recentActi
   }
 
   return (
-    <div className="divide-y divide-[var(--color-border-subtle)]">
+    <div className="relative before:absolute before:bottom-4 before:start-[5px] before:top-4 before:w-px before:bg-[var(--color-border)]">
       {activity.map((item, index) => (
-        <div key={index} className="py-4 first:pt-0 last:pb-0">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div key={`${item.changedAt}-${index}`} className="relative grid gap-2 border-b border-[var(--color-border-subtle)] py-3 ps-6 last:border-0 sm:grid-cols-[minmax(230px,1.2fr)_minmax(100px,0.6fr)_minmax(150px,0.8fr)_auto] sm:items-center">
+          <span className="absolute start-0 top-[22px] h-[11px] w-[11px] rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-primary)]" />
+          <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
             <StageBadge stage={item.fromStage} />
-            <ArrowRight size={14} />
+            <ArrowRight className="rtl:rotate-180" size={14} aria-hidden="true" />
             <StageBadge stage={item.toStage} />
           </div>
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            {t('analytics.activityItem', {
-              name: item.changedByName,
-              plate: item.vehiclePlate,
-              time: formatRelativeTime(item.changedAt),
-            })}
-          </p>
+          <span className="plate text-xs text-[var(--color-text)]">{item.vehiclePlate}</span>
+          <span className="truncate text-xs text-[var(--color-text-muted)]">{item.changedByName}</span>
+          <span className="text-xs text-[var(--color-text-muted)] sm:text-end">{formatRelativeTime(item.changedAt)}</span>
         </div>
       ))}
     </div>

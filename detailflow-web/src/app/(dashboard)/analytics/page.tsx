@@ -12,6 +12,7 @@ import { StatCard } from '@/components/analytics/StatCard';
 import { JobsChart } from '@/components/analytics/JobsChart';
 import { TopServicesChart } from '@/components/analytics/TopServicesChart';
 import { ActivityFeed } from '@/components/analytics/ActivityFeed';
+import { AnalyticsSummary } from '@/components/analytics/AnalyticsSummary';
 import { PlanUpgradePanel } from '@/components/plans/PlanUpgradePanel';
 import { usePlanStatus } from '@/hooks/usePlanStatus';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -90,17 +91,20 @@ export default function AnalyticsPage() {
   const rangeLabel = `${formatDate(`${displayedRange.from}T00:00:00`, { day: 'numeric', month: 'short', year: 'numeric' })} - ${formatDate(`${displayedRange.to}T00:00:00`, { day: 'numeric', month: 'short', year: 'numeric' })}`;
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-5 p-4 sm:p-6 lg:p-8">
+    <div className="mx-auto max-w-[1600px] space-y-4 p-4 sm:p-6 lg:space-y-5 lg:p-8">
       <Card className="p-4 sm:p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <h1 className="font-[var(--font-display)] text-lg font-semibold">{t('analytics.range.title')}</h1>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-text-muted)]">{t('analytics.range.description')}</p>
-            <p className="mt-2 text-sm font-medium text-[var(--color-text-secondary)]" aria-live="polite">
-              {rangeLabel} / {t('analytics.range.days', { count: formatNumber(displayedRange.days) })}
-            </p>
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
+              <CalendarDays size={18} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="font-[var(--font-display)] text-sm font-semibold">{t('analytics.range.title')}</h1>
+              <p className="mt-1 text-sm text-[var(--color-text-secondary)]" aria-live="polite">{rangeLabel}</p>
+              <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{t('analytics.range.days', { count: formatNumber(displayedRange.days) })}</p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('analytics.range.title')}>
+          <div className="grid grid-cols-4 gap-2 sm:flex" role="group" aria-label={t('analytics.range.title')}>
             {(['7', '30', '90'] as const).map((value) => (
               <Button
                 key={value}
@@ -110,7 +114,7 @@ export default function AnalyticsPage() {
                 aria-pressed={preset === value}
                 onClick={() => selectPreset(value)}
               >
-                {t(`analytics.range.last${value}`)}
+                <span className="sm:hidden">{value}d</span><span className="hidden sm:inline">{t(`analytics.range.last${value}`)}</span>
               </Button>
             ))}
             <Button
@@ -120,7 +124,7 @@ export default function AnalyticsPage() {
               aria-pressed={preset === 'custom'}
               onClick={() => { setPreset('custom'); setRangeError(''); }}
             >
-              {t('analytics.range.custom')}
+              <span className="truncate">{t('analytics.range.custom')}</span>
             </Button>
           </div>
         </div>
@@ -141,41 +145,46 @@ export default function AnalyticsPage() {
       </Card>
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.bookings')} value={summary?.totalBookings ?? 0} subtitle={t('analytics.stats.walkIns', { count: formatNumber(summary?.walkIns ?? 0) })} icon={CalendarDays} loading={loading} />
+        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.bookings')} value={summary?.totalBookings ?? 0} subtitle={t('analytics.stats.walkIns', { count: formatNumber(summary?.walkIns ?? 0) })} icon={CalendarDays} comparison={data?.comparison?.totalBookingsPercent} loading={loading} />
         <StatCard className="p-4 sm:p-5" title={t('analytics.stats.activeVehicles')} value={summary?.activeVehicles ?? 0} subtitle={t('analytics.stats.liveSnapshot')} icon={Car} color="var(--color-accent)" loading={loading} />
-        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.completed')} value={summary?.completedJobs ?? 0} icon={CheckCircle} color="var(--color-success)" loading={loading} />
-        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.repeatCustomers')} value={data?.repeatCustomers ?? 0} icon={Users} color="var(--color-info)" loading={loading} />
+        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.completed')} value={summary?.completedJobs ?? 0} icon={CheckCircle} color="var(--color-success)" comparison={data?.comparison?.completedJobsPercent} loading={loading} />
+        <StatCard className="p-4 sm:p-5" title={t('analytics.stats.repeatCustomers')} value={data?.repeatCustomers ?? 0} icon={Users} color="var(--color-info)" comparison={data?.comparison?.repeatCustomersPercent} loading={loading} />
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,1fr)]">
-        <Card className="min-w-0 p-4 sm:p-6">
-          <div className="mb-5">
+        <Card className="min-w-0 p-4 sm:p-5">
+          <div className="mb-4">
             <h2 className="font-[var(--font-display)] font-semibold">{t('analytics.completedTrend')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('analytics.completedTrendDescription')}</p>
+            <p className="mt-1 hidden text-sm text-[var(--color-text-muted)] sm:block">{t('analytics.completedTrendDescription')}</p>
           </div>
           <JobsChart data={data?.jobsByDay ?? []} />
         </Card>
-        <Card className="min-w-0 p-4 sm:p-6">
-          <div className="mb-5">
+        <Card className="min-w-0 p-4 sm:p-5">
+          <div className="mb-4">
             <h2 className="font-[var(--font-display)] font-semibold">{t('analytics.topServices')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('analytics.topServicesDescription')}</p>
+            <p className="mt-1 hidden text-sm text-[var(--color-text-muted)] sm:block">{t('analytics.topServicesDescription')}</p>
           </div>
           <TopServicesChart data={data?.topServices ?? []} />
         </Card>
       </div>
 
-      <Card className="p-4 sm:p-6">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-[var(--font-display)] font-semibold">{t('analytics.recentActivity')}</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">{t('analytics.recentActivityDescription')}</p>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.55fr)]">
+        <Card className="min-w-0 p-4 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-[var(--font-display)] font-semibold">{t('analytics.recentActivity')}</h2>
+              <p className="mt-1 hidden text-sm text-[var(--color-text-muted)] sm:block">{t('analytics.recentActivityDescription')}</p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching} aria-label={t('analytics.refresh')}>
+              <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => refetch()} disabled={isFetching} aria-label={t('analytics.refresh')}>
-            <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
-          </Button>
-        </div>
-        <ActivityFeed activity={data?.recentActivity ?? []} />
-      </Card>
+          <ActivityFeed activity={data?.recentActivity ?? []} />
+        </Card>
+        <Card className="p-4 sm:p-5">
+          <AnalyticsSummary data={data} />
+        </Card>
+      </div>
     </div>
   );
 }

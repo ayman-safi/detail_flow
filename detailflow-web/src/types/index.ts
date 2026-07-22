@@ -141,6 +141,14 @@ export interface DashboardData {
   today: { totalBookings: number; completedJobs: number; activeVehicles: number; walkIns: number };
   range: { from: string; to: string; days: number };
   summary: { totalBookings: number; completedJobs: number; activeVehicles: number; totalWorkOrders: number; walkIns: number };
+  comparison?: {
+    previousFrom: string;
+    previousTo: string;
+    totalBookingsPercent: number | null;
+    completedJobsPercent: number | null;
+    walkInsPercent: number | null;
+    repeatCustomersPercent: number | null;
+  };
   topServices: { serviceName: string; count: number }[];
   repeatCustomers: number;
   jobsByDay: { date: string; count: number }[];

@@ -59,9 +59,9 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
   return (
     <aside
       className={cn(
-        'h-screen shrink-0 flex-col bg-[var(--color-surface)] transition-[width]',
-        isRtl ? 'border-l' : 'border-r',
-        mobile ? 'flex w-[260px] max-w-[82vw]' : 'hidden xl:flex',
+        'min-h-0 shrink-0 flex-col bg-[var(--color-surface)] transition-[width]',
+        !mobile && (isRtl ? 'border-l' : 'border-r'),
+        mobile ? 'flex h-full w-full' : 'hidden h-screen xl:flex',
         !mobile && collapsed ? 'w-16' : 'w-[220px]',
       )}
       style={{ borderColor: 'var(--color-border)' }}
@@ -69,7 +69,7 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
       <div className={cn('flex h-16 items-center px-4', mobile && 'pe-12')}>
         <Logo collapsed={mobile ? false : collapsed} />
       </div>
-      <nav className="flex-1 space-y-1 px-2">
+      <nav className={cn('space-y-1 px-2', mobile ? 'mb-auto shrink-0' : 'min-h-0 flex-1 overflow-y-auto')}>
         {navItems.map(({ href, icon: Icon, labelKey }) => {
           const active = pathname === href;
           const locked = href === '/analytics' && plan?.analyticsEnabled === false;
@@ -104,7 +104,12 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
         })}
       </nav>
       {(mobile || !collapsed) && plan && (
-        <div className="mx-3 mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3">
+        <div
+          className={cn(
+            'mx-3 mb-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/35 p-3',
+            mobile && 'mt-4',
+          )}
+        >
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-[var(--color-text-muted)]">{t('planStatus.plan')}</span>
             <span className="rounded-full bg-[var(--color-primary-muted)] px-2 py-1 text-xs font-medium text-[var(--color-primary)]">
@@ -129,7 +134,12 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
           )}
         </div>
       )}
-      <div className="border-t border-[var(--color-border)] p-3">
+      <div
+        className={cn(
+          'border-t border-[var(--color-border)] p-3',
+          mobile && 'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
+        )}
+      >
         <div className="mb-3 flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-primary-muted)] text-xs font-bold text-[var(--color-primary)]">
             {initials}
@@ -146,7 +156,7 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
         <div className={cn('flex gap-2', !mobile && collapsed && 'flex-col')}>
           <Button
             variant="ghost"
-            size="icon"
+            size={mobile ? 'md' : 'icon'}
             onClick={async () => {
               try {
                 await api.post('/auth/logout');
@@ -156,8 +166,10 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
               }
             }}
             aria-label={t('common.actions.logout')}
+            className={cn(mobile && 'w-full justify-start gap-3 text-[var(--color-text-muted)]')}
           >
             <LogOut size={16} />
+            {mobile && <span>{t('common.actions.logout')}</span>}
           </Button>
           {!mobile && (
             <Button variant="ghost" size="icon" onClick={toggle} aria-label={t('navigation.openNavigation')}>

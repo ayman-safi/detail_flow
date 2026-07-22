@@ -9,14 +9,12 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
 
   return (
     <SwitchPrimitive.Root
-      className={cn('relative inline-flex h-6 w-11 cursor-pointer items-center overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] transition data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[state=checked]:border-[var(--color-primary)] data-[state=checked]:bg-[var(--color-primary)]', className)}
+      dir={isRtl ? 'rtl' : 'ltr'}
+      className={cn('relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface-elevated)] transition-colors data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[state=checked]:border-[var(--color-primary)] data-[state=checked]:bg-[var(--color-primary)]', className)}
       {...props}
     >
       <SwitchPrimitive.Thumb
-        className={cn(
-          'block h-5 w-5 rounded-full bg-[var(--color-control-thumb)] shadow transition-transform',
-          isRtl ? '-translate-x-0.5 data-[state=checked]:-translate-x-5' : 'translate-x-0.5 data-[state=checked]:translate-x-5',
-        )}
+        className="absolute start-0.5 block h-5 w-5 rounded-full bg-[var(--color-control-thumb)] shadow transition-[inset-inline-start] data-[state=checked]:start-[calc(100%-1.375rem)]"
       />
     </SwitchPrimitive.Root>
   );

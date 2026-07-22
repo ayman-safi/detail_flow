@@ -463,6 +463,7 @@ function PhotoStory({ copy }: { copy: LandingCopy }) {
           <div className={styles.compareAfter}><span>{copy.photos.after}</span></div>
           <div className={styles.compareDivider} aria-hidden="true"><i><GripVertical /></i></div>
           <input
+            dir="ltr"
             type="range"
             min="8"
             max="92"

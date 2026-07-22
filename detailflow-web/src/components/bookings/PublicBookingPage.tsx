@@ -192,11 +192,16 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
     setFormError(null);
   };
 
+  const goToStep = (nextStep: number) => {
+    setStep(nextStep);
+    setFormError(null);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  };
+
   const goNext = () => {
     if (step === 1 && !serviceId) return setFormError(t('publicBooking.validation.service'));
     if (step === 2 && (!selectedDate || !hasValidTime)) return setFormError(t('publicBooking.validation.time'));
-    setFormError(null);
-    setStep((current) => Math.min(3, current + 1));
+    goToStep(Math.min(3, step + 1));
   };
 
   const submit = async () => {
@@ -240,7 +245,12 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
       <div className="mx-auto min-h-[100svh] w-full max-w-[1240px] bg-white shadow-[0_24px_80px_rgba(31,75,150,0.08)] lg:my-5 lg:min-h-[calc(100svh-2.5rem)] lg:rounded-[26px] lg:border lg:border-[#e8eef8]">
         <BookingHeader shop={shop} />
         <div className="border-t border-[#e8eef8] px-4 pb-28 pt-5 sm:px-8 lg:px-9 lg:pb-8 lg:pt-7">
-          <Stepper current={success ? 3 : step} complete={Boolean(success)} />
+          <Stepper
+            current={success ? 3 : step}
+            complete={Boolean(success)}
+            available={[true, Boolean(serviceId), Boolean(serviceId && selectedDate && hasValidTime)]}
+            onStepChange={goToStep}
+          />
 
           {success ? (
             <SuccessPanel result={success} onReset={() => {
@@ -299,7 +309,7 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
 
                 {formError && <p role="alert" className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</p>}
                 <div className="mt-7 hidden items-center gap-3 border-t border-[#e8eef8] pt-5 lg:flex">
-                  {step > 1 && <Button variant="ghost" className="h-12 px-5" onClick={() => { setStep(step - 1); setFormError(null); }}>{isRtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />}{t('common.actions.back')}</Button>}
+                  {step > 1 && <Button variant="ghost" className="h-12 px-5" onClick={() => goToStep(step - 1)}>{isRtl ? <ArrowRight size={18} /> : <ArrowLeft size={18} />}{t('common.actions.back')}</Button>}
                   <Button className="ms-auto h-12 min-w-56 rounded-xl bg-[#1268ee] text-base" disabled={!canContinue || isSubmitting} onClick={step === 3 ? submit : goNext}>
                     {isSubmitting && <Loader2 size={18} className="animate-spin" />}
                     {step === 3 ? t('common.actions.confirmBooking') : t('publicBooking.actions.continue')}
@@ -317,7 +327,7 @@ export function PublicBookingPage({ tenantSlug }: { tenantSlug: string }) {
       {!success && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#dce6f5] bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(20,54,110,0.12)] backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-[760px] items-center gap-3">
-            {step > 1 && <Button size="icon" variant="secondary" className="h-12 w-12 shrink-0 rounded-xl" onClick={() => { setStep(step - 1); setFormError(null); }} aria-label={t('common.actions.back')}>{isRtl ? <ArrowRight /> : <ArrowLeft />}</Button>}
+            {step > 1 && <Button size="icon" variant="secondary" className="h-12 w-12 shrink-0 rounded-xl" onClick={() => goToStep(step - 1)} aria-label={t('common.actions.back')}>{isRtl ? <ArrowRight /> : <ArrowLeft />}</Button>}
             <div className="min-w-0 flex-1">
               <p className="text-xs text-[#6d7b98]">{t('common.labels.total')}</p>
               <p className="truncate font-bold text-[#1268ee]">{selectedService ? formatCurrency(selectedService.basePrice, currency) : '—'}</p>
@@ -354,7 +364,12 @@ function BookingHeader({ shop }: { shop: PublicShop }) {
   );
 }
 
-function Stepper({ current, complete }: { current: number; complete: boolean }) {
+function Stepper({ current, complete, available, onStepChange }: {
+  current: number;
+  complete: boolean;
+  available: readonly boolean[];
+  onStepChange: (step: number) => void;
+}) {
   const { t } = useI18n();
   const labels = [t('publicBooking.steps.service'), t('publicBooking.steps.schedule'), t('publicBooking.steps.confirm')];
   return <nav aria-label={t('publicBooking.steps.label')} className="mx-auto flex max-w-[820px] items-start px-1 sm:px-5">
@@ -362,11 +377,36 @@ function Stepper({ current, complete }: { current: number; complete: boolean }) 
       const number = index + 1;
       const active = number === current;
       const done = complete || number < current;
+      const canNavigate = !complete && !active && available[index];
+      const content = <>
+        <span className={cn(
+          'grid h-8 w-8 place-items-center rounded-full border text-xs font-semibold transition sm:h-9 sm:w-9 sm:text-sm',
+          active
+            ? 'border-[#1268ee] bg-[#1268ee] text-white shadow-[0_6px_18px_rgba(18,104,238,.28)]'
+            : done
+              ? 'border-[#1268ee] bg-[#eef5ff] text-[#1268ee]'
+              : 'border-[#d8e2f1] bg-white text-[#73819b]',
+          canNavigate && 'group-hover:border-[#1268ee] group-hover:bg-[#eef5ff] group-hover:text-[#1268ee]',
+        )}>{done ? <Check size={16} /> : number}</span>
+        <span className={cn(
+          'mt-2 text-center text-[10px] leading-4 transition sm:text-xs',
+          active ? 'font-semibold text-[#1268ee]' : canNavigate ? 'text-[#526582] group-hover:text-[#1268ee]' : 'text-[#65738f]',
+        )}>{label}</span>
+      </>;
       return <div key={label} className="flex min-w-0 flex-1 items-start last:flex-none">
-        <div className="flex w-[76px] flex-col items-center sm:w-32">
-          <span className={cn('grid h-8 w-8 place-items-center rounded-full border text-xs font-semibold transition sm:h-9 sm:w-9 sm:text-sm', active ? 'border-[#1268ee] bg-[#1268ee] text-white shadow-[0_6px_18px_rgba(18,104,238,.28)]' : done ? 'border-[#1268ee] bg-[#eef5ff] text-[#1268ee]' : 'border-[#d8e2f1] bg-white text-[#73819b]')}>{done ? <Check size={16} /> : number}</span>
-          <span className={cn('mt-2 text-center text-[10px] leading-4 sm:text-xs', active ? 'font-semibold text-[#1268ee]' : 'text-[#65738f]')}>{label}</span>
-        </div>
+        {canNavigate ? (
+          <button
+            type="button"
+            className="group flex w-[76px] cursor-pointer flex-col items-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1268ee] sm:w-32"
+            onClick={() => onStepChange(number)}
+          >
+            {content}
+          </button>
+        ) : (
+          <div aria-current={active ? 'step' : undefined} className="flex w-[76px] flex-col items-center sm:w-32">
+            {content}
+          </div>
+        )}
         {number < 3 && <span className={cn('mt-4 h-px flex-1 border-t border-dashed sm:mt-[18px]', number < current || complete ? 'border-[#7fb0f7]' : 'border-[#cdd9ea]')} />}
       </div>;
     })}

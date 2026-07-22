@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { BellRing, CircleCheck, Plus, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { env } from '@/lib/env';
@@ -84,19 +84,40 @@ export default function BoardPage() {
   const activeCount = board ? ['arrived', 'washing', 'detailing', 'polishing'].flatMap((stage) => board[stage as keyof BoardData]).length : 0;
   const readyCount = board?.ready.length ?? 0;
   const todayCompleted = board?.delivered.length ?? 0;
+  const summaryItems = [
+    {
+      label: t('board.summary.active'),
+      value: activeCount,
+      icon: Wrench,
+      iconClassName: 'bg-[var(--color-primary-muted)] text-[var(--color-primary)]',
+    },
+    {
+      label: t('board.summary.ready'),
+      value: readyCount,
+      icon: BellRing,
+      iconClassName: 'bg-[var(--color-accent-muted)] text-[var(--color-accent)]',
+    },
+    {
+      label: t('board.summary.completed'),
+      value: todayCompleted,
+      icon: CircleCheck,
+      iconClassName: 'bg-[var(--color-success-muted)] text-[var(--color-success)]',
+    },
+  ];
 
   return (
     <div className="relative min-h-full pb-24">
       <div className="flex flex-col gap-3 px-4 pt-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3">
-          {[
-            [t('board.summary.active'), activeCount],
-            [t('board.summary.ready'), readyCount],
-            [t('board.summary.completed'), todayCompleted],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]/90 px-4 py-3">
-              <span className="block text-xs text-[var(--color-text-muted)]">{label}</span>
-              <span className="mt-1 block font-[var(--font-display)] text-xl font-bold">{value}</span>
+        <div className="grid w-full flex-1 grid-cols-3 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)]/90 shadow-[var(--shadow-sm)] lg:max-w-xl">
+          {summaryItems.map(({ label, value, icon: Icon, iconClassName }, index) => (
+            <div key={label} className={`min-w-0 px-3 py-2.5 sm:px-4 ${index > 0 ? 'border-s border-[var(--color-border)]' : ''}`}>
+              <div className="flex items-center gap-2">
+                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${iconClassName}`} aria-hidden="true">
+                  <Icon size={16} strokeWidth={2.25} />
+                </span>
+                <span className="font-[var(--font-display)] text-xl font-bold tabular-nums">{value}</span>
+              </div>
+              <span className="mt-1.5 block truncate text-[11px] font-medium text-[var(--color-text-muted)] sm:text-xs">{label}</span>
             </div>
           ))}
         </div>

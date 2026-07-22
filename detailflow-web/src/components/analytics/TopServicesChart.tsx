@@ -1,50 +1,28 @@
-'use client';
-
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useI18n } from '@/i18n/I18nProvider';
-import { ChartTooltip } from './ChartTooltip';
 
 export function TopServicesChart({ data }: { data: { serviceName: string; count: number }[] }) {
   const { formatNumber, t } = useI18n();
-  const chartHeight = Math.max(288, data.length * 42 + 58);
-  const formatServiceLabel = (value: string) => (value.length > 17 ? `${value.slice(0, 16)}...` : value);
-  const axisTick = { fill: 'var(--color-text-muted)', fontSize: 12, fontFamily: 'var(--font-body)' };
 
   if (!data.length) {
     return <div className="grid h-72 place-items-center text-sm text-[var(--color-text-muted)]">{t('analytics.noData')}</div>;
   }
 
+  const maximum = Math.max(...data.map((item) => item.count), 1);
+
   return (
-    <div dir="ltr" className="min-w-0" style={{ height: chartHeight }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart layout="vertical" data={data} barCategoryGap={10} margin={{ top: 4, right: 8, bottom: 8, left: 8 }}>
-          <XAxis
-            type="number"
-            allowDecimals={false}
-            axisLine={false}
-            tickLine={false}
-            tickMargin={8}
-            tick={axisTick}
-            tickFormatter={(value) => formatNumber(Number(value))}
-          />
-          <YAxis
-            type="category"
-            dataKey="serviceName"
-            width={122}
-            axisLine={false}
-            tickLine={false}
-            tickMargin={10}
-            tick={axisTick}
-            tickFormatter={formatServiceLabel}
-          />
-          <Tooltip
-            cursor={{ fill: 'var(--color-chart-cursor)' }}
-            content={<ChartTooltip />}
-            wrapperStyle={{ outline: 'none' }}
-          />
-          <Bar dataKey="count" fill="var(--color-accent)" radius={[0, 5, 5, 0]} barSize={18} minPointSize={3} isAnimationActive={false} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="space-y-5 py-2">
+      {data.map((item, index) => (
+        <div key={item.serviceName} className="grid grid-cols-[minmax(88px,0.85fr)_minmax(110px,1.4fr)_auto] items-center gap-3 text-sm">
+          <span className="truncate text-[var(--color-text-secondary)]" title={item.serviceName}>{item.serviceName}</span>
+          <span className="h-2 overflow-hidden rounded-full bg-[var(--color-surface-elevated)]">
+            <span
+              className="block h-full origin-left rounded-full bg-[var(--color-primary)] transition-[width] duration-500"
+              style={{ width: `${Math.max((item.count / maximum) * 100, 4)}%`, opacity: 1 - index * 0.1 }}
+            />
+          </span>
+          <span className="w-5 text-end font-[var(--font-mono)] text-xs text-[var(--color-text)]">{formatNumber(item.count)}</span>
+        </div>
+      ))}
     </div>
   );
 }

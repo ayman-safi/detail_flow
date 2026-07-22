@@ -173,6 +173,10 @@ public class PlanAndAnalyticsApiTests
         Assert.Equal(1, today.GetProperty("activeVehicles").GetInt32());
         Assert.Equal(1, today.GetProperty("walkIns").GetInt32());
         Assert.Equal(1, root.GetProperty("repeatCustomers").GetInt32());
+        var comparison = root.GetProperty("comparison");
+        Assert.True(comparison.TryGetProperty("previousFrom", out _));
+        Assert.True(comparison.TryGetProperty("previousTo", out _));
+        Assert.True(comparison.TryGetProperty("completedJobsPercent", out _));
         Assert.Contains(
             root.GetProperty("topServices").EnumerateArray(),
             item => item.GetProperty("serviceName").GetString() == "Exterior Wash" && item.GetProperty("count").GetInt32() == 2);

@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BookingCalendar } from '@/components/bookings/BookingCalendar';
 import { BookingEditDialog } from '@/components/bookings/BookingEditDialog';
-import { BookingForm } from '@/components/bookings/BookingForm';
 import { BookingRow } from '@/components/bookings/BookingRow';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { WorkOrderSheet } from '@/components/board/WorkOrderSheet';
@@ -34,6 +33,8 @@ export default function BookingsPage() {
     }).then((response) => response.data),
     staleTime: 60_000,
   });
+  const confirmedCount = data.filter((booking) => booking.status === 'Confirmed').length;
+  const pendingCount = data.filter((booking) => booking.status === 'Pending').length;
   const refreshBookingSurfaces = () => {
     qc.invalidateQueries({ queryKey: ['bookings'] });
     qc.invalidateQueries({ queryKey: ['board'] });
@@ -62,24 +63,49 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="grid gap-5 p-4 lg:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
       <section className="min-w-0">
-        <BookingCalendar selectedDate={selectedDate} onSelect={setSelectedDate} />
-        <Card className="mt-4 p-4">
-          <h2 className="mb-3 font-[var(--font-display)] text-lg font-semibold">{t('bookings.countOnDate', { count: data.length, date: formatDate(selectedDate, { day: 'numeric', month: 'short', year: 'numeric' }) })}</h2>
-          {data.length === 0 ? <EmptyState icon={CalendarOff} title={t('bookings.emptyTitle')} /> : data.map((booking) => (
-            <BookingRow
-              key={booking.id}
-              booking={booking}
-              onEdit={setEditingBookingId}
-              onStatusChange={changeStatus}
-              onCancel={setCancelBooking}
-              onViewWorkOrder={setSelectedWorkOrderId}
-            />
-          ))}
+        <div className="mx-auto max-w-[760px] lg:mx-0">
+          <BookingCalendar selectedDate={selectedDate} onSelect={setSelectedDate} />
+        </div>
+        <Card className="mt-4 overflow-hidden p-3 sm:p-4 lg:mt-6">
+          <div className="mb-3 flex flex-col gap-3 lg:mb-4 lg:flex-row lg:items-center lg:justify-between">
+            <h2 className="font-[var(--font-display)] text-base font-semibold sm:text-lg">
+              {t('bookings.countOnDate', { count: data.length, date: formatDate(selectedDate, { day: 'numeric', month: 'short', year: 'numeric' }) })}
+            </h2>
+            <dl className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] lg:w-[480px] lg:gap-2 lg:overflow-visible lg:border-0">
+              <div className="flex min-h-14 flex-col items-center justify-center border-e border-[var(--color-border)] px-2 lg:min-h-16 lg:rounded-[var(--radius-sm)] lg:border lg:px-4">
+                <dd className="font-[var(--font-display)] text-base font-semibold">{data.length}</dd>
+                <dt className="mt-0.5 text-center text-[11px] text-[var(--color-text-muted)] sm:text-xs">{t('bookings.summary.total')}</dt>
+              </div>
+              <div className="flex min-h-14 flex-col items-center justify-center border-e border-[var(--color-border)] px-2 lg:min-h-16 lg:rounded-[var(--radius-sm)] lg:border lg:px-4">
+                <dd className="font-[var(--font-display)] text-base font-semibold">{confirmedCount}</dd>
+                <dt className="mt-0.5 text-center text-[11px] text-[var(--color-success)] sm:text-xs">{t('bookings.summary.confirmed')}</dt>
+              </div>
+              <div className="flex min-h-14 flex-col items-center justify-center px-2 lg:min-h-16 lg:rounded-[var(--radius-sm)] lg:border lg:border-[var(--color-border)] lg:px-4">
+                <dd className="font-[var(--font-display)] text-base font-semibold">{pendingCount}</dd>
+                <dt className="mt-0.5 text-center text-[11px] text-[var(--color-warning)] sm:text-xs">{t('bookings.summary.pending')}</dt>
+              </div>
+            </dl>
+          </div>
+          {data.length === 0 ? (
+            <EmptyState icon={CalendarOff} title={t('bookings.emptyTitle')} />
+          ) : (
+            <div className="space-y-2">
+              {data.map((booking) => (
+                <BookingRow
+                  key={booking.id}
+                  booking={booking}
+                  onEdit={setEditingBookingId}
+                  onStatusChange={changeStatus}
+                  onCancel={setCancelBooking}
+                  onViewWorkOrder={setSelectedWorkOrderId}
+                />
+              ))}
+            </div>
+          )}
         </Card>
       </section>
-      <Card className="p-5"><h2 className="mb-4 font-[var(--font-display)] text-xl font-semibold">{t('bookings.title')}</h2><BookingForm initialDate={selectedDate} /></Card>
       <BookingEditDialog
         bookingId={editingBookingId}
         open={!!editingBookingId}
