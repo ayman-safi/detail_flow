@@ -2,7 +2,8 @@
 
 FROM node:24-bookworm-slim AS dependencies
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    HUSKY=0
 
 COPY package.json package-lock.json ./
 RUN npm ci

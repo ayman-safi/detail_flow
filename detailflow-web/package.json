@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "prepare": "node .husky/install.mjs",
+    "prepare": "node -e \"if (process.env.HUSKY !== '0') import('./.husky/install.mjs')\"",
     "qa:landing": "node scripts/verify-landing.mjs",
     "test:e2e:generate": "node e2e-manual/generate-suite.mjs",
     "pretest:e2e": "npm run test:e2e:generate",
