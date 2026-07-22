@@ -1,0 +1,2 @@
+cd detailflow-web
+npm run audit:prod
